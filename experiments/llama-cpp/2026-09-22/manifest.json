@@ -1,0 +1,68 @@
+{
+  "started_at": "2026-09-22T21:58:45.145478+00:00",
+  "machine": {
+    "model": "Mac17,9",
+    "chip": "Apple M5 Pro",
+    "memory_bytes": 25769803776,
+    "logical_cpus": 18,
+    "os": "macOS-26.6.2-arm64-arm-64bit-Mach-O"
+  },
+  "llama_cpp_commit": "f46bc30cb6a7f68a67e34a00061e20a4ad1eff43",
+  "model": {
+    "repo": "unsloth/Qwen3.5-2B-GGUF",
+    "revision": "f6d5376be1edb4d416d56da11e5397a961aca8ae",
+    "file": "Qwen3.5-2B-Q4_K_M.gguf",
+    "sha256": "aaf42c8b7c3cab2bf3d69c355048d4a0ee9973d48f16c731c0520ee914699223",
+    "size_bytes": 1280835840
+  },
+  "harness": "profile.cpp",
+  "threads": 6,
+  "prompt_lengths": [
+    128,
+    512,
+    2048,
+    8192
+  ],
+  "decode_steps": 32,
+  "repetitions": 3,
+  "prompt": "repeated technical paragraph; exact text/tokens saved",
+  "continuation": "teacher-forced continuation; no tokenization or sampling in phase times",
+  "warmup": "one full prompt and 8 decode steps per context; state cleared before every measured repetition",
+  "baseline_backends": [
+    "CPU",
+    "Metal"
+  ],
+  "thread_resource_policy": "run benchmarks sequentially without simultaneous builds/benchmarks",
+  "instrumentation": {
+    "patch": "sb-cpu-profile.patch",
+    "cpu_only": true,
+    "preserves_fusion": true,
+    "timing": "thread0 wall interval through existing completion barrier",
+    "outer_time_includes_trace_serialization": true,
+    "repetitions_by_prompt": {
+      "128": 2,
+      "512": 2,
+      "2048": 2,
+      "8192": 1
+    },
+    "excluded_timing_cases": [
+      {
+        "prompt_tokens": 8192,
+        "reason": "Large slowdown relative to initial baseline; later trace-disabled control also slow; cause unresolved"
+      }
+    ]
+  },
+  "effective_context_capacity": {
+    "128": 512,
+    "512": 1024,
+    "2048": 2560,
+    "8192": 8704
+  },
+  "effective_ubatch": {
+    "128": 128,
+    "512": 512,
+    "2048": 512,
+    "8192": 512
+  },
+  "validation": "Saved prefill/final-decode logits bit-identical for instrumented versus baseline CPU at all four prompt lengths; CPU/Metal differ numerically."
+}

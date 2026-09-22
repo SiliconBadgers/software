@@ -1,6 +1,6 @@
-# ml-models/research
+# Software research
 
-Literature notes, surveys, analytical studies and comparisons relevant to the charter. Explain the question, sources, interpretation and remaining uncertainty in a form that suits the work.
+Workload, quantization, kernel-mapping and runtime studies belong here. Explain the question, sources, interpretation and remaining uncertainty. Connect a study to an architectural or software decision where useful, and distinguish published claims from results reproduced by this team.
 
 This directory currently contains this structure note. Members can add material when their chosen work needs it.
 

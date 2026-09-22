@@ -1,0 +1,90 @@
+[
+  {
+    "prompt_tokens": 128,
+    "phase": "prefill",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 0.6119270324707031,
+    "mean_abs_difference": 0.10100872814655304,
+    "cpu_top_token": 9064,
+    "metal_top_token": 9064,
+    "top10_overlap": 10
+  },
+  {
+    "prompt_tokens": 128,
+    "phase": "decode",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 0.6958401203155518,
+    "mean_abs_difference": 0.10988601297140121,
+    "cpu_top_token": 7896,
+    "metal_top_token": 7896,
+    "top10_overlap": 9
+  },
+  {
+    "prompt_tokens": 512,
+    "phase": "prefill",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 0.5433722734451294,
+    "mean_abs_difference": 0.08872466534376144,
+    "cpu_top_token": 11,
+    "metal_top_token": 11,
+    "top10_overlap": 9
+  },
+  {
+    "prompt_tokens": 512,
+    "phase": "decode",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 0.7939701080322266,
+    "mean_abs_difference": 0.13006910681724548,
+    "cpu_top_token": 11036,
+    "metal_top_token": 11036,
+    "top10_overlap": 9
+  },
+  {
+    "prompt_tokens": 2048,
+    "phase": "prefill",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 0.6556423902511597,
+    "mean_abs_difference": 0.09719202667474747,
+    "cpu_top_token": 279,
+    "metal_top_token": 279,
+    "top10_overlap": 10
+  },
+  {
+    "prompt_tokens": 2048,
+    "phase": "decode",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 0.5877020359039307,
+    "mean_abs_difference": 0.09565448015928268,
+    "cpu_top_token": 20934,
+    "metal_top_token": 20934,
+    "top10_overlap": 10
+  },
+  {
+    "prompt_tokens": 8192,
+    "phase": "prefill",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 0.7719182968139648,
+    "mean_abs_difference": 0.10238197445869446,
+    "cpu_top_token": 61911,
+    "metal_top_token": 61911,
+    "top10_overlap": 9
+  },
+  {
+    "prompt_tokens": 8192,
+    "phase": "decode",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 0.7636046409606934,
+    "mean_abs_difference": 0.14859697222709656,
+    "cpu_top_token": 1558,
+    "metal_top_token": 1558,
+    "top10_overlap": 10
+  }
+]

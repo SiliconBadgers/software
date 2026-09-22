@@ -1,52 +1,61 @@
-# ML models, workloads and numerical methods: team charter
+# Software: team charter
 
 ## Purpose
 
-Connect the accelerator project to meaningful machine-learning workloads and trustworthy numerical understanding. The team studies algorithms, representations and workload behavior, and develops references that help other teams reason about both correctness and usefulness.
+Make the accelerator useful through measured workloads, trustworthy numerical behavior and an executable software path. Software owns llama.cpp profiling, model/workload references, operation mapping, and accelerator backend/runtime/host integration.
 
-A correct hardware result is meaningful only relative to a well-understood computation. This team keeps the project grounded in algorithmic intent, finite-precision behavior and the characteristics of the workloads it chooses to support. Modeling can range from mathematical explanation to executable references and empirical workload studies.
+Use evidence to help choose hardware boundaries. The current functional diagram does not establish that every box needs a dedicated engine. Software and the hardware teams compare candidates using workload behavior, data movement, numerical requirements and implementation cost.
 
 ## Responsibilities
 
-### Workload understanding
+### Profiling and workloads
 
-Investigate relevant algorithms, model structures, operator mixes, dimensions and data behavior. Explain which characteristics matter to architectural and implementation choices.
+Maintain reproducible llama.cpp workloads and prefill/decode measurements. Capture operation shapes, formats, fusion boundaries, state and data behavior. Separate backend-specific timing from arithmetic counts, logical tensor sizes and measured traffic; explain what each result can support.
 
 ### Numerical reasoning
 
-Study representations, quantization, accumulation, rounding and error behavior as appropriate to the selected workloads. Distinguish mathematical intent, chosen finite-precision semantics and observed model quality.
+Study quantization, accumulation, rounding, state precision and model-quality effects. Distinguish mathematical intent, chosen finite-precision semantics and observed behavior. A mixed-format GGUF benchmark does not validate a different hardware encoding.
 
 ### Reference behavior
 
-Develop and maintain understandable reference computations and representative inputs that other teams can use. State what a reference establishes, its assumptions and the conditions it does not cover.
+Develop understandable reference computations, representative inputs and intermediate/output/state comparisons with Verification. State the scope of each reference and whether a comparison expects exact agreement, numerical tolerance or task-quality equivalence.
+
+### Operation mapping and integration
+
+Investigate how llama.cpp/ggml operations map to candidate accelerator kernels, including tiling, layouts, fusion and host fallback. Develop backend/runtime software for buffer handling, submission, completion and errors as shared interfaces become stable. Include transfers, packing and dispatch when evaluating an offload benefit. Firmware software can be part of this path; CPU, bus and reset hardware integration remains a shared boundary with Control and the system designers.
 
 ### Reproducible knowledge
 
-Preserve methods, provenance, experiment context and numerical explanations so results can be understood and revisited. Make model and workload knowledge accessible to hardware and software contributors.
+Preserve methods, source/model provenance, raw evidence and numerical explanations so results can be revisited. Share useful traces and findings before a complete study is finished. Follow the [Git AI setup](docs/git-ai.md) when contributing with AI assistance.
 
 ## Boundaries and shared decisions
 
-ml-models owns numerical and workload references. Architecture uses that knowledge to establish shared system semantics; compute implements arithmetic; ml-compiler maps algorithms to supported execution; verification uses references alongside independent reasoning. A model implementation is evidence with assumptions, not an automatic definition of correct hardware behavior. Timing-oriented architectural modeling belongs with architecture unless a specific study is jointly owned.
+Software owns software execution mapping directly; it does not depend on a separate compiler team. Custom CPU or ISA development is outside this charter. The working approach uses ordinary CPU instructions to interact with the accelerator through agreed software/device interfaces.
+
+Compute owns candidate arithmetic organizations, Memory owns storage/transfer design, Control owns device sequencing, and Physical Design contributes implementation constraints. Software informs these choices and implements its side of the agreed contracts. Verification retains independent reasoning and checks. CPU profiles alone do not determine accelerator area, bandwidth, throughput or the final division of compute units.
+
+All teams can start from the existing shapes, references and proposed diagram. Use provisional parameters for unresolved details, exchange incremental evidence and implement stable pieces in parallel. Discuss a shared contract change before depending on it across repositories.
 
 ## Member autonomy
 
-Members can choose algorithm or workload studies, quantization experiments, reference implementations, numerical comparisons, dataset characterization or teaching material. Methods and frameworks are selected by the team as needed. Changes that redefine expected numerical behavior or the workload used for shared claims are discussed with the affected teams. The existing MAC reference does not set the scope of the team’s research.
+Members can choose profiling, workload studies, quantization experiments, references, kernel/runtime implementation, numerical comparisons or teaching material. Methods are selected to answer the question. Changes that redefine expected numerical behavior or workloads used for shared claims are discussed with affected teams. The existing MAC example does not set the team's numerical or architectural scope.
 
 ## Collaboration
 
 | Partners | Shared concerns |
 |---|---|
-| architecture and ml-compiler | Share workload structure, representation choices and numerical expectations that inform capability and mapping decisions. |
-| rtl-compute and rtl-memory | Explain operation semantics and data characteristics that matter for datapath and storage design. |
-| verification and accelerator | Provide references and representative cases, interpret discrepancies and clarify the limits of system-level correctness or quality claims. |
+| Compute 1 and Compute 2 | Compare resource sharing, specialization and kernel boundaries against actual shapes, formats and execution behavior. |
+| Memory Control and Top-Level Control | Agree layouts, lifetimes, transfers, submission/completion and dependency handling; estimate integration overhead. |
+| Verification | Share references and fixtures, investigate discrepancies, and agree numerical/state acceptance criteria. |
+| Architecture, Physical Design and system integration | Reconcile workload goals, software requirements, physical constraints and complete-system behavior. |
 
 ## Possible directions
 
-Members might study a model family, compare numerical representations, investigate sensitivity to quantization, explain a reference operator, capture a representative workload or improve reproducibility. Small studies with clear assumptions can be useful without requiring large-model training or infrastructure.
+The current priority is extending the completed [llama.cpp baseline](experiments/llama-cpp/2026-09-22/REPORT.md). [Next investigations](docs/profiling-next-steps.md) describe useful directions, not personal assignments or a fixed architecture. Small, well-scoped studies can be valuable without large-model training or new infrastructure.
 
 ## What progress means
 
-Progress means algorithmic intent and approximation choices become clearer, references become more trustworthy, and the project can explain why its selected computations matter. A negative numerical result or a clarified reference assumption can materially improve the design.
+Progress means the project makes better-supported compute and interface choices, numerical references become more trustworthy, and the software/device path becomes more useful and reproducible. A failed offload experiment or a negative numerical result can improve the design by ruling out an expensive mistake.
 
 Leads help members interpret this purpose, find collaborators, access resources
 and share what they learn. Members choose their questions and contributions.
