@@ -1,0 +1,77 @@
+experiments/llama-cpp/2026-09-22/analyze.py
+  s_a4fdefbacc4ddc::t_2bebfc7206af86 2-21
+  s_a4fdefbacc4ddc::t_dfe08ec9f6d298 1
+experiments/llama-cpp/2026-09-22/.gitignore
+  s_a4fdefbacc4ddc::t_2bebfc7206af86 1-5
+fixtures/README.md
+  s_a4fdefbacc4ddc::t_2bebfc7206af86 1,3-5
+experiments/llama-cpp/2026-09-22/analyze_ops.py
+  s_a4fdefbacc4ddc::t_2bebfc7206af86 2-46
+  s_a4fdefbacc4ddc::t_3077829fdb8673 1
+experiments/llama-cpp/2026-09-22/requirements.txt
+  s_a4fdefbacc4ddc::t_2bebfc7206af86 1-4
+tests/README.md
+  s_a4fdefbacc4ddc::t_2bebfc7206af86 1,3,5-7
+scripts/check-git-ai.py
+  s_a4fdefbacc4ddc::t_2bebfc7206af86 1-75
+SETUP.md
+  s_a4fdefbacc4ddc::t_2bebfc7206af86 1,3-13,20,30-36,38
+research/README.md
+  s_a4fdefbacc4ddc::t_2bebfc7206af86 1,3
+docs/git-ai.md
+  s_a4fdefbacc4ddc::t_2bebfc7206af86 1-81
+experiments/llama-cpp/2026-09-22/REPORT.md
+  s_a4fdefbacc4ddc::t_2bebfc7206af86 60-104
+  s_a4fdefbacc4ddc::t_6e17290f391b28 57-59
+experiments/llama-cpp/2026-09-22/README.md
+  s_a4fdefbacc4ddc::t_2bebfc7206af86 3-83
+  s_a4fdefbacc4ddc::t_6e143723646747 1-2
+AGENTS.md
+  s_a4fdefbacc4ddc::t_2bebfc7206af86 1-22
+experiments/llama-cpp/2026-09-22/reproduce.py
+  s_a4fdefbacc4ddc::t_2bebfc7206af86 1-227
+experiments/llama-cpp/2026-09-22/result_io.py
+  s_a4fdefbacc4ddc::t_2bebfc7206af86 1-65
+experiments/llama-cpp/2026-09-22/plot_results.py
+  s_a4fdefbacc4ddc::t_2bebfc7206af86 8-60
+  s_a4fdefbacc4ddc::t_17cd5ec9c1bb2e 5-7
+.github/workflows/git-ai.yaml
+  s_a4fdefbacc4ddc::t_2bebfc7206af86 1-30
+experiments/llama-cpp/2026-09-22/CPU-PROFILER-METHODOLOGY.md
+  s_a4fdefbacc4ddc::t_2bebfc7206af86 7-23
+  s_a4fdefbacc4ddc::t_0913d0dbc95cb5 4-6
+  s_a4fdefbacc4ddc::t_5ed6e5ca371c02 24-26
+  s_a4fdefbacc4ddc::t_28fca78f23d416 1-3,27-35
+experiments/llama-cpp/2026-09-22/validate_outputs.py
+  s_a4fdefbacc4ddc::t_2bebfc7206af86 1-61
+README.md
+  s_a4fdefbacc4ddc::t_2bebfc7206af86 1,3,5,7-10,12,14,16-18,24-28,33,35,37
+docs/README.md
+  s_a4fdefbacc4ddc::t_2bebfc7206af86 1,3,5-7
+CHARTER.md
+  s_a4fdefbacc4ddc::t_2bebfc7206af86 1,5,7,11,13,17,21-25,29,33-37,41,47-50,54,58
+scripts/setup-git-ai.sh
+  s_a4fdefbacc4ddc::t_2bebfc7206af86 1-22
+OBJECTIVES.md
+  s_a4fdefbacc4ddc::t_2bebfc7206af86 1,10,12,14,28-33,36
+experiments/README.md
+  s_a4fdefbacc4ddc::t_2bebfc7206af86 1,3,5-7
+docs/profiling-next-steps.md
+  s_a4fdefbacc4ddc::t_2bebfc7206af86 1-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cc846ec22c16fa27abe60dff099bc725abe80b22",
+  "prompts": {},
+  "sessions": {
+    "s_a4fdefbacc4ddc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0c6c2-231a-7a30-bbf3-f68a9d08902d",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "abhinavnandwani <abhu.srt@gmail.com>"
+    }
+  }
+}
