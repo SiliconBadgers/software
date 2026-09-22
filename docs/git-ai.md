@@ -73,9 +73,13 @@ notes update before retrying. Keep the note records when rewriting commits.
 
 The [Git AI workflow](../.github/workflows/git-ai.yaml) preserves attribution
 through GitHub merges. It uses the official CLI workflow, with a pinned,
-checksum-verified installer and `contents: write` for notes. It becomes active
-when merged; this initial change has only been verified locally. It does not
-create missing workstation history or reject every untracked contribution.
+checksum-verified installer and `contents: write` for notes. Its
+[first run](https://github.com/SiliconBadgers/software/actions/runs/35798778912)
+passed after the initial normal merge on September 22, 2026. The initial
+Software commit retains 1,000 accepted Codex lines; 16,976 imported lines remain
+untracked. This verifies capture and publication, not a separate squash/rebase
+test. The workflow does not create missing workstation history or reject every
+untracked contribution.
 
 References: [Codex integration](https://usegitai.com/docs/agents/codex) and
 [GitHub workflow](https://usegitai.com/docs/team-usage/ci-workflows).
