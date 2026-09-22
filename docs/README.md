@@ -1,8 +1,10 @@
-# ml-models/docs
+# Software design and contribution guides
 
-Design explanations, proposals, reviews, decisions and learning material. Let the content evolve with the team’s questions; link research and experiment evidence where useful.
+Use this directory for backend/runtime design, operation mapping, shared-interface proposals, decisions and learning material. Link the measurements or references that inform a proposal, and mark unresolved assumptions.
 
-This directory currently contains this structure note. Members can add material when their chosen work needs it.
+- [Profiling next steps](profiling-next-steps.md): extend the completed baseline and support parallel hardware investigations.
+- [Git AI](git-ai.md): contribution provenance setup.
+- [Profiling findings](../experiments/llama-cpp/2026-09-22/REPORT.md) and [reproduction](../experiments/llama-cpp/2026-09-22/README.md).
 
 This is a suggested home for work supporting the [charter](../CHARTER.md) and
 [objectives](../OBJECTIVES.md). The team can reorganize or extend it as its work
