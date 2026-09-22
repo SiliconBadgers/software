@@ -1,5 +1,9 @@
 # Software
 
+## Start here: current investigation packet
+
+Read the [starting guide](docs/START-HERE.md) for the current diagram, source evidence, parallel investigations and first useful outputs.
+
 Software connects llama.cpp workloads to the accelerator: profiling execution, understanding numerical behavior, mapping operations to candidate hardware, and developing the backend, runtime and host integration. Workload evidence helps determine the compute boundaries; the proposed block diagram is a starting hypothesis.
 
 ## Start here
