@@ -1,85 +1,114 @@
-# Git AI and Codex
+# AI setup before editing or committing
 
-Git AI records AI line attribution in Git notes. Codex's native hooks capture
-edits; AGENTS.md only tells contributors how to use the setup. Each contributor
-needs a local installation. This repository does not enforce installation on
-every organization member or prove that an unattributed change was human-written.
+Every contributor must activate this clone's commit guard. For AI-assisted
+work, configure capture **before the first edit**, not just before the commit.
+This rollout checks the Codex integration with Git AI 1.7.5. Have other agents'
+capture setup reviewed before using them here.
 
-## Install once per machine
+## First setup
 
-From a normal macOS or Linux terminal with Bash, curl, Git and Python 3.11+:
+Use a normal macOS/Linux terminal with Git, Bash, curl and Python 3.11+:
 
 ```sh
 bash scripts/setup-git-ai.sh
-# Restart Codex so the newly installed hooks load.
+# Reopen the terminal and restart Codex so its hooks load.
 python3 scripts/check-git-ai.py
 ```
 
-The script checks the official v1.7.5 installer's SHA256 before running it; that
-installer also checks the platform binary. It modifies user-level Git/agent
-configuration, installs hooks for supported agents it detects, and updates the
-shell PATH. It is not limited to this repository or to Codex. Review the script
-before running it. Windows users should use the
-[official installation instructions](https://usegitai.com/docs/agents/codex).
+Review the script first. It verifies the pinned official installer's checksum,
+installs user-level Git AI and hooks for detected supported agents, and activates
+this clone's tracked pre-commit guard. It can change shell PATH and agent settings
+outside this repo. It refuses to replace existing repository hooks. If it finds
+a conflict, preserve those hooks and ask the maintainer to compose them.
 
-Our setup selects `prompt_storage local` and disables OSS telemetry. Prompt
-content stays in the local Git AI store; attribution metadata can travel with
-the repository's `refs/notes/ai`. No Git AI cloud account or team service is
-required. Do not put secrets into prompts or commits.
+If this machine already has the supported setup, each additional clone only needs:
 
-The installer enables Codex hooks and registers `PreToolUse`, `PostToolUse` and
-`Stop` commands invoking `git-ai checkpoint codex --hook-input stdin`. If a
-restricted agent process cannot reach the daemon, check from a normal terminal
-with `git-ai bg status` and `git-ai bg start`. Do not treat a sandbox failure as
-proof that hooks are working, and do not disable the sandbox as a routine fix.
+```sh
+python3 scripts/install-repo-hooks.py
+python3 scripts/check-git-ai.py
+```
 
-## Verify capture, not just configuration
+Cloning does not activate Git hooks. The installer configures this clone locally;
+linked worktrees share its configuration. Windows users should follow the
+[official Codex integration](https://usegitai.com/docs/agents/codex) and use a
+compatible terminal for the repository scripts. This guard has been exercised
+on macOS and its tests also run on Linux CI.
 
-Use a disposable Git repository with an initial commit. Open a **fresh** Codex
-session there and ask it to create a small file using its normal editing tool.
-Before committing, inspect `git-ai status --json`. Then commit and run:
+Our settings keep prompt content in local storage and disable OSS telemetry.
+Git notes carry attribution metadata. No paid Git AI service is required. Do not
+enable prompt sharing for these public repos. Repository-specific privacy or
+capture overrides need review; the checker does not guess their precedence.
+
+## Prove capture once after installation or a tooling change
+
+Use a disposable repo with an initial commit. Open a **fresh Codex session**
+there and have it create a small file through its normal editing tool. Inspect
+`git-ai status --json`: expect the generated lines under AI additions and the
+Codex tool/model breakdown. Commit, then check:
 
 ```sh
 git-ai await --timeout 30
 git-ai stats HEAD --json
 ```
 
-Expect the generated lines to appear under `ai_additions` / `ai_accepted` and
-the Codex tool/model breakdown. Configuration checks alone cannot establish this.
+The accepted AI lines and tool/model must survive the commit. The setup check
+only validates configuration, a reachable daemon and readable attribution state.
+It cannot prove that a particular editor captured its edits. A session that was
+open before installation must be restarted. Do not reconstruct old changes as
+though they were captured live.
 
-The initial setup was verified on September 22, 2026 with Git AI 1.7.5 and Codex
-CLI 0.155.1 on macOS: a fresh Codex session generated six lines, and the commit
-retained six accepted AI lines with a `codex::gpt-6-astra` breakdown. A user
-LaunchAgent keeps this machine's local daemon alive across desktop tool sessions.
-The current desktop session predates hook installation; new packaging edits in
-that session use explicit Git AI agent checkpoints. Imported profiling artifacts
-predate setup and are not retrospectively claimed as live-captured authorship.
+## Each contribution
 
-## Commits and GitHub
+1. Before AI edits, run `python3 scripts/check-git-ai.py`. If it fails, fix setup
+   before continuing. For a sandbox/daemon problem, inspect `git-ai bg status`
+   from a normal terminal; do not routinely disable the sandbox.
+2. Review and test the changes, stage only intended files, and inspect
+   `git-ai status --json`. If known AI work has no attribution, stop and report
+   the gap. Do not relabel it as human work.
+3. Commit. The installed pre-commit hook blocks a missing/disabled setup or an
+   unavailable service. For Codex-authored work, include this exact trailer:
 
-Use ordinary Git commands. Check attribution after committing and ensure notes
-arrive on the remote, along with the branch. For example:
+   ```text
+   Co-authored-by: Codex <noreply@openai.com>
+   ```
 
-```sh
-git-ai await --timeout 30
-git-ai stats HEAD --json
-git ls-remote origin refs/notes/ai
-# If automatic synchronization did not publish the notes:
-git push origin refs/notes/ai
-```
+   Keep the human Git author. This trailer is the visible GitHub co-author
+   credit; it is separate from Git AI's line attribution. Do not add it to
+   human-only work. Other agents should receive their own accurate disclosure.
+4. Check `git-ai stats HEAD --json`. For a merge commit, also inspect
+   `git notes --ref=ai show HEAD`: Git AI 1.7.5 returned zero aggregate stats for
+   our scaffold merge commits even though their notes contained captured line
+   ranges and Codex session/model metadata. Confirm the changed files and lines
+   are present in the note; a zero summary alone is not capture proof or proof
+   of human authorship. Investigate a missing note before publishing AI work.
+   Push the branch and verify notes publication:
 
-Do not force-push notes over another contributor's notes. Resolve a rejected
-notes update before retrying. Keep the note records when rewriting commits.
+   ```sh
+   git-ai await --timeout 30
+   git-ai fetch-notes origin --json
+   git push origin refs/notes/ai
+   git ls-remote origin refs/notes/ai
+   ```
 
-The [Git AI workflow](../.github/workflows/git-ai.yaml) preserves attribution
-through GitHub merges. It uses the official CLI workflow, with a pinned,
-checksum-verified installer and `contents: write` for notes. Its
-[first run](https://github.com/SiliconBadgers/software/actions/runs/35798778912)
-passed after the initial normal merge on September 22, 2026. The initial
-Software commit retains 1,000 accepted Codex lines; 16,976 imported lines remain
-untracked. This verifies capture and publication, not a separate squash/rebase
-test. The workflow does not create missing workstation history or reject every
-untracked contribution.
+   An up-to-date notes push is fine. If it is rejected, reconcile with
+   `git-ai fetch-notes origin` and retry. Never force-push over other people's
+   notes. A retained `last_error` in daemon status can describe an older sync
+   failure, so the setup check reports it separately from current service health.
+   Do not claim successful publication until the push succeeds.
+5. Open a PR linked to the issue, with validation and any attribution gaps.
 
-References: [Codex integration](https://usegitai.com/docs/agents/codex) and
-[GitHub workflow](https://usegitai.com/docs/team-usage/ci-workflows).
+## What is enforced
+
+`AGENTS.md` tells Codex what to do. It does not install anything. The local hook
+blocks commits **after this clone is bootstrapped**, but Git can bypass local
+hooks. Do not use `--no-verify` to hide a setup failure. The Git AI merge workflow
+preserves notes across supported GitHub merge operations; it cannot recreate
+capture that never happened. Human review is still needed for disclosure and
+meaningful validation. CI does not prove that untracked lines were human-written.
+
+Main requires one approval from the code owner, `@abhinavnandwani`. Admin bypass
+is enabled as requested. Work on branches and use PRs for review.
+
+References: [Codex hooks](https://usegitai.com/docs/agents/codex),
+[Git AI merge workflow](https://usegitai.com/docs/team-usage/ci-workflows),
+[AGENTS.md](https://learn.chatgpt.com/docs/agent-configuration/agents-md).
