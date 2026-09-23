@@ -14,6 +14,15 @@ Use llama.cpp profiling and numerical evidence to guide compute-unit boundaries,
   `git-ai stats HEAD --json`. Include `Co-authored-by: Codex <noreply@openai.com>`
   for Codex-authored changes. Preserve the human author and publish Git AI notes
   as described in docs/git-ai.md without force-pushing them.
+- Record every exact tool/model ID used in this contribution, including model
+  switches and subagents. Read the session/tool metadata; never infer a model
+  from the editor name or invent a backend snapshot behind an alias.
+- Include one `AI-Model: tool=reported-model-id` commit trailer per model, in
+  addition to the co-author credit. For this session use its actual recorded ID,
+  not a copied example. Use `AI-Model: none` only for entirely human work.
+- Fill the PR model table with tool, exact reported model ID, use/scope and
+  evidence source. Declare uncaptured research/review or pasted output too.
+  If unavailable, write `unknown` with the reason; do not hide the capture gap.
 - Keep prompt storage local. Do not commit secrets, licensed collateral, model
   weights or generated build/simulation databases.
 - Use a branch and PR for @abhinavnandwani's review. Keep the issue's technical

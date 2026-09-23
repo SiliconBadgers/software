@@ -1,0 +1,30 @@
+name: Model attribution
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  model-attribution:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Fetch available attribution notes
+        run: |
+          if git ls-remote --exit-code origin refs/notes/ai >/dev/null; then
+            git fetch origin refs/notes/ai:refs/notes/ai
+          else
+            echo '::warning::Git AI notes are unavailable. The report will identify missing captured metadata.'
+          fi
+      - name: Report recorded models and contributor declarations
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: python3 scripts/model-attribution.py --base "$BASE_SHA" --head "$HEAD_SHA" --output "$GITHUB_STEP_SUMMARY"
