@@ -75,7 +75,13 @@ though they were captured live.
    Keep the human Git author. This trailer is the visible GitHub co-author
    credit; it is separate from Git AI's line attribution. Do not add it to
    human-only work. Other agents should receive their own accurate disclosure.
-4. Check `git-ai stats HEAD --json`, push the branch, and verify notes publication:
+4. Check `git-ai stats HEAD --json`. For a merge commit, also inspect
+   `git notes --ref=ai show HEAD`: Git AI 1.7.5 returned zero aggregate stats for
+   our scaffold merge commits even though their notes contained captured line
+   ranges and Codex session/model metadata. Confirm the changed files and lines
+   are present in the note; a zero summary alone is not capture proof or proof
+   of human authorship. Investigate a missing note before publishing AI work.
+   Push the branch and verify notes publication:
 
    ```sh
    git-ai await --timeout 30
