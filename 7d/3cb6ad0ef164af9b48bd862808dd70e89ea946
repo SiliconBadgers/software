@@ -1,0 +1,51 @@
+research/compute-mapping/README.md
+  s_a4fdefbacc4ddc::t_5f9362728f2c63 1-5
+scripts/install-repo-hooks.py
+  s_a4fdefbacc4ddc::t_5f9362728f2c63 1-38
+docs/START-HERE.md
+  s_a4fdefbacc4ddc::t_5f9362728f2c63 1,3,5,7,9-12,14,16-17,19,21-24,26,28,30-32,34
+tests/contributor/test_commit_guard.py
+  s_a4fdefbacc4ddc::t_5f9362728f2c63 1-159
+experiments/llama-cpp/README.md
+  s_a4fdefbacc4ddc::t_5f9362728f2c63 1-5
+AGENTS.md
+  s_a4fdefbacc4ddc::t_5f9362728f2c63 1,3,5-34
+.github/workflows/contributor-checks.yaml
+  s_a4fdefbacc4ddc::t_5f9362728f2c63 1-20
+.gitignore
+  s_a4fdefbacc4ddc::t_5f9362728f2c63 6-9
+CHARTER.md
+  s_a4fdefbacc4ddc::t_5f9362728f2c63 3-6
+.github/pull_request_template.md
+  s_a4fdefbacc4ddc::t_5f9362728f2c63 1,3,5,7-8,10,12-14,16
+.githooks/pre-commit
+  s_a4fdefbacc4ddc::t_5f9362728f2c63 1-4
+docs/git-ai.md
+  s_a4fdefbacc4ddc::t_5f9362728f2c63 1,3-6,8,10,14,18-22,24,27-28,31-35,37-40,42,44-47,54-108
+scripts/check-git-ai.py
+  s_a4fdefbacc4ddc::t_5f9362728f2c63 2,11-50,56-72,74,76-84,86-87,89-104,106,110-111
+scripts/setup-git-ai.sh
+  s_a4fdefbacc4ddc::t_5f9362728f2c63 2,4-7,12,23-27
+CONTRIBUTING.md
+  s_a4fdefbacc4ddc::t_5f9362728f2c63 1-36
+README.md
+  s_a4fdefbacc4ddc::t_5f9362728f2c63 1,3,7-12,14,16,22-23,25,27,29,31-33
+.github/CODEOWNERS
+  s_a4fdefbacc4ddc::t_dd4bfa27ac0e61 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7d3cb6ad0ef164af9b48bd862808dd70e89ea946",
+  "prompts": {},
+  "sessions": {
+    "s_a4fdefbacc4ddc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0c6c2-231a-7a30-bbf3-f68a9d08902d",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "abhinavnandwani <abhu.srt@gmail.com>"
+    }
+  }
+}
