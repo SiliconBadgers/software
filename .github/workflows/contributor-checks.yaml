@@ -1,0 +1,20 @@
+name: Contributor setup checks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  contributor-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check local guard behavior
+        run: python3 -m unittest discover -s tests/contributor -v
+      - name: Check shell scripts
+        run: |
+          bash -n scripts/setup-git-ai.sh
+          sh -n .githooks/pre-commit

@@ -1,49 +1,34 @@
-# Software starting material
+# Software profiling and runtime evidence: current work
 
-September 22, 2026. Initial investigations for team discussion; no personal assignments or deadlines.
+Use llama.cpp profiling and numerical evidence to guide compute-unit boundaries, shared resources and host/device work. Software also owns operation mapping, backend/runtime and host integration.
 
-## Shared starting points
+## Assignment
 
-- [Editable architecture diagram](https://github.com/SiliconBadgers/architecture/blob/main/docs/accelerator-diagram.md) and [candidate boundaries](https://github.com/SiliconBadgers/architecture/blob/main/contracts/accelerator-boundaries.md).
-- [Workload cases and source shapes](https://github.com/SiliconBadgers/architecture/blob/main/docs/workload-cases.md).
-- [Measured llama.cpp report](https://github.com/SiliconBadgers/software/blob/main/experiments/llama-cpp/2026-09-22/REPORT.md) and [reproduction procedure](https://github.com/SiliconBadgers/software/blob/main/experiments/llama-cpp/2026-09-22/README.md).
-- [Parallel team investigations](https://github.com/SiliconBadgers/planning/blob/main/docs/team-start.md).
+- [Extend llama.cpp profiling and recommend compute boundaries](https://github.com/SiliconBadgers/software/issues/3)
 
-The diagram and engine split are proposals. Start from available shapes and
-reference cases now; use explicit parameters or stubs where decisions remain
-open. Software's broader profiling study is not a prerequisite. Preserve the
-source revision, assumptions, commands and limits of each result. Members and
-leads can choose a different investigation that resolves a relevant uncertainty.
+1. Reproduce and read the recorded 2026-09-22 baseline, report and CPU profiler methodology before extending it. Keep recorded results unchanged.
+2. Extend representative workloads and continuations with prefill and decode separated. Capture shapes, formats/layouts, fusion/dependency chains, buffer/state lifetimes and operation timing.
+3. Compare candidate offload and shared-compute boundaries, including packing, transfer, synchronization, dispatch and host fallback costs. Retain numerical-output and profiler-overhead checks.
+4. Publish reproducible procedures, code, annotated traces and an evidence-backed recommendation. Share intermediate results with both independent Compute teams, Memory and Control as they become useful.
 
+## Starting evidence
 
-## Evidence already available
+- [Central diagram](https://github.com/SiliconBadgers/architecture/blob/main/docs/accelerator-diagram.md)
+- [Recorded Software profiling package](https://github.com/SiliconBadgers/software/tree/main/experiments/llama-cpp/2026-09-22)
 
-The dated [llama.cpp package](../experiments/llama-cpp/2026-09-22/README.md) contains
-the C++ harness, instrumentation patch, pinned inputs, baseline results, compressed
-traces, saved logits and reproduction/analysis scripts. Reuse this work. The
-[next investigations](profiling-next-steps.md) explain the outstanding questions.
+## Artifact locations
 
-## First useful extension
+| Location | What belongs here |
+|---|---|
+| [experiments/llama-cpp/](../experiments/llama-cpp/README.md) | Recorded baseline in 2026-09-22/. Put each new run in a separate dated or named directory with a manifest, commands, source/model hashes, host/backend, inputs, results and limitations. |
+| [research/compute-mapping/](../research/compute-mapping/README.md) | Operation/dependency maps, offload comparisons and recommendations. Link each claim to a run or source trace; separate measured time/traffic from estimates. |
 
-Choose one representative workload beyond the repeated passage and retain
-matched tokens/settings across comparisons. Measure prefill and decode separately.
-Extend operation traces with a selected dependency chain, intermediate layouts
-and state/buffer lifetimes needed by Compute, Memory or Control. Publish that
-small result as soon as it is useful, without waiting for the whole study.
+## What runs today
 
-Compare candidate offload boundaries including packing, dispatch, transfer and
-host fallback. Map projections and the output head as well as attention,
-recurrence, normalization and copies. Study numerical formats with Verification;
-the mixed Q4_K_M baseline does not validate a custom uniform INT4 representation.
+A reproducible CPU/Metal profiling package and the small MAC reference example exist. CPU time shares are not accelerator area or speedup. Mixed Q4_K_M results do not validate the slide's custom INT4/group-64 proposal.
 
-## Reproduce and check
+These folders organize the work; they do not complete the issues. Use the
+existing evidence now and publish useful intermediate results. Arrange a team
+meeting this week to divide the work and agree on next steps.
 
-Follow the dated package's exact commands and Python dependency requirements.
-Reruns go in new directories; never replace recorded results. Preserve
-source/model hashes and investigate the 8K timing anomaly separately. Include
-saved-output checks and state/tolerance rationale with new instrumentation.
-
-A useful submission has commands, inputs, latency/throughput, relevant shapes and
-layouts, instrumentation overhead, numerical checks and a bounded recommendation.
-CPU operation timing, logical byte counts and accelerator cost predictions must
-remain distinct. All other teams can use today's published shapes immediately.
+Follow [CONTRIBUTING.md](../CONTRIBUTING.md) before editing or committing.

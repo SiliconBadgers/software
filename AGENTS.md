@@ -1,22 +1,34 @@
-# Working in Software
+# Working in Software profiling and runtime evidence
 
-Read README.md and the relevant experiment's reproduction guide before editing.
+Use llama.cpp profiling and numerical evidence to guide compute-unit boundaries, shared resources and host/device work. Software also owns operation mapping, backend/runtime and host integration.
 
-- For AI-assisted changes, check `python3 scripts/check-git-ai.py` before editing.
-  Git AI requires an installed client and enabled Codex hooks; this file alone
-  does not enable attribution. Follow `docs/git-ai.md` if setup is missing.
-- Preserve attribution through commits and push the associated Git AI notes.
-  Report a capture failure honestly. Never reconstruct historical attribution
-  as though it was captured live or label imported artifacts as new AI output.
-- Preserve recorded experiment results. Write reruns to a separate directory;
-  record source/model hashes, backend, host, settings and numerical checks.
-- Distinguish measured CPU/Metal behavior from proposed accelerator behavior.
-  Operation shares, logical bytes and MAC counts are not hardware area,
-  bandwidth measurements or model-quality evaluations.
-- Keep models, build trees, virtual environments and new large raw traces out
-  of Git. Retain compact reproducible evidence and document external inputs.
-- Run checks appropriate to changed code; the MAC example's tests do not
-  validate llama.cpp or the full accelerator.
-- Software owns profiling, numerical references, operation mapping and
-  backend/runtime/host integration. Do not assume a separate compiler team,
-  custom CPU core or custom ISA.
+## Before editing or committing
+
+- Read README.md, CONTRIBUTING.md, docs/START-HERE.md and the linked issue.
+- Before any AI edit, run `python3 scripts/check-git-ai.py`. If missing, follow
+  docs/git-ai.md and activate the local commit guard. Restart Codex after first
+  setup and verify actual capture. AGENTS.md does not install capture or hooks.
+- Do not proceed with AI edits or commits while capture/setup is broken. Report
+  gaps honestly; never fabricate historical attribution or bypass the guard.
+- Before committing, inspect `git-ai status --json`; after committing inspect
+  `git-ai stats HEAD --json`. Include `Co-authored-by: Codex <noreply@openai.com>`
+  for Codex-authored changes. Preserve the human author and publish Git AI notes
+  as described in docs/git-ai.md without force-pushing them.
+- Keep prompt storage local. Do not commit secrets, licensed collateral, model
+  weights or generated build/simulation databases.
+- Use a branch and PR for @abhinavnandwani's review. Keep the issue's technical
+  scope intact; scaffolding and tone changes do not authorize a new design.
+
+## Evidence and boundaries
+
+- Link the central Architecture diagram instead of copying it. Distinguish
+  accepted interfaces, proposals, assumptions, real RTL and stubs.
+- Preserve dated experiment results and slide baselines. Put new work alongside
+  them with revisions, commands, inputs, tool versions and limitations.
+- Run checks appropriate to changed behavior. Never claim an unrun licensed-tool
+  check passed or that a MAC/stub test validates the full accelerator.
+- Software includes workload mapping and runtime/host integration. Do not invent
+  a compiler team, custom CPU core or custom ISA.
+- Keep new runs separate from experiments/llama-cpp/2026-09-22. CPU/Metal
+  timing, logical bytes and MAC counts are not ASIC area/bandwidth measurements
+  or model-quality evaluations. Read the experiment reproduction guide.

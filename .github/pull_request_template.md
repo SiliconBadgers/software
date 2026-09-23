@@ -1,17 +1,16 @@
-## Purpose
+## Change
 
-Which charter objective or question does this contribution advance?
+Linked issue and what this contribution delivers:
 
-## Contribution
+## Evidence
 
-Describe the research, design, experiment, implementation or explanation.
+Commands, source/tool revisions and observed results. State unrun checks,
+remaining assumptions and any stub-only results.
 
-## Evidence and learning
+## AI attribution
 
-What supports the conclusions, and what remains uncertain? For executable work,
-include the relevant way to reproduce or check it. For a study or proposal,
-include the reasoning, sources or feedback that help readers assess it.
+- [ ] Local setup/commit guard checked before AI edits; actual capture checked.
+- [ ] Attribution reviewed after commit and Git AI notes published, or the gap is explained below.
+- [ ] Codex co-author trailer included for Codex work; human-only work identified as such.
 
-## Shared implications
-
-Describe any effect on other teams, interfaces or shared assumptions.
+AI tools used, or “none”; any capture limitations:

@@ -1,5 +1,9 @@
 # Software: team charter
 
+Current assignments are listed in [docs/START-HERE.md](docs/START-HERE.md) and
+the linked issues. The broader directions below provide context; they do not
+replace those deliverables.
+
 ## Purpose
 
 Make the accelerator useful through measured workloads, trustworthy numerical behavior and an executable software path. Software owns llama.cpp profiling, model/workload references, operation mapping, and accelerator backend/runtime/host integration.
