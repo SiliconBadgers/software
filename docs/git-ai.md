@@ -97,6 +97,55 @@ though they were captured live.
    Do not claim successful publication until the push succeeds.
 5. Open a PR linked to the issue, with validation and any attribution gaps.
 
+## Exact model visibility
+
+The editor name is not the model. Keep `Co-authored-by: Codex` for the agent
+credit and add the actual reported model ID separately. For example, only if
+this is the model shown in your session metadata:
+
+```text
+Co-authored-by: Codex <noreply@openai.com>
+AI-Model: codex=gpt-6-astra
+```
+
+Repeat `AI-Model` for every tool/model pair used in that commit. Include model
+switches and subagents. Entirely human work uses `AI-Model: none`. The PR table
+also explains each model's role, including research, review or pasted output
+that editing hooks may not capture. Do not label that work human-only.
+
+Git AI records the tool and model in note metadata. Our captured Codex work
+has `agent_id.tool = codex` and `agent_id.model = gpt-6-astra`. Future contributors
+must read their own session metadata and notes; do not copy this example as a
+default. Preserve the exact ID returned by the tool. If it exposes only an alias,
+report the alias; an underlying snapshot/version is available only when the
+provider exposes it. Use `unknown` with a reason when identity is unavailable.
+
+### Read the report
+
+Each PR and push to main runs **Model attribution**. Open the check's Details
+link and its job summary for a per-commit table showing captured tool/model IDs,
+`AI-Model` declarations and missing/unresolved metadata. No paid dashboard is
+needed. It does not publish prompts, transcripts, session IDs or author emails.
+
+To inspect a commit or range locally after fetching notes:
+
+```sh
+git-ai fetch-notes origin --json
+python3 scripts/model-attribution.py --head HEAD
+python3 scripts/model-attribution.py --base origin/main --head HEAD
+```
+
+A normal merge can have no note of its own while attribution remains on the
+source commits. Inspect the contributing commits or `git-ai blame path/to/file`.
+Recorded notes can retain older attribution, so the report is not a per-PR line
+count or cost calculation. Declarations are contributor disclosures, not
+independent proof. The report flags visibility gaps; it cannot discover
+undisclosed AI use or hidden model routing. Model disclosure is required by our
+contribution policy and reviewed in PRs; the local pre-commit guard continues
+to check setup, not whether someone truthfully disclosed every model.
+
+See [Git AI's tool/model breakdown](https://usegitai.com/docs/get-started/commit-stats).
+
 ## What is enforced
 
 `AGENTS.md` tells Codex what to do. It does not install anything. The local hook

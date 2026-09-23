@@ -26,6 +26,10 @@ to configure attribution. Human-only changes do not need an AI co-author trailer
 5. Inspect `git-ai status --json`, commit with accurate attribution, then inspect
    `git-ai stats HEAD --json`. Codex work needs the
    `Co-authored-by: Codex <noreply@openai.com>` trailer as well as Git AI notes.
+   Add one `AI-Model: tool=reported-model-id` trailer for every model used
+   (including model switches or subagents). Human-only work uses `AI-Model: none`.
+   Read IDs from tool/session metadata. State `unknown` and the reason when an
+   ID is unavailable; never substitute an editor name or guess a snapshot.
    Follow the guide to publish notes without force-pushing them.
 6. Push the branch and open a PR linked to the issue for `@abhinavnandwani` to
    review. Main requires one code-owner approval; admins can bypass. Do not
@@ -34,3 +38,12 @@ to configure attribution. Human-only changes do not need an AI co-author trailer
 Preserve recorded experiments and slide baselines. Put new runs and proposals
 in their own locations so reviewers can compare them. A change in architecture
 or team scope needs an explicit proposal, not a silent documentation rewrite.
+
+## Model visibility
+
+Fill the PR's model table with every tool/model pair and what it was used for,
+including research, review or pasted output outside captured editor actions.
+The **Model attribution** GitHub check publishes a job summary of recorded IDs
+and commit declarations. Open its Details link, then the run summary. Rerun it
+if notes were pushed after the initial run. Missing notes are not proof of human
+work; investigate unexplained differences before review.
