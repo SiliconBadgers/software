@@ -1,0 +1,2 @@
+# Preserve the captured CSVs' standard CRLF line endings during whitespace checks.
+graphs/**/*.csv whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
