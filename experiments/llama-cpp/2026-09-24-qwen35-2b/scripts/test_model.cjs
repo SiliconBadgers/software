@@ -19,4 +19,38 @@ test('active precision changes traffic but not physical PE cost',()=>{const a=E.
 test('DSP ceiling filters over-budget candidates',()=>{assert(!E.evaluate(G,{...base,matrixCount:64}).valid);});
 test('Pareto dominance removes dominated and duplicate outcomes',()=>{const r=(cost,sec)=>({valid:true,resource:{cost},decode:{seconds:sec,aggregateTPS:1/sec}});const a=r(10,2),b=r(20,1),c=r(20,3),d=r(10,2);assert.deepEqual(E.frontier([a,b,c,d]),[a,b]);});
 test('bad numerical input rejected',()=>{assert(!E.evaluate(G,{...base,frequency:0}).valid);assert(!E.evaluate(G,{...base,l1Efficiency:2}).valid);assert(!E.evaluate(G,{...base,batch:1.5}).valid);});
+test('KV footprint matches allocated cache tensors for independent workload lengths',()=>{
+ const caches=G.tensors.filter(t=>/^cache_[kv]_l\d+$/.test(t.name)&&t.view<0);
+ assert.equal(caches.length,12);
+ for(const [prompt,context] of [[8192,128],[512,2048],[512,8192]]){
+  const c={...base,prompt,context},r=E.evaluate(G,c);
+  for(const phase of ['prefill','decode']){
+   const allocated=caches.reduce((n,t)=>n+E.shapeOf(t,phase,c).reduce((a,b)=>a*b,1),0)*c.kvBits/8*c.batch;
+   assert.equal(r[phase].kvBytes,allocated,`${phase}: prompt=${prompt}, context=${context}`);
+  }
+ }
+});
+test('long-prefill configuration exceeding 4 GiB is infeasible',()=>{
+ const r=E.evaluate(G,{...base,prompt:8192,context:128,hbmGiB:4});
+ assert(!r.valid);
+ assert(r.errors.some(x=>x.includes('exceed HBM capacity')));
+});
+test('recurrence traffic and working storage scale with independent sequences',()=>{
+ // Disable persistent-state residency so every sequence has the same traffic.
+ for(const recurrentCount of [0,1]){
+  const c={...base,recurrentCount,stateReserve:0},single=E.evaluate(G,c,true);
+  for(const batch of [4,32]){
+   const multiple=E.evaluate(G,{...c,batch},true);
+   for(const phase of ['prefill','decode']){
+    const one=single[phase].rows.filter(x=>x.op==='GATED_DELTA_NET');
+    const many=multiple[phase].rows.filter(x=>x.op==='GATED_DELTA_NET');
+    assert.equal(one.length,18);
+    one.forEach((row,i)=>{
+     assert.equal(many[i].l1Bytes,row.l1Bytes*batch,`${phase}: units=${recurrentCount}, batch=${batch}, traffic`);
+     assert.equal(many[i].working,row.working*batch,`${phase}: units=${recurrentCount}, batch=${batch}, storage`);
+    });
+   }
+  }
+ }
+});
 console.log(`${tests} checks passed.`);

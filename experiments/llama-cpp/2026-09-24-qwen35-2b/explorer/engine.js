@@ -115,7 +115,7 @@ function modelPhase(graph,c,phase,detail=false){
   }else if(op==='GATED_DELTA_NET'){
    const S=shapes[src[2]][0],H=shapes[src[2]][1],state=S*S*H*B;
    work=(7*S*S+3*S)*H*T*B;special=H*T*B;
-   write=(S*H*T*p.a/8+state*c.stateBits/8);
+   write=(S*H*T*B*p.a/8+state*c.stateBits/8);
    outputStorage=write;
    hb=state*c.stateBits/8*(phase==='prefill'?1:2)*(1-stateResident);
    const input=(3*S+2)*H*T*B*p.a/8;
@@ -173,7 +173,7 @@ function modelPhase(graph,c,phase,detail=false){
   const agg=ops[op];agg.count++;agg.seconds+=time;agg.hbm+=hb;agg.l1+=local;agg.pools.add(map.pool);if(map.epilogue)agg.pools.add(map.epilogue);if(map.pool==='RISC-V'||extraRV)agg.fallback++;
   if(detail)rows.push({id,name:t.name,op,pool:map.pool,epilogue:map.epilogue||'',elements:E,macs:mm,seconds:time,compute:ct,l1:lt,hbm:ht,hbmBytes:hb,l1Bytes:local,dominant,working});
  }
- const kvBytes=6*2*512*round(c.context+1,256)*B*c.kvBits/8;
+ const kvBytes=6*2*512*round(Math.max(c.prompt,c.context+1),256)*B*c.kvBits/8;
  const requiredHBM=weights+kvBytes+statePerSequence*B+peak;
  const lowerBound=Math.max(sums.hbm,sums.l1,...Object.values(pools));
  return {phase,seconds:latency,perSequenceTPS:1/latency,aggregateTPS:(phase==='prefill'?c.prompt:1)*B/latency,
