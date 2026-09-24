@@ -8,9 +8,9 @@ Start with the [measured findings](experiments/llama-cpp/2026-09-22/REPORT.md), 
 
 Preserve the recorded results when repeating a run: use new output names, record the source/model/backend configuration, and compare numerical outputs as well as timing. The baseline's Mac CPU and Metal measurements do not establish performance on another host or a proposed accelerator.
 
-## Contribution provenance
+## Shared interfaces
 
-Follow [Git AI setup](docs/git-ai.md) for AI-assisted contributions. Shared interfaces and numerical expectations should still be reviewed with the affected teams.
+Review shared interfaces and numerical expectations with the affected teams.
 
 ## Existing example
 
