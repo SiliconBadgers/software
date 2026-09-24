@@ -30,7 +30,7 @@ Investigate how llama.cpp/ggml operations map to candidate accelerator kernels, 
 
 ### Reproducible knowledge
 
-Preserve methods, source/model provenance, raw evidence and numerical explanations so results can be revisited. Share useful traces and findings before a complete study is finished. Follow the [Git AI setup](docs/git-ai.md) when contributing with AI assistance.
+Preserve methods, source/model provenance, raw evidence and numerical explanations so results can be revisited. Share useful traces and findings before a complete study is finished.
 
 ## Boundaries and shared decisions
 

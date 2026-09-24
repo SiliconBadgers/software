@@ -5,9 +5,7 @@ Use llama.cpp profiling and numerical evidence to guide compute-unit boundaries,
 ## Start here
 
 1. Read [the current assignment and artifact locations](docs/START-HERE.md).
-2. Complete [AI setup and the capture check](docs/git-ai.md) before AI edits or
-   your first commit. Every clone needs its local hook activated.
-3. Work on a branch and open a PR for `@abhinavnandwani` using
+2. Work on a branch and open a PR for `@abhinavnandwani` using
    [CONTRIBUTING.md](CONTRIBUTING.md). Main requires a code-owner approval;
    admins can bypass.
 

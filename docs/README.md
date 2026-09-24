@@ -3,7 +3,6 @@
 Use this directory for backend/runtime design, operation mapping, shared-interface proposals, decisions and learning material. Link the measurements or references that inform a proposal, and mark unresolved assumptions.
 
 - [Profiling next steps](profiling-next-steps.md): extend the completed baseline and support parallel hardware investigations.
-- [Git AI](git-ai.md): contribution provenance setup.
 - [Profiling findings](../experiments/llama-cpp/2026-09-22/REPORT.md) and [reproduction](../experiments/llama-cpp/2026-09-22/README.md).
 
 This is a suggested home for work supporting the [charter](../CHARTER.md) and
