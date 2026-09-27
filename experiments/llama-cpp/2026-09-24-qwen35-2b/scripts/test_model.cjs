@@ -1,0 +1,56 @@
+const assert=require('node:assert/strict');
+const E=require('../explorer/engine.js'),G=require('../explorer/graph-data.js');
+let tests=0;function test(name,fn){fn();console.log('PASS',name);tests++;}
+const base=E.defaults();
+for(const [phase,n,expected] of [['prefill',128,177021648896],['prefill',512,709782142976],['decode',128,1887567872],['decode',512,1900150784]])test(`captured ${phase} ${n} matrix MAC parity`,()=>{const r=E.modelPhase(G,{...base,prompt:n,context:n},phase,true);assert.equal(r.rows.filter(t=>t.op==='MUL_MAT').reduce((v,t)=>v+t.macs,0),expected);});
+test('all real operation families have a mapping',()=>{const r=E.evaluate(G,base,true);assert(r.valid);assert.deepEqual(r.decode.unmapped,[]);assert(r.decode.rows.every(x=>Number.isFinite(x.seconds)));});
+test('capability removal routes to scalar and costs time',()=>{const a=E.evaluate(G,base),b=E.evaluate(G,{...base,vectorCaps:base.vectorCaps.filter(x=>x!=='exp')});assert(b.valid);assert(b.decode.rvTime>0);assert(b.decode.seconds>a.decode.seconds);assert(b.decode.ops.find(x=>x.op==='SOFT_MAX').pools.includes('RISC-V'));});
+test('missing capabilities with no scalar are infeasible',()=>{const r=E.evaluate(G,{...base,vectorCount:0,rvCount:0});assert(!r.valid);assert(r.errors.some(x=>x.includes('no available implementation')));});
+test('removing matrix units invokes scalar fallback',()=>{const r=E.evaluate(G,{...base,matrixCount:0});assert(r.valid);assert(r.decode.ops.find(x=>x.op==='MUL_MAT').pools.includes('RISC-V'));});
+test('batch traffic shares weight fetches and reports both rates',()=>{const a=E.evaluate(G,base),b=E.evaluate(G,{...base,batch:8});assert.equal(b.decode.aggregateTPS,8*b.decode.perSequenceTPS);assert.equal(a.decode.weightRead,b.decode.weightRead);assert(b.decode.seconds>=a.decode.seconds);assert(b.decode.aggregateTPS>a.decode.aggregateTPS);});
+test('recurrence multipass traffic is not resident allocation',()=>{const r=E.evaluate(G,{...base,batch:32},true);assert(r.valid);assert(r.prefill.peakWorkingSet<2**30);const g=r.prefill.rows.find(x=>x.op==='GATED_DELTA_NET');assert(g.l1Bytes>g.working*10);});
+test('HBM footprint constraint rejects over-capacity batches',()=>{assert(!E.evaluate(G,{...base,hbmGiB:.1}).valid);});
+test('slower HBM cannot improve latency',()=>{const a=E.evaluate(G,base),b=E.evaluate(G,{...base,hbmGBs:10});assert(b.decode.seconds>a.decode.seconds);});
+test('L1 bandwidth affects latency',()=>{const a=E.evaluate(G,base),b=E.evaluate(G,{...base,l1Banks:1});assert(b.decode.seconds>a.decode.seconds);});
+test('smaller SRAM cannot lower weight reloads',()=>{const a=E.evaluate(G,{...base,l1MiB:8}),b=E.evaluate(G,{...base,l1MiB:.0625});assert(b.prefill.weightRead>=a.prefill.weightRead);});
+test('dedicated recurrence maps and reduces its traffic',()=>{const a=E.evaluate(G,base),b=E.evaluate(G,{...base,recurrentCount:1});const op=r=>r.prefill.ops.find(x=>x.op==='GATED_DELTA_NET');assert(op(b).pools.includes('Recurrent'));assert(op(b).l1<op(a).l1);});
+test('no overlap cannot be faster',()=>{const a=E.evaluate(G,base),b=E.evaluate(G,{...base,overlap:false});assert(b.decode.seconds>=a.decode.seconds);assert(b.prefill.seconds>=a.prefill.seconds);});
+test('active precision changes traffic but not physical PE cost',()=>{const a=E.evaluate(G,base),b=E.evaluate(G,{...base,precision:'w4a8'});assert.equal(a.resource.cost,b.resource.cost);assert.equal(a.resource.dsp,b.resource.dsp);assert(b.decode.weightRead<a.decode.weightRead);});
+test('DSP ceiling filters over-budget candidates',()=>{assert(!E.evaluate(G,{...base,matrixCount:64}).valid);});
+test('Pareto dominance removes dominated and duplicate outcomes',()=>{const r=(cost,sec)=>({valid:true,resource:{cost},decode:{seconds:sec,aggregateTPS:1/sec}});const a=r(10,2),b=r(20,1),c=r(20,3),d=r(10,2);assert.deepEqual(E.frontier([a,b,c,d]),[a,b]);});
+test('bad numerical input rejected',()=>{assert(!E.evaluate(G,{...base,frequency:0}).valid);assert(!E.evaluate(G,{...base,l1Efficiency:2}).valid);assert(!E.evaluate(G,{...base,batch:1.5}).valid);});
+test('KV footprint matches allocated cache tensors for independent workload lengths',()=>{
+ const caches=G.tensors.filter(t=>/^cache_[kv]_l\d+$/.test(t.name)&&t.view<0);
+ assert.equal(caches.length,12);
+ for(const [prompt,context] of [[8192,128],[512,2048],[512,8192]]){
+  const c={...base,prompt,context},r=E.evaluate(G,c);
+  for(const phase of ['prefill','decode']){
+   const allocated=caches.reduce((n,t)=>n+E.shapeOf(t,phase,c).reduce((a,b)=>a*b,1),0)*c.kvBits/8*c.batch;
+   assert.equal(r[phase].kvBytes,allocated,`${phase}: prompt=${prompt}, context=${context}`);
+  }
+ }
+});
+test('long-prefill configuration exceeding 4 GiB is infeasible',()=>{
+ const r=E.evaluate(G,{...base,prompt:8192,context:128,hbmGiB:4});
+ assert(!r.valid);
+ assert(r.errors.some(x=>x.includes('exceed HBM capacity')));
+});
+test('recurrence traffic and working storage scale with independent sequences',()=>{
+ // Disable persistent-state residency so every sequence has the same traffic.
+ for(const recurrentCount of [0,1]){
+  const c={...base,recurrentCount,stateReserve:0},single=E.evaluate(G,c,true);
+  for(const batch of [4,32]){
+   const multiple=E.evaluate(G,{...c,batch},true);
+   for(const phase of ['prefill','decode']){
+    const one=single[phase].rows.filter(x=>x.op==='GATED_DELTA_NET');
+    const many=multiple[phase].rows.filter(x=>x.op==='GATED_DELTA_NET');
+    assert.equal(one.length,18);
+    one.forEach((row,i)=>{
+     assert.equal(many[i].l1Bytes,row.l1Bytes*batch,`${phase}: units=${recurrentCount}, batch=${batch}, traffic`);
+     assert.equal(many[i].working,row.working*batch,`${phase}: units=${recurrentCount}, batch=${batch}, storage`);
+    });
+   }
+  }
+ }
+});
+console.log(`${tests} checks passed.`);
