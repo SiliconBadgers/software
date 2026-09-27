@@ -1,0 +1,11 @@
+English: The library opens at nine o'clock every morning, and children are welcome to borrow up to five books at a time.
+
+Español: La biblioteca abre a las nueve de la mañana todos los días, y los niños pueden llevarse hasta cinco libros a la vez.
+
+Français : La bibliothèque ouvre à neuf heures chaque matin, et les enfants peuvent emprunter jusqu'à cinq livres à la fois.
+
+Deutsch: Die Bibliothek öffnet jeden Morgen um neun Uhr, und Kinder dürfen bis zu fünf Bücher gleichzeitig ausleihen.
+
+中文：图书馆每天早上九点开门，孩子们一次最多可以借五本书。
+
+日本語：図書館は毎朝九時に開き、子供たちは一度に最大五冊まで本を借りることができます。

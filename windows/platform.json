@@ -1,0 +1,14 @@
+{
+  "family": "windows",
+  "os_labels": {"win32": "windows"},
+  "metal_os_labels": [],
+  "exe_suffix": ".exe",
+  "cmake_generator": "Ninja",
+  "compilers": {
+    "c": ["C:/Program Files/LLVM/bin/clang.exe", "clang"],
+    "cxx": ["C:/Program Files/LLVM/bin/clang++.exe", "clang++"],
+    "rc": ["C:/Program Files (x86)/Windows Kits/10/bin/*/x64/rc.exe", "C:/Program Files/LLVM/bin/llvm-rc.exe", "rc"]
+  },
+  "cmake_args": [],
+  "notes": "LLVM clang targeting x86_64-pc-windows-msvc; it locates the MSVC runtime and Windows SDK from the Visual Studio install. Override with SB_CC / SB_CXX."
+}

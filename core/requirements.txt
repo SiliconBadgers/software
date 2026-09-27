@@ -1,0 +1,4 @@
+numpy==2.5.3
+matplotlib==3.11.2
+cmake==4.4.3
+ninja==1.13.2
