@@ -1,0 +1,1412 @@
+index,tensor_id,name,op,category,layer,dtype,shape,logical_output_bytes,macs,arithmetic_ops_2_per_mac,source_tensor_ids,view_source
+0,0,model.input_embed,GET_ROWS,memory,-1,f32,2048x307x1x1,2514944,,,1;2,-1
+1,3,norm-0,RMS_NORM,vector,0,f32,2048x307x1x1,2514944,,,0,-1
+2,4,attn_norm-0,MUL,vector,0,f32,2048x307x1x1,2514944,,,3;5,-1
+3,6,cache_r_l0 (reshaped),RESHAPE,metadata,-1,f32,18432x1x1x1,73728,,,7,7
+4,8,cache_r_l0 (reshaped) (view),VIEW,metadata,-1,f32,18432x1x1x1,73728,,,6,7
+5,9,cache_r_l0 (reshaped) (view) (view),SCALE,vector,-1,f32,18432x1x1x1,73728,,,8,7
+6,10,rs_s_copy (view),VIEW,metadata,-1,i32,1x1x1x1,4,,,11,11
+7,12,conv_states-0,GET_ROWS,memory,0,f32,18432x1x1x1,73728,,,6;10,-1
+8,13,rs_s_copy (view),VIEW,metadata,-1,i32,0x1x1x1,0,,,11,11
+9,14,node_9,GET_ROWS,memory,-1,f32,18432x0x1x1,0,,,6;13,-1
+10,15,cache_r_l0 (view),VIEW,metadata,-1,f32,18432x0x1x1,0,,,7,7
+11,16,cache_r_l0 (view) (copy of ),CPY,memory,-1,f32,18432x0x1x1,0,,,14;15,7
+12,17,conv_states_reshaped-0,RESHAPE,metadata,0,f32,3x6144x1x1,73728,,,12,12
+13,18,node_13,MUL_MAT,matrix,0,f32,6144x307x1x1,7544832,3862953984,7725907968,19;4,-1
+14,20,linear_attn_qkv_mixed-0,RESHAPE,metadata,0,f32,6144x307x1x1,7544832,,,18,18
+15,21,qkv_mixed_transposed-0,TRANSPOSE,metadata,0,f32,307x6144x1x1,7544832,,,20,18
+16,22,conv_input-0,CONCAT,memory,0,f32,310x6144x1x1,7618560,,,17;21,-1
+17,23,conv_state_last-0,VIEW,metadata,0,f32,3x6144x1x1,73728,,,22,22
+18,24,conv_state_update-0,VIEW,metadata,0,f32,18432x1x1x1,73728,,,7,7
+19,25,conv_state_update-0 (copy of conv_state_last-0),CPY,memory,0,f32,18432x1x1x1,73728,,,23;24,7
+20,26,cache_s_l0 (reshaped),RESHAPE,metadata,-1,f32,262144x1x1x1,1048576,,,27,27
+21,28,cache_s_l0 (reshaped) (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,26,27
+22,29,cache_s_l0 (reshaped) (view) (view),SCALE,vector,-1,f32,262144x1x1x1,1048576,,,28,27
+23,30,node_23,GET_ROWS,memory,-1,f32,262144x1x1x1,1048576,,,26;10,-1
+24,31,node_24,GET_ROWS,memory,-1,f32,262144x0x1x1,0,,,26;13,-1
+25,32,cache_s_l0 (view),VIEW,metadata,-1,f32,262144x0x1x1,0,,,27,27
+26,33,cache_s_l0 (view) (copy of ),CPY,memory,-1,f32,262144x0x1x1,0,,,31;32,27
+27,34,conv_output_raw-0,SSM_CONV,convolution,0,f32,6144x307x1x1,7544832,7544832,15089664,22;35,-1
+28,36,conv_output_silu-0,SILU,vector,0,f32,6144x307x1x1,7544832,,,34,-1
+29,37,q_conv-0,VIEW,metadata,0,f32,128x16x307x1,2514944,,,36,36
+30,38,node_30,RMS_NORM,vector,0,f32,128x16x307x1,2514944,,,37,-1
+31,39,q_conv_predelta-0,SCALE,vector,0,f32,128x16x307x1,2514944,,,38,-1
+32,40,k_conv-0,VIEW,metadata,0,f32,128x16x307x1,2514944,,,36,36
+33,41,node_33,RMS_NORM,vector,0,f32,128x16x307x1,2514944,,,40,-1
+34,42,k_conv_predelta-0,SCALE,vector,0,f32,128x16x307x1,2514944,,,41,-1
+35,43,v_conv_predelta-0,VIEW,metadata,0,f32,128x16x307x1,2514944,,,36,36
+36,44,node_36,MUL_MAT,matrix,0,f32,16x307x1x1,19648,10059776,20119552,45;4,-1
+37,46,alpha-0,RESHAPE,metadata,0,f32,16x307x1x1,19648,,,44,44
+38,47,node_38,ADD,vector,0,f32,16x307x1x1,19648,,,46;48,-1
+39,49,a_softplus-0,SOFTPLUS,vector,0,f32,16x307x1x1,19648,,,47,-1
+40,50,gate-0,MUL,vector,0,f32,16x307x1x1,19648,,,49;51,-1
+41,52,gate-0 (reshaped),RESHAPE,metadata,0,f32,1x16x307x1,19648,,,50,50
+42,53,node_42,MUL_MAT,matrix,0,f32,16x307x1x1,19648,10059776,20119552,54;4,-1
+43,55,beta-0,RESHAPE,metadata,0,f32,1x16x307x1,19648,,,53,53
+44,56,beta_sigmoid-0,SIGMOID,vector,0,f32,1x16x307x1,19648,,,55,-1
+45,57,state_predelta-0,RESHAPE,metadata,0,f32,128x128x16x1,1048576,,,30,30
+46,58,node_46,GATED_DELTA_NET,recurrent,0,f32,2048x435x1x1,3563520,,,39;42;43;52;56;57,-1
+47,59,new_state-0,VIEW,metadata,0,f32,128x128x16x1,1048576,,,58,58
+48,60,cache_s_l0 (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,27,27
+49,61,cache_s_l0 (view) (copy of new_state-0),CPY,memory,0,f32,262144x1x1x1,1048576,,,59;60,27
+50,62,attn_output-0,VIEW,metadata,0,f32,128x16x307x1,2514944,,,58,58
+51,63,norm-0,RMS_NORM,vector,0,f32,128x16x307x1,2514944,,,62,-1
+52,64,node_52,MUL,vector,0,f32,128x16x307x1,2514944,,,63;65,-1
+53,66,z-0,MUL_MAT,matrix,0,f32,2048x307x1x1,2514944,1287651328,2575302656,67;4,-1
+54,68,z-0 (reshaped),RESHAPE,metadata,0,f32,128x16x307x1,2514944,,,66,66
+55,69,node_55,SILU,vector,0,f32,128x16x307x1,2514944,,,68,-1
+56,70,node_56,MUL,vector,0,f32,128x16x307x1,2514944,,,64;69,-1
+57,71,final_output-0,RESHAPE,metadata,0,f32,2048x307x1x1,2514944,,,70,70
+58,72,linear_attn_out-0,MUL_MAT,matrix,0,f32,2048x307x1x1,2514944,1287651328,2575302656,73;71,-1
+59,74,linear_attn_out-0 (reshaped),RESHAPE,metadata,0,f32,2048x307x1x1,2514944,,,72,72
+60,75,attn_residual-0,ADD,vector,0,f32,2048x307x1x1,2514944,,,74;0,-1
+61,76,norm-0,RMS_NORM,vector,0,f32,2048x307x1x1,2514944,,,75,-1
+62,77,attn_post_norm-0,MUL,vector,0,f32,2048x307x1x1,2514944,,,76;78,-1
+63,79,ffn_gate-0,MUL_MAT,matrix,0,f32,6144x307x1x1,7544832,3862953984,7725907968,80;77,-1
+64,81,ffn_up-0,MUL_MAT,matrix,0,f32,6144x307x1x1,7544832,3862953984,7725907968,82;77,-1
+65,83,ffn_swiglu-0,SWIGLU,vector,0,f32,6144x307x1x1,7544832,,,79;81,-1
+66,84,ffn_out-0,MUL_MAT,matrix,0,f32,2048x307x1x1,2514944,3862953984,7725907968,85;83,-1
+67,86,l_out-0,ADD,vector,0,f32,2048x307x1x1,2514944,,,84;75,-1
+68,87,norm-1,RMS_NORM,vector,1,f32,2048x307x1x1,2514944,,,86,-1
+69,88,attn_norm-1,MUL,vector,1,f32,2048x307x1x1,2514944,,,87;89,-1
+70,90,cache_r_l1 (reshaped),RESHAPE,metadata,-1,f32,18432x1x1x1,73728,,,91,91
+71,92,cache_r_l1 (reshaped) (view),VIEW,metadata,-1,f32,18432x1x1x1,73728,,,90,91
+72,93,cache_r_l1 (reshaped) (view) (view),SCALE,vector,-1,f32,18432x1x1x1,73728,,,92,91
+73,94,conv_states-1,GET_ROWS,memory,1,f32,18432x1x1x1,73728,,,90;10,-1
+74,95,node_74,GET_ROWS,memory,-1,f32,18432x0x1x1,0,,,90;13,-1
+75,96,cache_r_l1 (view),VIEW,metadata,-1,f32,18432x0x1x1,0,,,91,91
+76,97,cache_r_l1 (view) (copy of ),CPY,memory,-1,f32,18432x0x1x1,0,,,95;96,91
+77,98,conv_states_reshaped-1,RESHAPE,metadata,1,f32,3x6144x1x1,73728,,,94,94
+78,99,node_78,MUL_MAT,matrix,1,f32,6144x307x1x1,7544832,3862953984,7725907968,100;88,-1
+79,101,linear_attn_qkv_mixed-1,RESHAPE,metadata,1,f32,6144x307x1x1,7544832,,,99,99
+80,102,qkv_mixed_transposed-1,TRANSPOSE,metadata,1,f32,307x6144x1x1,7544832,,,101,99
+81,103,conv_input-1,CONCAT,memory,1,f32,310x6144x1x1,7618560,,,98;102,-1
+82,104,conv_state_last-1,VIEW,metadata,1,f32,3x6144x1x1,73728,,,103,103
+83,105,conv_state_update-1,VIEW,metadata,1,f32,18432x1x1x1,73728,,,91,91
+84,106,conv_state_update-1 (copy of conv_state_last-1),CPY,memory,1,f32,18432x1x1x1,73728,,,104;105,91
+85,107,cache_s_l1 (reshaped),RESHAPE,metadata,-1,f32,262144x1x1x1,1048576,,,108,108
+86,109,cache_s_l1 (reshaped) (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,107,108
+87,110,cache_s_l1 (reshaped) (view) (view),SCALE,vector,-1,f32,262144x1x1x1,1048576,,,109,108
+88,111,node_88,GET_ROWS,memory,-1,f32,262144x1x1x1,1048576,,,107;10,-1
+89,112,node_89,GET_ROWS,memory,-1,f32,262144x0x1x1,0,,,107;13,-1
+90,113,cache_s_l1 (view),VIEW,metadata,-1,f32,262144x0x1x1,0,,,108,108
+91,114,cache_s_l1 (view) (copy of ),CPY,memory,-1,f32,262144x0x1x1,0,,,112;113,108
+92,115,conv_output_raw-1,SSM_CONV,convolution,1,f32,6144x307x1x1,7544832,7544832,15089664,103;116,-1
+93,117,conv_output_silu-1,SILU,vector,1,f32,6144x307x1x1,7544832,,,115,-1
+94,118,q_conv-1,VIEW,metadata,1,f32,128x16x307x1,2514944,,,117,117
+95,119,node_95,RMS_NORM,vector,1,f32,128x16x307x1,2514944,,,118,-1
+96,120,q_conv_predelta-1,SCALE,vector,1,f32,128x16x307x1,2514944,,,119,-1
+97,121,k_conv-1,VIEW,metadata,1,f32,128x16x307x1,2514944,,,117,117
+98,122,node_98,RMS_NORM,vector,1,f32,128x16x307x1,2514944,,,121,-1
+99,123,k_conv_predelta-1,SCALE,vector,1,f32,128x16x307x1,2514944,,,122,-1
+100,124,v_conv_predelta-1,VIEW,metadata,1,f32,128x16x307x1,2514944,,,117,117
+101,125,node_101,MUL_MAT,matrix,1,f32,16x307x1x1,19648,10059776,20119552,126;88,-1
+102,127,alpha-1,RESHAPE,metadata,1,f32,16x307x1x1,19648,,,125,125
+103,128,node_103,ADD,vector,1,f32,16x307x1x1,19648,,,127;129,-1
+104,130,a_softplus-1,SOFTPLUS,vector,1,f32,16x307x1x1,19648,,,128,-1
+105,131,gate-1,MUL,vector,1,f32,16x307x1x1,19648,,,130;132,-1
+106,133,gate-1 (reshaped),RESHAPE,metadata,1,f32,1x16x307x1,19648,,,131,131
+107,134,node_107,MUL_MAT,matrix,1,f32,16x307x1x1,19648,10059776,20119552,135;88,-1
+108,136,beta-1,RESHAPE,metadata,1,f32,1x16x307x1,19648,,,134,134
+109,137,beta_sigmoid-1,SIGMOID,vector,1,f32,1x16x307x1,19648,,,136,-1
+110,138,state_predelta-1,RESHAPE,metadata,1,f32,128x128x16x1,1048576,,,111,111
+111,139,node_111,GATED_DELTA_NET,recurrent,1,f32,2048x435x1x1,3563520,,,120;123;124;133;137;138,-1
+112,140,new_state-1,VIEW,metadata,1,f32,128x128x16x1,1048576,,,139,139
+113,141,cache_s_l1 (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,108,108
+114,142,cache_s_l1 (view) (copy of new_state-1),CPY,memory,1,f32,262144x1x1x1,1048576,,,140;141,108
+115,143,attn_output-1,VIEW,metadata,1,f32,128x16x307x1,2514944,,,139,139
+116,144,norm-1,RMS_NORM,vector,1,f32,128x16x307x1,2514944,,,143,-1
+117,145,node_117,MUL,vector,1,f32,128x16x307x1,2514944,,,144;146,-1
+118,147,z-1,MUL_MAT,matrix,1,f32,2048x307x1x1,2514944,1287651328,2575302656,148;88,-1
+119,149,z-1 (reshaped),RESHAPE,metadata,1,f32,128x16x307x1,2514944,,,147,147
+120,150,node_120,SILU,vector,1,f32,128x16x307x1,2514944,,,149,-1
+121,151,node_121,MUL,vector,1,f32,128x16x307x1,2514944,,,145;150,-1
+122,152,final_output-1,RESHAPE,metadata,1,f32,2048x307x1x1,2514944,,,151,151
+123,153,linear_attn_out-1,MUL_MAT,matrix,1,f32,2048x307x1x1,2514944,1287651328,2575302656,154;152,-1
+124,155,linear_attn_out-1 (reshaped),RESHAPE,metadata,1,f32,2048x307x1x1,2514944,,,153,153
+125,156,attn_residual-1,ADD,vector,1,f32,2048x307x1x1,2514944,,,155;86,-1
+126,157,norm-1,RMS_NORM,vector,1,f32,2048x307x1x1,2514944,,,156,-1
+127,158,attn_post_norm-1,MUL,vector,1,f32,2048x307x1x1,2514944,,,157;159,-1
+128,160,ffn_gate-1,MUL_MAT,matrix,1,f32,6144x307x1x1,7544832,3862953984,7725907968,161;158,-1
+129,162,ffn_up-1,MUL_MAT,matrix,1,f32,6144x307x1x1,7544832,3862953984,7725907968,163;158,-1
+130,164,ffn_swiglu-1,SWIGLU,vector,1,f32,6144x307x1x1,7544832,,,160;162,-1
+131,165,ffn_out-1,MUL_MAT,matrix,1,f32,2048x307x1x1,2514944,3862953984,7725907968,166;164,-1
+132,167,l_out-1,ADD,vector,1,f32,2048x307x1x1,2514944,,,165;156,-1
+133,168,norm-2,RMS_NORM,vector,2,f32,2048x307x1x1,2514944,,,167,-1
+134,169,attn_norm-2,MUL,vector,2,f32,2048x307x1x1,2514944,,,168;170,-1
+135,171,cache_r_l2 (reshaped),RESHAPE,metadata,-1,f32,18432x1x1x1,73728,,,172,172
+136,173,cache_r_l2 (reshaped) (view),VIEW,metadata,-1,f32,18432x1x1x1,73728,,,171,172
+137,174,cache_r_l2 (reshaped) (view) (view),SCALE,vector,-1,f32,18432x1x1x1,73728,,,173,172
+138,175,conv_states-2,GET_ROWS,memory,2,f32,18432x1x1x1,73728,,,171;10,-1
+139,176,node_139,GET_ROWS,memory,-1,f32,18432x0x1x1,0,,,171;13,-1
+140,177,cache_r_l2 (view),VIEW,metadata,-1,f32,18432x0x1x1,0,,,172,172
+141,178,cache_r_l2 (view) (copy of ),CPY,memory,-1,f32,18432x0x1x1,0,,,176;177,172
+142,179,conv_states_reshaped-2,RESHAPE,metadata,2,f32,3x6144x1x1,73728,,,175,175
+143,180,node_143,MUL_MAT,matrix,2,f32,6144x307x1x1,7544832,3862953984,7725907968,181;169,-1
+144,182,linear_attn_qkv_mixed-2,RESHAPE,metadata,2,f32,6144x307x1x1,7544832,,,180,180
+145,183,qkv_mixed_transposed-2,TRANSPOSE,metadata,2,f32,307x6144x1x1,7544832,,,182,180
+146,184,conv_input-2,CONCAT,memory,2,f32,310x6144x1x1,7618560,,,179;183,-1
+147,185,conv_state_last-2,VIEW,metadata,2,f32,3x6144x1x1,73728,,,184,184
+148,186,conv_state_update-2,VIEW,metadata,2,f32,18432x1x1x1,73728,,,172,172
+149,187,conv_state_update-2 (copy of conv_state_last-2),CPY,memory,2,f32,18432x1x1x1,73728,,,185;186,172
+150,188,cache_s_l2 (reshaped),RESHAPE,metadata,-1,f32,262144x1x1x1,1048576,,,189,189
+151,190,cache_s_l2 (reshaped) (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,188,189
+152,191,cache_s_l2 (reshaped) (view) (view),SCALE,vector,-1,f32,262144x1x1x1,1048576,,,190,189
+153,192,node_153,GET_ROWS,memory,-1,f32,262144x1x1x1,1048576,,,188;10,-1
+154,193,node_154,GET_ROWS,memory,-1,f32,262144x0x1x1,0,,,188;13,-1
+155,194,cache_s_l2 (view),VIEW,metadata,-1,f32,262144x0x1x1,0,,,189,189
+156,195,cache_s_l2 (view) (copy of ),CPY,memory,-1,f32,262144x0x1x1,0,,,193;194,189
+157,196,conv_output_raw-2,SSM_CONV,convolution,2,f32,6144x307x1x1,7544832,7544832,15089664,184;197,-1
+158,198,conv_output_silu-2,SILU,vector,2,f32,6144x307x1x1,7544832,,,196,-1
+159,199,q_conv-2,VIEW,metadata,2,f32,128x16x307x1,2514944,,,198,198
+160,200,node_160,RMS_NORM,vector,2,f32,128x16x307x1,2514944,,,199,-1
+161,201,q_conv_predelta-2,SCALE,vector,2,f32,128x16x307x1,2514944,,,200,-1
+162,202,k_conv-2,VIEW,metadata,2,f32,128x16x307x1,2514944,,,198,198
+163,203,node_163,RMS_NORM,vector,2,f32,128x16x307x1,2514944,,,202,-1
+164,204,k_conv_predelta-2,SCALE,vector,2,f32,128x16x307x1,2514944,,,203,-1
+165,205,v_conv_predelta-2,VIEW,metadata,2,f32,128x16x307x1,2514944,,,198,198
+166,206,node_166,MUL_MAT,matrix,2,f32,16x307x1x1,19648,10059776,20119552,207;169,-1
+167,208,alpha-2,RESHAPE,metadata,2,f32,16x307x1x1,19648,,,206,206
+168,209,node_168,ADD,vector,2,f32,16x307x1x1,19648,,,208;210,-1
+169,211,a_softplus-2,SOFTPLUS,vector,2,f32,16x307x1x1,19648,,,209,-1
+170,212,gate-2,MUL,vector,2,f32,16x307x1x1,19648,,,211;213,-1
+171,214,gate-2 (reshaped),RESHAPE,metadata,2,f32,1x16x307x1,19648,,,212,212
+172,215,node_172,MUL_MAT,matrix,2,f32,16x307x1x1,19648,10059776,20119552,216;169,-1
+173,217,beta-2,RESHAPE,metadata,2,f32,1x16x307x1,19648,,,215,215
+174,218,beta_sigmoid-2,SIGMOID,vector,2,f32,1x16x307x1,19648,,,217,-1
+175,219,state_predelta-2,RESHAPE,metadata,2,f32,128x128x16x1,1048576,,,192,192
+176,220,node_176,GATED_DELTA_NET,recurrent,2,f32,2048x435x1x1,3563520,,,201;204;205;214;218;219,-1
+177,221,new_state-2,VIEW,metadata,2,f32,128x128x16x1,1048576,,,220,220
+178,222,cache_s_l2 (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,189,189
+179,223,cache_s_l2 (view) (copy of new_state-2),CPY,memory,2,f32,262144x1x1x1,1048576,,,221;222,189
+180,224,attn_output-2,VIEW,metadata,2,f32,128x16x307x1,2514944,,,220,220
+181,225,norm-2,RMS_NORM,vector,2,f32,128x16x307x1,2514944,,,224,-1
+182,226,node_182,MUL,vector,2,f32,128x16x307x1,2514944,,,225;227,-1
+183,228,z-2,MUL_MAT,matrix,2,f32,2048x307x1x1,2514944,1287651328,2575302656,229;169,-1
+184,230,z-2 (reshaped),RESHAPE,metadata,2,f32,128x16x307x1,2514944,,,228,228
+185,231,node_185,SILU,vector,2,f32,128x16x307x1,2514944,,,230,-1
+186,232,node_186,MUL,vector,2,f32,128x16x307x1,2514944,,,226;231,-1
+187,233,final_output-2,RESHAPE,metadata,2,f32,2048x307x1x1,2514944,,,232,232
+188,234,linear_attn_out-2,MUL_MAT,matrix,2,f32,2048x307x1x1,2514944,1287651328,2575302656,235;233,-1
+189,236,linear_attn_out-2 (reshaped),RESHAPE,metadata,2,f32,2048x307x1x1,2514944,,,234,234
+190,237,attn_residual-2,ADD,vector,2,f32,2048x307x1x1,2514944,,,236;167,-1
+191,238,norm-2,RMS_NORM,vector,2,f32,2048x307x1x1,2514944,,,237,-1
+192,239,attn_post_norm-2,MUL,vector,2,f32,2048x307x1x1,2514944,,,238;240,-1
+193,241,ffn_gate-2,MUL_MAT,matrix,2,f32,6144x307x1x1,7544832,3862953984,7725907968,242;239,-1
+194,243,ffn_up-2,MUL_MAT,matrix,2,f32,6144x307x1x1,7544832,3862953984,7725907968,244;239,-1
+195,245,ffn_swiglu-2,SWIGLU,vector,2,f32,6144x307x1x1,7544832,,,241;243,-1
+196,246,ffn_out-2,MUL_MAT,matrix,2,f32,2048x307x1x1,2514944,3862953984,7725907968,247;245,-1
+197,248,l_out-2,ADD,vector,2,f32,2048x307x1x1,2514944,,,246;237,-1
+198,249,norm-3,RMS_NORM,vector,3,f32,2048x307x1x1,2514944,,,248,-1
+199,250,attn_norm-3,MUL,vector,3,f32,2048x307x1x1,2514944,,,249;251,-1
+200,252,Qcur_full-3,MUL_MAT,matrix,3,f32,4096x307x1x1,5029888,2575302656,5150605312,253;250,-1
+201,254,Qcur_reshaped-3,VIEW,metadata,3,f32,256x8x307x1,2514944,,,252,252
+202,255,norm-3,RMS_NORM,vector,3,f32,256x8x307x1,2514944,,,254,-1
+203,256,Qcur_normed-3,MUL,vector,3,f32,256x8x307x1,2514944,,,255;257,-1
+204,258,Qcur-3,ROPE,vector,3,f32,256x8x307x1,2514944,,,256;259,-1
+205,260,Vcur-3,MUL_MAT,matrix,3,f32,512x307x1x1,628736,321912832,643825664,261;250,-1
+206,262,Vcur-3,RESHAPE,metadata,3,f32,256x2x307x1,628736,,,260,260
+207,263,Kcur-3,MUL_MAT,matrix,3,f32,512x307x1x1,628736,321912832,643825664,264;250,-1
+208,265,Kcur-3 (reshaped),RESHAPE,metadata,3,f32,256x2x307x1,628736,,,263,263
+209,266,norm-3,RMS_NORM,vector,3,f32,256x2x307x1,628736,,,265,-1
+210,267,Kcur_normed-3,MUL,vector,3,f32,256x2x307x1,628736,,,266;268,-1
+211,269,Kcur-3,ROPE,vector,3,f32,256x2x307x1,628736,,,267;259,-1
+212,270,Kcur-3 (view),VIEW,metadata,3,f32,512x307x1x1,628736,,,269,269
+213,271,cache_k_l3 (view),SET_ROWS,memory,3,f16,512x1280x1x1,1310720,,,270;272;273,273
+214,274,Vcur-3 (view),VIEW,metadata,3,f32,512x307x1x1,628736,,,262,260
+215,275,cache_v_l3 (view),SET_ROWS,memory,3,f16,512x1280x1x1,1310720,,,274;276;277,277
+216,278,Qcur-3 (view),VIEW,metadata,3,f32,256x8x307x1,2514944,,,258,258
+217,279,Qcur-3 (view) (permuted),PERMUTE,metadata,3,f32,256x307x8x1,2514944,,,278,258
+218,280,cache_k_l3 (view),VIEW,metadata,-1,f16,256x2x512x1,524288,,,273,273
+219,281,cache_k_l3 (view) (permuted),PERMUTE,metadata,-1,f16,256x512x2x1,524288,,,280,273
+220,282,cache_v_l3 (view),VIEW,metadata,-1,f16,256x2x512x1,524288,,,277,277
+221,283,cache_v_l3 (view) (permuted),PERMUTE,metadata,-1,f16,256x512x2x1,524288,,,282,277
+222,284,node_222,FLASH_ATTN_EXT,vector,3,f32,256x8x307x1,2514944,,,279;281;283;285,-1
+223,286,attn_pregate-3,RESHAPE,metadata,3,f32,2048x307x1x1,2514944,,,284,284
+224,287,Qcur_full-3 (view),VIEW,metadata,3,f32,256x8x307x1,2514944,,,252,252
+225,288,gate_reshaped-3,CONT,memory,3,f32,2048x307x1x1,2514944,,,287,-1
+226,289,gate_sigmoid-3,SIGMOID,vector,3,f32,2048x307x1x1,2514944,,,288,-1
+227,290,attn_gated-3,MUL,vector,3,f32,2048x307x1x1,2514944,,,286;289,-1
+228,291,attn_output-3,MUL_MAT,matrix,3,f32,2048x307x1x1,2514944,1287651328,2575302656,292;290,-1
+229,293,attn_residual-3,ADD,vector,3,f32,2048x307x1x1,2514944,,,291;248,-1
+230,294,norm-3,RMS_NORM,vector,3,f32,2048x307x1x1,2514944,,,293,-1
+231,295,attn_post_norm-3,MUL,vector,3,f32,2048x307x1x1,2514944,,,294;296,-1
+232,297,ffn_gate-3,MUL_MAT,matrix,3,f32,6144x307x1x1,7544832,3862953984,7725907968,298;295,-1
+233,299,ffn_up-3,MUL_MAT,matrix,3,f32,6144x307x1x1,7544832,3862953984,7725907968,300;295,-1
+234,301,ffn_swiglu-3,SWIGLU,vector,3,f32,6144x307x1x1,7544832,,,297;299,-1
+235,302,ffn_out-3,MUL_MAT,matrix,3,f32,2048x307x1x1,2514944,3862953984,7725907968,303;301,-1
+236,304,l_out-3,ADD,vector,3,f32,2048x307x1x1,2514944,,,302;293,-1
+237,305,norm-4,RMS_NORM,vector,4,f32,2048x307x1x1,2514944,,,304,-1
+238,306,attn_norm-4,MUL,vector,4,f32,2048x307x1x1,2514944,,,305;307,-1
+239,308,cache_r_l4 (reshaped),RESHAPE,metadata,-1,f32,18432x1x1x1,73728,,,309,309
+240,310,cache_r_l4 (reshaped) (view),VIEW,metadata,-1,f32,18432x1x1x1,73728,,,308,309
+241,311,cache_r_l4 (reshaped) (view) (view),SCALE,vector,-1,f32,18432x1x1x1,73728,,,310,309
+242,312,conv_states-4,GET_ROWS,memory,4,f32,18432x1x1x1,73728,,,308;10,-1
+243,313,node_243,GET_ROWS,memory,-1,f32,18432x0x1x1,0,,,308;13,-1
+244,314,cache_r_l4 (view),VIEW,metadata,-1,f32,18432x0x1x1,0,,,309,309
+245,315,cache_r_l4 (view) (copy of ),CPY,memory,-1,f32,18432x0x1x1,0,,,313;314,309
+246,316,conv_states_reshaped-4,RESHAPE,metadata,4,f32,3x6144x1x1,73728,,,312,312
+247,317,node_247,MUL_MAT,matrix,4,f32,6144x307x1x1,7544832,3862953984,7725907968,318;306,-1
+248,319,linear_attn_qkv_mixed-4,RESHAPE,metadata,4,f32,6144x307x1x1,7544832,,,317,317
+249,320,qkv_mixed_transposed-4,TRANSPOSE,metadata,4,f32,307x6144x1x1,7544832,,,319,317
+250,321,conv_input-4,CONCAT,memory,4,f32,310x6144x1x1,7618560,,,316;320,-1
+251,322,conv_state_last-4,VIEW,metadata,4,f32,3x6144x1x1,73728,,,321,321
+252,323,conv_state_update-4,VIEW,metadata,4,f32,18432x1x1x1,73728,,,309,309
+253,324,conv_state_update-4 (copy of conv_state_last-4),CPY,memory,4,f32,18432x1x1x1,73728,,,322;323,309
+254,325,cache_s_l4 (reshaped),RESHAPE,metadata,-1,f32,262144x1x1x1,1048576,,,326,326
+255,327,cache_s_l4 (reshaped) (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,325,326
+256,328,cache_s_l4 (reshaped) (view) (view),SCALE,vector,-1,f32,262144x1x1x1,1048576,,,327,326
+257,329,node_257,GET_ROWS,memory,-1,f32,262144x1x1x1,1048576,,,325;10,-1
+258,330,node_258,GET_ROWS,memory,-1,f32,262144x0x1x1,0,,,325;13,-1
+259,331,cache_s_l4 (view),VIEW,metadata,-1,f32,262144x0x1x1,0,,,326,326
+260,332,cache_s_l4 (view) (copy of ),CPY,memory,-1,f32,262144x0x1x1,0,,,330;331,326
+261,333,conv_output_raw-4,SSM_CONV,convolution,4,f32,6144x307x1x1,7544832,7544832,15089664,321;334,-1
+262,335,conv_output_silu-4,SILU,vector,4,f32,6144x307x1x1,7544832,,,333,-1
+263,336,q_conv-4,VIEW,metadata,4,f32,128x16x307x1,2514944,,,335,335
+264,337,node_264,RMS_NORM,vector,4,f32,128x16x307x1,2514944,,,336,-1
+265,338,q_conv_predelta-4,SCALE,vector,4,f32,128x16x307x1,2514944,,,337,-1
+266,339,k_conv-4,VIEW,metadata,4,f32,128x16x307x1,2514944,,,335,335
+267,340,node_267,RMS_NORM,vector,4,f32,128x16x307x1,2514944,,,339,-1
+268,341,k_conv_predelta-4,SCALE,vector,4,f32,128x16x307x1,2514944,,,340,-1
+269,342,v_conv_predelta-4,VIEW,metadata,4,f32,128x16x307x1,2514944,,,335,335
+270,343,node_270,MUL_MAT,matrix,4,f32,16x307x1x1,19648,10059776,20119552,344;306,-1
+271,345,alpha-4,RESHAPE,metadata,4,f32,16x307x1x1,19648,,,343,343
+272,346,node_272,ADD,vector,4,f32,16x307x1x1,19648,,,345;347,-1
+273,348,a_softplus-4,SOFTPLUS,vector,4,f32,16x307x1x1,19648,,,346,-1
+274,349,gate-4,MUL,vector,4,f32,16x307x1x1,19648,,,348;350,-1
+275,351,gate-4 (reshaped),RESHAPE,metadata,4,f32,1x16x307x1,19648,,,349,349
+276,352,node_276,MUL_MAT,matrix,4,f32,16x307x1x1,19648,10059776,20119552,353;306,-1
+277,354,beta-4,RESHAPE,metadata,4,f32,1x16x307x1,19648,,,352,352
+278,355,beta_sigmoid-4,SIGMOID,vector,4,f32,1x16x307x1,19648,,,354,-1
+279,356,state_predelta-4,RESHAPE,metadata,4,f32,128x128x16x1,1048576,,,329,329
+280,357,node_280,GATED_DELTA_NET,recurrent,4,f32,2048x435x1x1,3563520,,,338;341;342;351;355;356,-1
+281,358,new_state-4,VIEW,metadata,4,f32,128x128x16x1,1048576,,,357,357
+282,359,cache_s_l4 (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,326,326
+283,360,cache_s_l4 (view) (copy of new_state-4),CPY,memory,4,f32,262144x1x1x1,1048576,,,358;359,326
+284,361,attn_output-4,VIEW,metadata,4,f32,128x16x307x1,2514944,,,357,357
+285,362,norm-4,RMS_NORM,vector,4,f32,128x16x307x1,2514944,,,361,-1
+286,363,node_286,MUL,vector,4,f32,128x16x307x1,2514944,,,362;364,-1
+287,365,z-4,MUL_MAT,matrix,4,f32,2048x307x1x1,2514944,1287651328,2575302656,366;306,-1
+288,367,z-4 (reshaped),RESHAPE,metadata,4,f32,128x16x307x1,2514944,,,365,365
+289,368,node_289,SILU,vector,4,f32,128x16x307x1,2514944,,,367,-1
+290,369,node_290,MUL,vector,4,f32,128x16x307x1,2514944,,,363;368,-1
+291,370,final_output-4,RESHAPE,metadata,4,f32,2048x307x1x1,2514944,,,369,369
+292,371,linear_attn_out-4,MUL_MAT,matrix,4,f32,2048x307x1x1,2514944,1287651328,2575302656,372;370,-1
+293,373,linear_attn_out-4 (reshaped),RESHAPE,metadata,4,f32,2048x307x1x1,2514944,,,371,371
+294,374,attn_residual-4,ADD,vector,4,f32,2048x307x1x1,2514944,,,373;304,-1
+295,375,norm-4,RMS_NORM,vector,4,f32,2048x307x1x1,2514944,,,374,-1
+296,376,attn_post_norm-4,MUL,vector,4,f32,2048x307x1x1,2514944,,,375;377,-1
+297,378,ffn_gate-4,MUL_MAT,matrix,4,f32,6144x307x1x1,7544832,3862953984,7725907968,379;376,-1
+298,380,ffn_up-4,MUL_MAT,matrix,4,f32,6144x307x1x1,7544832,3862953984,7725907968,381;376,-1
+299,382,ffn_swiglu-4,SWIGLU,vector,4,f32,6144x307x1x1,7544832,,,378;380,-1
+300,383,ffn_out-4,MUL_MAT,matrix,4,f32,2048x307x1x1,2514944,3862953984,7725907968,384;382,-1
+301,385,l_out-4,ADD,vector,4,f32,2048x307x1x1,2514944,,,383;374,-1
+302,386,norm-5,RMS_NORM,vector,5,f32,2048x307x1x1,2514944,,,385,-1
+303,387,attn_norm-5,MUL,vector,5,f32,2048x307x1x1,2514944,,,386;388,-1
+304,389,cache_r_l5 (reshaped),RESHAPE,metadata,-1,f32,18432x1x1x1,73728,,,390,390
+305,391,cache_r_l5 (reshaped) (view),VIEW,metadata,-1,f32,18432x1x1x1,73728,,,389,390
+306,392,cache_r_l5 (reshaped) (view) (view),SCALE,vector,-1,f32,18432x1x1x1,73728,,,391,390
+307,393,conv_states-5,GET_ROWS,memory,5,f32,18432x1x1x1,73728,,,389;10,-1
+308,394,node_308,GET_ROWS,memory,-1,f32,18432x0x1x1,0,,,389;13,-1
+309,395,cache_r_l5 (view),VIEW,metadata,-1,f32,18432x0x1x1,0,,,390,390
+310,396,cache_r_l5 (view) (copy of ),CPY,memory,-1,f32,18432x0x1x1,0,,,394;395,390
+311,397,conv_states_reshaped-5,RESHAPE,metadata,5,f32,3x6144x1x1,73728,,,393,393
+312,398,node_312,MUL_MAT,matrix,5,f32,6144x307x1x1,7544832,3862953984,7725907968,399;387,-1
+313,400,linear_attn_qkv_mixed-5,RESHAPE,metadata,5,f32,6144x307x1x1,7544832,,,398,398
+314,401,qkv_mixed_transposed-5,TRANSPOSE,metadata,5,f32,307x6144x1x1,7544832,,,400,398
+315,402,conv_input-5,CONCAT,memory,5,f32,310x6144x1x1,7618560,,,397;401,-1
+316,403,conv_state_last-5,VIEW,metadata,5,f32,3x6144x1x1,73728,,,402,402
+317,404,conv_state_update-5,VIEW,metadata,5,f32,18432x1x1x1,73728,,,390,390
+318,405,conv_state_update-5 (copy of conv_state_last-5),CPY,memory,5,f32,18432x1x1x1,73728,,,403;404,390
+319,406,cache_s_l5 (reshaped),RESHAPE,metadata,-1,f32,262144x1x1x1,1048576,,,407,407
+320,408,cache_s_l5 (reshaped) (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,406,407
+321,409,cache_s_l5 (reshaped) (view) (view),SCALE,vector,-1,f32,262144x1x1x1,1048576,,,408,407
+322,410,node_322,GET_ROWS,memory,-1,f32,262144x1x1x1,1048576,,,406;10,-1
+323,411,node_323,GET_ROWS,memory,-1,f32,262144x0x1x1,0,,,406;13,-1
+324,412,cache_s_l5 (view),VIEW,metadata,-1,f32,262144x0x1x1,0,,,407,407
+325,413,cache_s_l5 (view) (copy of ),CPY,memory,-1,f32,262144x0x1x1,0,,,411;412,407
+326,414,conv_output_raw-5,SSM_CONV,convolution,5,f32,6144x307x1x1,7544832,7544832,15089664,402;415,-1
+327,416,conv_output_silu-5,SILU,vector,5,f32,6144x307x1x1,7544832,,,414,-1
+328,417,q_conv-5,VIEW,metadata,5,f32,128x16x307x1,2514944,,,416,416
+329,418,node_329,RMS_NORM,vector,5,f32,128x16x307x1,2514944,,,417,-1
+330,419,q_conv_predelta-5,SCALE,vector,5,f32,128x16x307x1,2514944,,,418,-1
+331,420,k_conv-5,VIEW,metadata,5,f32,128x16x307x1,2514944,,,416,416
+332,421,node_332,RMS_NORM,vector,5,f32,128x16x307x1,2514944,,,420,-1
+333,422,k_conv_predelta-5,SCALE,vector,5,f32,128x16x307x1,2514944,,,421,-1
+334,423,v_conv_predelta-5,VIEW,metadata,5,f32,128x16x307x1,2514944,,,416,416
+335,424,node_335,MUL_MAT,matrix,5,f32,16x307x1x1,19648,10059776,20119552,425;387,-1
+336,426,alpha-5,RESHAPE,metadata,5,f32,16x307x1x1,19648,,,424,424
+337,427,node_337,ADD,vector,5,f32,16x307x1x1,19648,,,426;428,-1
+338,429,a_softplus-5,SOFTPLUS,vector,5,f32,16x307x1x1,19648,,,427,-1
+339,430,gate-5,MUL,vector,5,f32,16x307x1x1,19648,,,429;431,-1
+340,432,gate-5 (reshaped),RESHAPE,metadata,5,f32,1x16x307x1,19648,,,430,430
+341,433,node_341,MUL_MAT,matrix,5,f32,16x307x1x1,19648,10059776,20119552,434;387,-1
+342,435,beta-5,RESHAPE,metadata,5,f32,1x16x307x1,19648,,,433,433
+343,436,beta_sigmoid-5,SIGMOID,vector,5,f32,1x16x307x1,19648,,,435,-1
+344,437,state_predelta-5,RESHAPE,metadata,5,f32,128x128x16x1,1048576,,,410,410
+345,438,node_345,GATED_DELTA_NET,recurrent,5,f32,2048x435x1x1,3563520,,,419;422;423;432;436;437,-1
+346,439,new_state-5,VIEW,metadata,5,f32,128x128x16x1,1048576,,,438,438
+347,440,cache_s_l5 (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,407,407
+348,441,cache_s_l5 (view) (copy of new_state-5),CPY,memory,5,f32,262144x1x1x1,1048576,,,439;440,407
+349,442,attn_output-5,VIEW,metadata,5,f32,128x16x307x1,2514944,,,438,438
+350,443,norm-5,RMS_NORM,vector,5,f32,128x16x307x1,2514944,,,442,-1
+351,444,node_351,MUL,vector,5,f32,128x16x307x1,2514944,,,443;445,-1
+352,446,z-5,MUL_MAT,matrix,5,f32,2048x307x1x1,2514944,1287651328,2575302656,447;387,-1
+353,448,z-5 (reshaped),RESHAPE,metadata,5,f32,128x16x307x1,2514944,,,446,446
+354,449,node_354,SILU,vector,5,f32,128x16x307x1,2514944,,,448,-1
+355,450,node_355,MUL,vector,5,f32,128x16x307x1,2514944,,,444;449,-1
+356,451,final_output-5,RESHAPE,metadata,5,f32,2048x307x1x1,2514944,,,450,450
+357,452,linear_attn_out-5,MUL_MAT,matrix,5,f32,2048x307x1x1,2514944,1287651328,2575302656,453;451,-1
+358,454,linear_attn_out-5 (reshaped),RESHAPE,metadata,5,f32,2048x307x1x1,2514944,,,452,452
+359,455,attn_residual-5,ADD,vector,5,f32,2048x307x1x1,2514944,,,454;385,-1
+360,456,norm-5,RMS_NORM,vector,5,f32,2048x307x1x1,2514944,,,455,-1
+361,457,attn_post_norm-5,MUL,vector,5,f32,2048x307x1x1,2514944,,,456;458,-1
+362,459,ffn_gate-5,MUL_MAT,matrix,5,f32,6144x307x1x1,7544832,3862953984,7725907968,460;457,-1
+363,461,ffn_up-5,MUL_MAT,matrix,5,f32,6144x307x1x1,7544832,3862953984,7725907968,462;457,-1
+364,463,ffn_swiglu-5,SWIGLU,vector,5,f32,6144x307x1x1,7544832,,,459;461,-1
+365,464,ffn_out-5,MUL_MAT,matrix,5,f32,2048x307x1x1,2514944,3862953984,7725907968,465;463,-1
+366,466,l_out-5,ADD,vector,5,f32,2048x307x1x1,2514944,,,464;455,-1
+367,467,norm-6,RMS_NORM,vector,6,f32,2048x307x1x1,2514944,,,466,-1
+368,468,attn_norm-6,MUL,vector,6,f32,2048x307x1x1,2514944,,,467;469,-1
+369,470,cache_r_l6 (reshaped),RESHAPE,metadata,-1,f32,18432x1x1x1,73728,,,471,471
+370,472,cache_r_l6 (reshaped) (view),VIEW,metadata,-1,f32,18432x1x1x1,73728,,,470,471
+371,473,cache_r_l6 (reshaped) (view) (view),SCALE,vector,-1,f32,18432x1x1x1,73728,,,472,471
+372,474,conv_states-6,GET_ROWS,memory,6,f32,18432x1x1x1,73728,,,470;10,-1
+373,475,node_373,GET_ROWS,memory,-1,f32,18432x0x1x1,0,,,470;13,-1
+374,476,cache_r_l6 (view),VIEW,metadata,-1,f32,18432x0x1x1,0,,,471,471
+375,477,cache_r_l6 (view) (copy of ),CPY,memory,-1,f32,18432x0x1x1,0,,,475;476,471
+376,478,conv_states_reshaped-6,RESHAPE,metadata,6,f32,3x6144x1x1,73728,,,474,474
+377,479,node_377,MUL_MAT,matrix,6,f32,6144x307x1x1,7544832,3862953984,7725907968,480;468,-1
+378,481,linear_attn_qkv_mixed-6,RESHAPE,metadata,6,f32,6144x307x1x1,7544832,,,479,479
+379,482,qkv_mixed_transposed-6,TRANSPOSE,metadata,6,f32,307x6144x1x1,7544832,,,481,479
+380,483,conv_input-6,CONCAT,memory,6,f32,310x6144x1x1,7618560,,,478;482,-1
+381,484,conv_state_last-6,VIEW,metadata,6,f32,3x6144x1x1,73728,,,483,483
+382,485,conv_state_update-6,VIEW,metadata,6,f32,18432x1x1x1,73728,,,471,471
+383,486,conv_state_update-6 (copy of conv_state_last-6),CPY,memory,6,f32,18432x1x1x1,73728,,,484;485,471
+384,487,cache_s_l6 (reshaped),RESHAPE,metadata,-1,f32,262144x1x1x1,1048576,,,488,488
+385,489,cache_s_l6 (reshaped) (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,487,488
+386,490,cache_s_l6 (reshaped) (view) (view),SCALE,vector,-1,f32,262144x1x1x1,1048576,,,489,488
+387,491,node_387,GET_ROWS,memory,-1,f32,262144x1x1x1,1048576,,,487;10,-1
+388,492,node_388,GET_ROWS,memory,-1,f32,262144x0x1x1,0,,,487;13,-1
+389,493,cache_s_l6 (view),VIEW,metadata,-1,f32,262144x0x1x1,0,,,488,488
+390,494,cache_s_l6 (view) (copy of ),CPY,memory,-1,f32,262144x0x1x1,0,,,492;493,488
+391,495,conv_output_raw-6,SSM_CONV,convolution,6,f32,6144x307x1x1,7544832,7544832,15089664,483;496,-1
+392,497,conv_output_silu-6,SILU,vector,6,f32,6144x307x1x1,7544832,,,495,-1
+393,498,q_conv-6,VIEW,metadata,6,f32,128x16x307x1,2514944,,,497,497
+394,499,node_394,RMS_NORM,vector,6,f32,128x16x307x1,2514944,,,498,-1
+395,500,q_conv_predelta-6,SCALE,vector,6,f32,128x16x307x1,2514944,,,499,-1
+396,501,k_conv-6,VIEW,metadata,6,f32,128x16x307x1,2514944,,,497,497
+397,502,node_397,RMS_NORM,vector,6,f32,128x16x307x1,2514944,,,501,-1
+398,503,k_conv_predelta-6,SCALE,vector,6,f32,128x16x307x1,2514944,,,502,-1
+399,504,v_conv_predelta-6,VIEW,metadata,6,f32,128x16x307x1,2514944,,,497,497
+400,505,node_400,MUL_MAT,matrix,6,f32,16x307x1x1,19648,10059776,20119552,506;468,-1
+401,507,alpha-6,RESHAPE,metadata,6,f32,16x307x1x1,19648,,,505,505
+402,508,node_402,ADD,vector,6,f32,16x307x1x1,19648,,,507;509,-1
+403,510,a_softplus-6,SOFTPLUS,vector,6,f32,16x307x1x1,19648,,,508,-1
+404,511,gate-6,MUL,vector,6,f32,16x307x1x1,19648,,,510;512,-1
+405,513,gate-6 (reshaped),RESHAPE,metadata,6,f32,1x16x307x1,19648,,,511,511
+406,514,node_406,MUL_MAT,matrix,6,f32,16x307x1x1,19648,10059776,20119552,515;468,-1
+407,516,beta-6,RESHAPE,metadata,6,f32,1x16x307x1,19648,,,514,514
+408,517,beta_sigmoid-6,SIGMOID,vector,6,f32,1x16x307x1,19648,,,516,-1
+409,518,state_predelta-6,RESHAPE,metadata,6,f32,128x128x16x1,1048576,,,491,491
+410,519,node_410,GATED_DELTA_NET,recurrent,6,f32,2048x435x1x1,3563520,,,500;503;504;513;517;518,-1
+411,520,new_state-6,VIEW,metadata,6,f32,128x128x16x1,1048576,,,519,519
+412,521,cache_s_l6 (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,488,488
+413,522,cache_s_l6 (view) (copy of new_state-6),CPY,memory,6,f32,262144x1x1x1,1048576,,,520;521,488
+414,523,attn_output-6,VIEW,metadata,6,f32,128x16x307x1,2514944,,,519,519
+415,524,norm-6,RMS_NORM,vector,6,f32,128x16x307x1,2514944,,,523,-1
+416,525,node_416,MUL,vector,6,f32,128x16x307x1,2514944,,,524;526,-1
+417,527,z-6,MUL_MAT,matrix,6,f32,2048x307x1x1,2514944,1287651328,2575302656,528;468,-1
+418,529,z-6 (reshaped),RESHAPE,metadata,6,f32,128x16x307x1,2514944,,,527,527
+419,530,node_419,SILU,vector,6,f32,128x16x307x1,2514944,,,529,-1
+420,531,node_420,MUL,vector,6,f32,128x16x307x1,2514944,,,525;530,-1
+421,532,final_output-6,RESHAPE,metadata,6,f32,2048x307x1x1,2514944,,,531,531
+422,533,linear_attn_out-6,MUL_MAT,matrix,6,f32,2048x307x1x1,2514944,1287651328,2575302656,534;532,-1
+423,535,linear_attn_out-6 (reshaped),RESHAPE,metadata,6,f32,2048x307x1x1,2514944,,,533,533
+424,536,attn_residual-6,ADD,vector,6,f32,2048x307x1x1,2514944,,,535;466,-1
+425,537,norm-6,RMS_NORM,vector,6,f32,2048x307x1x1,2514944,,,536,-1
+426,538,attn_post_norm-6,MUL,vector,6,f32,2048x307x1x1,2514944,,,537;539,-1
+427,540,ffn_gate-6,MUL_MAT,matrix,6,f32,6144x307x1x1,7544832,3862953984,7725907968,541;538,-1
+428,542,ffn_up-6,MUL_MAT,matrix,6,f32,6144x307x1x1,7544832,3862953984,7725907968,543;538,-1
+429,544,ffn_swiglu-6,SWIGLU,vector,6,f32,6144x307x1x1,7544832,,,540;542,-1
+430,545,ffn_out-6,MUL_MAT,matrix,6,f32,2048x307x1x1,2514944,3862953984,7725907968,546;544,-1
+431,547,l_out-6,ADD,vector,6,f32,2048x307x1x1,2514944,,,545;536,-1
+432,548,norm-7,RMS_NORM,vector,7,f32,2048x307x1x1,2514944,,,547,-1
+433,549,attn_norm-7,MUL,vector,7,f32,2048x307x1x1,2514944,,,548;550,-1
+434,551,Qcur_full-7,MUL_MAT,matrix,7,f32,4096x307x1x1,5029888,2575302656,5150605312,552;549,-1
+435,553,Qcur_reshaped-7,VIEW,metadata,7,f32,256x8x307x1,2514944,,,551,551
+436,554,norm-7,RMS_NORM,vector,7,f32,256x8x307x1,2514944,,,553,-1
+437,555,Qcur_normed-7,MUL,vector,7,f32,256x8x307x1,2514944,,,554;556,-1
+438,557,Qcur-7,ROPE,vector,7,f32,256x8x307x1,2514944,,,555;259,-1
+439,558,Vcur-7,MUL_MAT,matrix,7,f32,512x307x1x1,628736,321912832,643825664,559;549,-1
+440,560,Vcur-7,RESHAPE,metadata,7,f32,256x2x307x1,628736,,,558,558
+441,561,Kcur-7,MUL_MAT,matrix,7,f32,512x307x1x1,628736,321912832,643825664,562;549,-1
+442,563,Kcur-7 (reshaped),RESHAPE,metadata,7,f32,256x2x307x1,628736,,,561,561
+443,564,norm-7,RMS_NORM,vector,7,f32,256x2x307x1,628736,,,563,-1
+444,565,Kcur_normed-7,MUL,vector,7,f32,256x2x307x1,628736,,,564;566,-1
+445,567,Kcur-7,ROPE,vector,7,f32,256x2x307x1,628736,,,565;259,-1
+446,568,Kcur-7 (view),VIEW,metadata,7,f32,512x307x1x1,628736,,,567,567
+447,569,cache_k_l7 (view),SET_ROWS,memory,7,f16,512x1280x1x1,1310720,,,568;272;570,570
+448,571,Vcur-7 (view),VIEW,metadata,7,f32,512x307x1x1,628736,,,560,558
+449,572,cache_v_l7 (view),SET_ROWS,memory,7,f16,512x1280x1x1,1310720,,,571;276;573,573
+450,574,Qcur-7 (view),VIEW,metadata,7,f32,256x8x307x1,2514944,,,557,557
+451,575,Qcur-7 (view) (permuted),PERMUTE,metadata,7,f32,256x307x8x1,2514944,,,574,557
+452,576,cache_k_l7 (view),VIEW,metadata,-1,f16,256x2x512x1,524288,,,570,570
+453,577,cache_k_l7 (view) (permuted),PERMUTE,metadata,-1,f16,256x512x2x1,524288,,,576,570
+454,578,cache_v_l7 (view),VIEW,metadata,-1,f16,256x2x512x1,524288,,,573,573
+455,579,cache_v_l7 (view) (permuted),PERMUTE,metadata,-1,f16,256x512x2x1,524288,,,578,573
+456,580,node_456,FLASH_ATTN_EXT,vector,7,f32,256x8x307x1,2514944,,,575;577;579;285,-1
+457,581,attn_pregate-7,RESHAPE,metadata,7,f32,2048x307x1x1,2514944,,,580,580
+458,582,Qcur_full-7 (view),VIEW,metadata,7,f32,256x8x307x1,2514944,,,551,551
+459,583,gate_reshaped-7,CONT,memory,7,f32,2048x307x1x1,2514944,,,582,-1
+460,584,gate_sigmoid-7,SIGMOID,vector,7,f32,2048x307x1x1,2514944,,,583,-1
+461,585,attn_gated-7,MUL,vector,7,f32,2048x307x1x1,2514944,,,581;584,-1
+462,586,attn_output-7,MUL_MAT,matrix,7,f32,2048x307x1x1,2514944,1287651328,2575302656,587;585,-1
+463,588,attn_residual-7,ADD,vector,7,f32,2048x307x1x1,2514944,,,586;547,-1
+464,589,norm-7,RMS_NORM,vector,7,f32,2048x307x1x1,2514944,,,588,-1
+465,590,attn_post_norm-7,MUL,vector,7,f32,2048x307x1x1,2514944,,,589;591,-1
+466,592,ffn_gate-7,MUL_MAT,matrix,7,f32,6144x307x1x1,7544832,3862953984,7725907968,593;590,-1
+467,594,ffn_up-7,MUL_MAT,matrix,7,f32,6144x307x1x1,7544832,3862953984,7725907968,595;590,-1
+468,596,ffn_swiglu-7,SWIGLU,vector,7,f32,6144x307x1x1,7544832,,,592;594,-1
+469,597,ffn_out-7,MUL_MAT,matrix,7,f32,2048x307x1x1,2514944,3862953984,7725907968,598;596,-1
+470,599,l_out-7,ADD,vector,7,f32,2048x307x1x1,2514944,,,597;588,-1
+471,600,norm-8,RMS_NORM,vector,8,f32,2048x307x1x1,2514944,,,599,-1
+472,601,attn_norm-8,MUL,vector,8,f32,2048x307x1x1,2514944,,,600;602,-1
+473,603,cache_r_l8 (reshaped),RESHAPE,metadata,-1,f32,18432x1x1x1,73728,,,604,604
+474,605,cache_r_l8 (reshaped) (view),VIEW,metadata,-1,f32,18432x1x1x1,73728,,,603,604
+475,606,cache_r_l8 (reshaped) (view) (view),SCALE,vector,-1,f32,18432x1x1x1,73728,,,605,604
+476,607,conv_states-8,GET_ROWS,memory,8,f32,18432x1x1x1,73728,,,603;10,-1
+477,608,node_477,GET_ROWS,memory,-1,f32,18432x0x1x1,0,,,603;13,-1
+478,609,cache_r_l8 (view),VIEW,metadata,-1,f32,18432x0x1x1,0,,,604,604
+479,610,cache_r_l8 (view) (copy of ),CPY,memory,-1,f32,18432x0x1x1,0,,,608;609,604
+480,611,conv_states_reshaped-8,RESHAPE,metadata,8,f32,3x6144x1x1,73728,,,607,607
+481,612,node_481,MUL_MAT,matrix,8,f32,6144x307x1x1,7544832,3862953984,7725907968,613;601,-1
+482,614,linear_attn_qkv_mixed-8,RESHAPE,metadata,8,f32,6144x307x1x1,7544832,,,612,612
+483,615,qkv_mixed_transposed-8,TRANSPOSE,metadata,8,f32,307x6144x1x1,7544832,,,614,612
+484,616,conv_input-8,CONCAT,memory,8,f32,310x6144x1x1,7618560,,,611;615,-1
+485,617,conv_state_last-8,VIEW,metadata,8,f32,3x6144x1x1,73728,,,616,616
+486,618,conv_state_update-8,VIEW,metadata,8,f32,18432x1x1x1,73728,,,604,604
+487,619,conv_state_update-8 (copy of conv_state_last-8),CPY,memory,8,f32,18432x1x1x1,73728,,,617;618,604
+488,620,cache_s_l8 (reshaped),RESHAPE,metadata,-1,f32,262144x1x1x1,1048576,,,621,621
+489,622,cache_s_l8 (reshaped) (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,620,621
+490,623,cache_s_l8 (reshaped) (view) (view),SCALE,vector,-1,f32,262144x1x1x1,1048576,,,622,621
+491,624,node_491,GET_ROWS,memory,-1,f32,262144x1x1x1,1048576,,,620;10,-1
+492,625,node_492,GET_ROWS,memory,-1,f32,262144x0x1x1,0,,,620;13,-1
+493,626,cache_s_l8 (view),VIEW,metadata,-1,f32,262144x0x1x1,0,,,621,621
+494,627,cache_s_l8 (view) (copy of ),CPY,memory,-1,f32,262144x0x1x1,0,,,625;626,621
+495,628,conv_output_raw-8,SSM_CONV,convolution,8,f32,6144x307x1x1,7544832,7544832,15089664,616;629,-1
+496,630,conv_output_silu-8,SILU,vector,8,f32,6144x307x1x1,7544832,,,628,-1
+497,631,q_conv-8,VIEW,metadata,8,f32,128x16x307x1,2514944,,,630,630
+498,632,node_498,RMS_NORM,vector,8,f32,128x16x307x1,2514944,,,631,-1
+499,633,q_conv_predelta-8,SCALE,vector,8,f32,128x16x307x1,2514944,,,632,-1
+500,634,k_conv-8,VIEW,metadata,8,f32,128x16x307x1,2514944,,,630,630
+501,635,node_501,RMS_NORM,vector,8,f32,128x16x307x1,2514944,,,634,-1
+502,636,k_conv_predelta-8,SCALE,vector,8,f32,128x16x307x1,2514944,,,635,-1
+503,637,v_conv_predelta-8,VIEW,metadata,8,f32,128x16x307x1,2514944,,,630,630
+504,638,node_504,MUL_MAT,matrix,8,f32,16x307x1x1,19648,10059776,20119552,639;601,-1
+505,640,alpha-8,RESHAPE,metadata,8,f32,16x307x1x1,19648,,,638,638
+506,641,node_506,ADD,vector,8,f32,16x307x1x1,19648,,,640;642,-1
+507,643,a_softplus-8,SOFTPLUS,vector,8,f32,16x307x1x1,19648,,,641,-1
+508,644,gate-8,MUL,vector,8,f32,16x307x1x1,19648,,,643;645,-1
+509,646,gate-8 (reshaped),RESHAPE,metadata,8,f32,1x16x307x1,19648,,,644,644
+510,647,node_510,MUL_MAT,matrix,8,f32,16x307x1x1,19648,10059776,20119552,648;601,-1
+511,649,beta-8,RESHAPE,metadata,8,f32,1x16x307x1,19648,,,647,647
+512,650,beta_sigmoid-8,SIGMOID,vector,8,f32,1x16x307x1,19648,,,649,-1
+513,651,state_predelta-8,RESHAPE,metadata,8,f32,128x128x16x1,1048576,,,624,624
+514,652,node_514,GATED_DELTA_NET,recurrent,8,f32,2048x435x1x1,3563520,,,633;636;637;646;650;651,-1
+515,653,new_state-8,VIEW,metadata,8,f32,128x128x16x1,1048576,,,652,652
+516,654,cache_s_l8 (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,621,621
+517,655,cache_s_l8 (view) (copy of new_state-8),CPY,memory,8,f32,262144x1x1x1,1048576,,,653;654,621
+518,656,attn_output-8,VIEW,metadata,8,f32,128x16x307x1,2514944,,,652,652
+519,657,norm-8,RMS_NORM,vector,8,f32,128x16x307x1,2514944,,,656,-1
+520,658,node_520,MUL,vector,8,f32,128x16x307x1,2514944,,,657;659,-1
+521,660,z-8,MUL_MAT,matrix,8,f32,2048x307x1x1,2514944,1287651328,2575302656,661;601,-1
+522,662,z-8 (reshaped),RESHAPE,metadata,8,f32,128x16x307x1,2514944,,,660,660
+523,663,node_523,SILU,vector,8,f32,128x16x307x1,2514944,,,662,-1
+524,664,node_524,MUL,vector,8,f32,128x16x307x1,2514944,,,658;663,-1
+525,665,final_output-8,RESHAPE,metadata,8,f32,2048x307x1x1,2514944,,,664,664
+526,666,linear_attn_out-8,MUL_MAT,matrix,8,f32,2048x307x1x1,2514944,1287651328,2575302656,667;665,-1
+527,668,linear_attn_out-8 (reshaped),RESHAPE,metadata,8,f32,2048x307x1x1,2514944,,,666,666
+528,669,attn_residual-8,ADD,vector,8,f32,2048x307x1x1,2514944,,,668;599,-1
+529,670,norm-8,RMS_NORM,vector,8,f32,2048x307x1x1,2514944,,,669,-1
+530,671,attn_post_norm-8,MUL,vector,8,f32,2048x307x1x1,2514944,,,670;672,-1
+531,673,ffn_gate-8,MUL_MAT,matrix,8,f32,6144x307x1x1,7544832,3862953984,7725907968,674;671,-1
+532,675,ffn_up-8,MUL_MAT,matrix,8,f32,6144x307x1x1,7544832,3862953984,7725907968,676;671,-1
+533,677,ffn_swiglu-8,SWIGLU,vector,8,f32,6144x307x1x1,7544832,,,673;675,-1
+534,678,ffn_out-8,MUL_MAT,matrix,8,f32,2048x307x1x1,2514944,3862953984,7725907968,679;677,-1
+535,680,l_out-8,ADD,vector,8,f32,2048x307x1x1,2514944,,,678;669,-1
+536,681,norm-9,RMS_NORM,vector,9,f32,2048x307x1x1,2514944,,,680,-1
+537,682,attn_norm-9,MUL,vector,9,f32,2048x307x1x1,2514944,,,681;683,-1
+538,684,cache_r_l9 (reshaped),RESHAPE,metadata,-1,f32,18432x1x1x1,73728,,,685,685
+539,686,cache_r_l9 (reshaped) (view),VIEW,metadata,-1,f32,18432x1x1x1,73728,,,684,685
+540,687,cache_r_l9 (reshaped) (view) (view),SCALE,vector,-1,f32,18432x1x1x1,73728,,,686,685
+541,688,conv_states-9,GET_ROWS,memory,9,f32,18432x1x1x1,73728,,,684;10,-1
+542,689,node_542,GET_ROWS,memory,-1,f32,18432x0x1x1,0,,,684;13,-1
+543,690,cache_r_l9 (view),VIEW,metadata,-1,f32,18432x0x1x1,0,,,685,685
+544,691,cache_r_l9 (view) (copy of ),CPY,memory,-1,f32,18432x0x1x1,0,,,689;690,685
+545,692,conv_states_reshaped-9,RESHAPE,metadata,9,f32,3x6144x1x1,73728,,,688,688
+546,693,node_546,MUL_MAT,matrix,9,f32,6144x307x1x1,7544832,3862953984,7725907968,694;682,-1
+547,695,linear_attn_qkv_mixed-9,RESHAPE,metadata,9,f32,6144x307x1x1,7544832,,,693,693
+548,696,qkv_mixed_transposed-9,TRANSPOSE,metadata,9,f32,307x6144x1x1,7544832,,,695,693
+549,697,conv_input-9,CONCAT,memory,9,f32,310x6144x1x1,7618560,,,692;696,-1
+550,698,conv_state_last-9,VIEW,metadata,9,f32,3x6144x1x1,73728,,,697,697
+551,699,conv_state_update-9,VIEW,metadata,9,f32,18432x1x1x1,73728,,,685,685
+552,700,conv_state_update-9 (copy of conv_state_last-9),CPY,memory,9,f32,18432x1x1x1,73728,,,698;699,685
+553,701,cache_s_l9 (reshaped),RESHAPE,metadata,-1,f32,262144x1x1x1,1048576,,,702,702
+554,703,cache_s_l9 (reshaped) (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,701,702
+555,704,cache_s_l9 (reshaped) (view) (view),SCALE,vector,-1,f32,262144x1x1x1,1048576,,,703,702
+556,705,node_556,GET_ROWS,memory,-1,f32,262144x1x1x1,1048576,,,701;10,-1
+557,706,node_557,GET_ROWS,memory,-1,f32,262144x0x1x1,0,,,701;13,-1
+558,707,cache_s_l9 (view),VIEW,metadata,-1,f32,262144x0x1x1,0,,,702,702
+559,708,cache_s_l9 (view) (copy of ),CPY,memory,-1,f32,262144x0x1x1,0,,,706;707,702
+560,709,conv_output_raw-9,SSM_CONV,convolution,9,f32,6144x307x1x1,7544832,7544832,15089664,697;710,-1
+561,711,conv_output_silu-9,SILU,vector,9,f32,6144x307x1x1,7544832,,,709,-1
+562,712,q_conv-9,VIEW,metadata,9,f32,128x16x307x1,2514944,,,711,711
+563,713,node_563,RMS_NORM,vector,9,f32,128x16x307x1,2514944,,,712,-1
+564,714,q_conv_predelta-9,SCALE,vector,9,f32,128x16x307x1,2514944,,,713,-1
+565,715,k_conv-9,VIEW,metadata,9,f32,128x16x307x1,2514944,,,711,711
+566,716,node_566,RMS_NORM,vector,9,f32,128x16x307x1,2514944,,,715,-1
+567,717,k_conv_predelta-9,SCALE,vector,9,f32,128x16x307x1,2514944,,,716,-1
+568,718,v_conv_predelta-9,VIEW,metadata,9,f32,128x16x307x1,2514944,,,711,711
+569,719,node_569,MUL_MAT,matrix,9,f32,16x307x1x1,19648,10059776,20119552,720;682,-1
+570,721,alpha-9,RESHAPE,metadata,9,f32,16x307x1x1,19648,,,719,719
+571,722,node_571,ADD,vector,9,f32,16x307x1x1,19648,,,721;723,-1
+572,724,a_softplus-9,SOFTPLUS,vector,9,f32,16x307x1x1,19648,,,722,-1
+573,725,gate-9,MUL,vector,9,f32,16x307x1x1,19648,,,724;726,-1
+574,727,gate-9 (reshaped),RESHAPE,metadata,9,f32,1x16x307x1,19648,,,725,725
+575,728,node_575,MUL_MAT,matrix,9,f32,16x307x1x1,19648,10059776,20119552,729;682,-1
+576,730,beta-9,RESHAPE,metadata,9,f32,1x16x307x1,19648,,,728,728
+577,731,beta_sigmoid-9,SIGMOID,vector,9,f32,1x16x307x1,19648,,,730,-1
+578,732,state_predelta-9,RESHAPE,metadata,9,f32,128x128x16x1,1048576,,,705,705
+579,733,node_579,GATED_DELTA_NET,recurrent,9,f32,2048x435x1x1,3563520,,,714;717;718;727;731;732,-1
+580,734,new_state-9,VIEW,metadata,9,f32,128x128x16x1,1048576,,,733,733
+581,735,cache_s_l9 (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,702,702
+582,736,cache_s_l9 (view) (copy of new_state-9),CPY,memory,9,f32,262144x1x1x1,1048576,,,734;735,702
+583,737,attn_output-9,VIEW,metadata,9,f32,128x16x307x1,2514944,,,733,733
+584,738,norm-9,RMS_NORM,vector,9,f32,128x16x307x1,2514944,,,737,-1
+585,739,node_585,MUL,vector,9,f32,128x16x307x1,2514944,,,738;740,-1
+586,741,z-9,MUL_MAT,matrix,9,f32,2048x307x1x1,2514944,1287651328,2575302656,742;682,-1
+587,743,z-9 (reshaped),RESHAPE,metadata,9,f32,128x16x307x1,2514944,,,741,741
+588,744,node_588,SILU,vector,9,f32,128x16x307x1,2514944,,,743,-1
+589,745,node_589,MUL,vector,9,f32,128x16x307x1,2514944,,,739;744,-1
+590,746,final_output-9,RESHAPE,metadata,9,f32,2048x307x1x1,2514944,,,745,745
+591,747,linear_attn_out-9,MUL_MAT,matrix,9,f32,2048x307x1x1,2514944,1287651328,2575302656,748;746,-1
+592,749,linear_attn_out-9 (reshaped),RESHAPE,metadata,9,f32,2048x307x1x1,2514944,,,747,747
+593,750,attn_residual-9,ADD,vector,9,f32,2048x307x1x1,2514944,,,749;680,-1
+594,751,norm-9,RMS_NORM,vector,9,f32,2048x307x1x1,2514944,,,750,-1
+595,752,attn_post_norm-9,MUL,vector,9,f32,2048x307x1x1,2514944,,,751;753,-1
+596,754,ffn_gate-9,MUL_MAT,matrix,9,f32,6144x307x1x1,7544832,3862953984,7725907968,755;752,-1
+597,756,ffn_up-9,MUL_MAT,matrix,9,f32,6144x307x1x1,7544832,3862953984,7725907968,757;752,-1
+598,758,ffn_swiglu-9,SWIGLU,vector,9,f32,6144x307x1x1,7544832,,,754;756,-1
+599,759,ffn_out-9,MUL_MAT,matrix,9,f32,2048x307x1x1,2514944,3862953984,7725907968,760;758,-1
+600,761,l_out-9,ADD,vector,9,f32,2048x307x1x1,2514944,,,759;750,-1
+601,762,norm-10,RMS_NORM,vector,10,f32,2048x307x1x1,2514944,,,761,-1
+602,763,attn_norm-10,MUL,vector,10,f32,2048x307x1x1,2514944,,,762;764,-1
+603,765,cache_r_l10 (reshaped),RESHAPE,metadata,-1,f32,18432x1x1x1,73728,,,766,766
+604,767,cache_r_l10 (reshaped) (view),VIEW,metadata,-1,f32,18432x1x1x1,73728,,,765,766
+605,768,cache_r_l10 (reshaped) (view) (view),SCALE,vector,-1,f32,18432x1x1x1,73728,,,767,766
+606,769,conv_states-10,GET_ROWS,memory,10,f32,18432x1x1x1,73728,,,765;10,-1
+607,770,node_607,GET_ROWS,memory,-1,f32,18432x0x1x1,0,,,765;13,-1
+608,771,cache_r_l10 (view),VIEW,metadata,-1,f32,18432x0x1x1,0,,,766,766
+609,772,cache_r_l10 (view) (copy of ),CPY,memory,-1,f32,18432x0x1x1,0,,,770;771,766
+610,773,conv_states_reshaped-10,RESHAPE,metadata,10,f32,3x6144x1x1,73728,,,769,769
+611,774,node_611,MUL_MAT,matrix,10,f32,6144x307x1x1,7544832,3862953984,7725907968,775;763,-1
+612,776,linear_attn_qkv_mixed-10,RESHAPE,metadata,10,f32,6144x307x1x1,7544832,,,774,774
+613,777,qkv_mixed_transposed-10,TRANSPOSE,metadata,10,f32,307x6144x1x1,7544832,,,776,774
+614,778,conv_input-10,CONCAT,memory,10,f32,310x6144x1x1,7618560,,,773;777,-1
+615,779,conv_state_last-10,VIEW,metadata,10,f32,3x6144x1x1,73728,,,778,778
+616,780,conv_state_update-10,VIEW,metadata,10,f32,18432x1x1x1,73728,,,766,766
+617,781,conv_state_update-10 (copy of conv_state_last-10),CPY,memory,10,f32,18432x1x1x1,73728,,,779;780,766
+618,782,cache_s_l10 (reshaped),RESHAPE,metadata,-1,f32,262144x1x1x1,1048576,,,783,783
+619,784,cache_s_l10 (reshaped) (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,782,783
+620,785,cache_s_l10 (reshaped) (view) (view),SCALE,vector,-1,f32,262144x1x1x1,1048576,,,784,783
+621,786,node_621,GET_ROWS,memory,-1,f32,262144x1x1x1,1048576,,,782;10,-1
+622,787,node_622,GET_ROWS,memory,-1,f32,262144x0x1x1,0,,,782;13,-1
+623,788,cache_s_l10 (view),VIEW,metadata,-1,f32,262144x0x1x1,0,,,783,783
+624,789,cache_s_l10 (view) (copy of ),CPY,memory,-1,f32,262144x0x1x1,0,,,787;788,783
+625,790,conv_output_raw-10,SSM_CONV,convolution,10,f32,6144x307x1x1,7544832,7544832,15089664,778;791,-1
+626,792,conv_output_silu-10,SILU,vector,10,f32,6144x307x1x1,7544832,,,790,-1
+627,793,q_conv-10,VIEW,metadata,10,f32,128x16x307x1,2514944,,,792,792
+628,794,node_628,RMS_NORM,vector,10,f32,128x16x307x1,2514944,,,793,-1
+629,795,q_conv_predelta-10,SCALE,vector,10,f32,128x16x307x1,2514944,,,794,-1
+630,796,k_conv-10,VIEW,metadata,10,f32,128x16x307x1,2514944,,,792,792
+631,797,node_631,RMS_NORM,vector,10,f32,128x16x307x1,2514944,,,796,-1
+632,798,k_conv_predelta-10,SCALE,vector,10,f32,128x16x307x1,2514944,,,797,-1
+633,799,v_conv_predelta-10,VIEW,metadata,10,f32,128x16x307x1,2514944,,,792,792
+634,800,node_634,MUL_MAT,matrix,10,f32,16x307x1x1,19648,10059776,20119552,801;763,-1
+635,802,alpha-10,RESHAPE,metadata,10,f32,16x307x1x1,19648,,,800,800
+636,803,node_636,ADD,vector,10,f32,16x307x1x1,19648,,,802;804,-1
+637,805,a_softplus-10,SOFTPLUS,vector,10,f32,16x307x1x1,19648,,,803,-1
+638,806,gate-10,MUL,vector,10,f32,16x307x1x1,19648,,,805;807,-1
+639,808,gate-10 (reshaped),RESHAPE,metadata,10,f32,1x16x307x1,19648,,,806,806
+640,809,node_640,MUL_MAT,matrix,10,f32,16x307x1x1,19648,10059776,20119552,810;763,-1
+641,811,beta-10,RESHAPE,metadata,10,f32,1x16x307x1,19648,,,809,809
+642,812,beta_sigmoid-10,SIGMOID,vector,10,f32,1x16x307x1,19648,,,811,-1
+643,813,state_predelta-10,RESHAPE,metadata,10,f32,128x128x16x1,1048576,,,786,786
+644,814,node_644,GATED_DELTA_NET,recurrent,10,f32,2048x435x1x1,3563520,,,795;798;799;808;812;813,-1
+645,815,new_state-10,VIEW,metadata,10,f32,128x128x16x1,1048576,,,814,814
+646,816,cache_s_l10 (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,783,783
+647,817,cache_s_l10 (view) (copy of new_state-10),CPY,memory,10,f32,262144x1x1x1,1048576,,,815;816,783
+648,818,attn_output-10,VIEW,metadata,10,f32,128x16x307x1,2514944,,,814,814
+649,819,norm-10,RMS_NORM,vector,10,f32,128x16x307x1,2514944,,,818,-1
+650,820,node_650,MUL,vector,10,f32,128x16x307x1,2514944,,,819;821,-1
+651,822,z-10,MUL_MAT,matrix,10,f32,2048x307x1x1,2514944,1287651328,2575302656,823;763,-1
+652,824,z-10 (reshaped),RESHAPE,metadata,10,f32,128x16x307x1,2514944,,,822,822
+653,825,node_653,SILU,vector,10,f32,128x16x307x1,2514944,,,824,-1
+654,826,node_654,MUL,vector,10,f32,128x16x307x1,2514944,,,820;825,-1
+655,827,final_output-10,RESHAPE,metadata,10,f32,2048x307x1x1,2514944,,,826,826
+656,828,linear_attn_out-10,MUL_MAT,matrix,10,f32,2048x307x1x1,2514944,1287651328,2575302656,829;827,-1
+657,830,linear_attn_out-10 (reshaped),RESHAPE,metadata,10,f32,2048x307x1x1,2514944,,,828,828
+658,831,attn_residual-10,ADD,vector,10,f32,2048x307x1x1,2514944,,,830;761,-1
+659,832,norm-10,RMS_NORM,vector,10,f32,2048x307x1x1,2514944,,,831,-1
+660,833,attn_post_norm-10,MUL,vector,10,f32,2048x307x1x1,2514944,,,832;834,-1
+661,835,ffn_gate-10,MUL_MAT,matrix,10,f32,6144x307x1x1,7544832,3862953984,7725907968,836;833,-1
+662,837,ffn_up-10,MUL_MAT,matrix,10,f32,6144x307x1x1,7544832,3862953984,7725907968,838;833,-1
+663,839,ffn_swiglu-10,SWIGLU,vector,10,f32,6144x307x1x1,7544832,,,835;837,-1
+664,840,ffn_out-10,MUL_MAT,matrix,10,f32,2048x307x1x1,2514944,3862953984,7725907968,841;839,-1
+665,842,l_out-10,ADD,vector,10,f32,2048x307x1x1,2514944,,,840;831,-1
+666,843,norm-11,RMS_NORM,vector,11,f32,2048x307x1x1,2514944,,,842,-1
+667,844,attn_norm-11,MUL,vector,11,f32,2048x307x1x1,2514944,,,843;845,-1
+668,846,Qcur_full-11,MUL_MAT,matrix,11,f32,4096x307x1x1,5029888,2575302656,5150605312,847;844,-1
+669,848,Qcur_reshaped-11,VIEW,metadata,11,f32,256x8x307x1,2514944,,,846,846
+670,849,norm-11,RMS_NORM,vector,11,f32,256x8x307x1,2514944,,,848,-1
+671,850,Qcur_normed-11,MUL,vector,11,f32,256x8x307x1,2514944,,,849;851,-1
+672,852,Qcur-11,ROPE,vector,11,f32,256x8x307x1,2514944,,,850;259,-1
+673,853,Vcur-11,MUL_MAT,matrix,11,f32,512x307x1x1,628736,321912832,643825664,854;844,-1
+674,855,Vcur-11,RESHAPE,metadata,11,f32,256x2x307x1,628736,,,853,853
+675,856,Kcur-11,MUL_MAT,matrix,11,f32,512x307x1x1,628736,321912832,643825664,857;844,-1
+676,858,Kcur-11 (reshaped),RESHAPE,metadata,11,f32,256x2x307x1,628736,,,856,856
+677,859,norm-11,RMS_NORM,vector,11,f32,256x2x307x1,628736,,,858,-1
+678,860,Kcur_normed-11,MUL,vector,11,f32,256x2x307x1,628736,,,859;861,-1
+679,862,Kcur-11,ROPE,vector,11,f32,256x2x307x1,628736,,,860;259,-1
+680,863,Kcur-11 (view),VIEW,metadata,11,f32,512x307x1x1,628736,,,862,862
+681,864,cache_k_l11 (view),SET_ROWS,memory,11,f16,512x1280x1x1,1310720,,,863;272;865,865
+682,866,Vcur-11 (view),VIEW,metadata,11,f32,512x307x1x1,628736,,,855,853
+683,867,cache_v_l11 (view),SET_ROWS,memory,11,f16,512x1280x1x1,1310720,,,866;276;868,868
+684,869,Qcur-11 (view),VIEW,metadata,11,f32,256x8x307x1,2514944,,,852,852
+685,870,Qcur-11 (view) (permuted),PERMUTE,metadata,11,f32,256x307x8x1,2514944,,,869,852
+686,871,cache_k_l11 (view),VIEW,metadata,-1,f16,256x2x512x1,524288,,,865,865
+687,872,cache_k_l11 (view) (permuted),PERMUTE,metadata,-1,f16,256x512x2x1,524288,,,871,865
+688,873,cache_v_l11 (view),VIEW,metadata,-1,f16,256x2x512x1,524288,,,868,868
+689,874,cache_v_l11 (view) (permuted),PERMUTE,metadata,-1,f16,256x512x2x1,524288,,,873,868
+690,875,node_690,FLASH_ATTN_EXT,vector,11,f32,256x8x307x1,2514944,,,870;872;874;285,-1
+691,876,attn_pregate-11,RESHAPE,metadata,11,f32,2048x307x1x1,2514944,,,875,875
+692,877,Qcur_full-11 (view),VIEW,metadata,11,f32,256x8x307x1,2514944,,,846,846
+693,878,gate_reshaped-11,CONT,memory,11,f32,2048x307x1x1,2514944,,,877,-1
+694,879,gate_sigmoid-11,SIGMOID,vector,11,f32,2048x307x1x1,2514944,,,878,-1
+695,880,attn_gated-11,MUL,vector,11,f32,2048x307x1x1,2514944,,,876;879,-1
+696,881,attn_output-11,MUL_MAT,matrix,11,f32,2048x307x1x1,2514944,1287651328,2575302656,882;880,-1
+697,883,attn_residual-11,ADD,vector,11,f32,2048x307x1x1,2514944,,,881;842,-1
+698,884,norm-11,RMS_NORM,vector,11,f32,2048x307x1x1,2514944,,,883,-1
+699,885,attn_post_norm-11,MUL,vector,11,f32,2048x307x1x1,2514944,,,884;886,-1
+700,887,ffn_gate-11,MUL_MAT,matrix,11,f32,6144x307x1x1,7544832,3862953984,7725907968,888;885,-1
+701,889,ffn_up-11,MUL_MAT,matrix,11,f32,6144x307x1x1,7544832,3862953984,7725907968,890;885,-1
+702,891,ffn_swiglu-11,SWIGLU,vector,11,f32,6144x307x1x1,7544832,,,887;889,-1
+703,892,ffn_out-11,MUL_MAT,matrix,11,f32,2048x307x1x1,2514944,3862953984,7725907968,893;891,-1
+704,894,l_out-11,ADD,vector,11,f32,2048x307x1x1,2514944,,,892;883,-1
+705,895,norm-12,RMS_NORM,vector,12,f32,2048x307x1x1,2514944,,,894,-1
+706,896,attn_norm-12,MUL,vector,12,f32,2048x307x1x1,2514944,,,895;897,-1
+707,898,cache_r_l12 (reshaped),RESHAPE,metadata,-1,f32,18432x1x1x1,73728,,,899,899
+708,900,cache_r_l12 (reshaped) (view),VIEW,metadata,-1,f32,18432x1x1x1,73728,,,898,899
+709,901,cache_r_l12 (reshaped) (view) (view),SCALE,vector,-1,f32,18432x1x1x1,73728,,,900,899
+710,902,conv_states-12,GET_ROWS,memory,12,f32,18432x1x1x1,73728,,,898;10,-1
+711,903,node_711,GET_ROWS,memory,-1,f32,18432x0x1x1,0,,,898;13,-1
+712,904,cache_r_l12 (view),VIEW,metadata,-1,f32,18432x0x1x1,0,,,899,899
+713,905,cache_r_l12 (view) (copy of ),CPY,memory,-1,f32,18432x0x1x1,0,,,903;904,899
+714,906,conv_states_reshaped-12,RESHAPE,metadata,12,f32,3x6144x1x1,73728,,,902,902
+715,907,node_715,MUL_MAT,matrix,12,f32,6144x307x1x1,7544832,3862953984,7725907968,908;896,-1
+716,909,linear_attn_qkv_mixed-12,RESHAPE,metadata,12,f32,6144x307x1x1,7544832,,,907,907
+717,910,qkv_mixed_transposed-12,TRANSPOSE,metadata,12,f32,307x6144x1x1,7544832,,,909,907
+718,911,conv_input-12,CONCAT,memory,12,f32,310x6144x1x1,7618560,,,906;910,-1
+719,912,conv_state_last-12,VIEW,metadata,12,f32,3x6144x1x1,73728,,,911,911
+720,913,conv_state_update-12,VIEW,metadata,12,f32,18432x1x1x1,73728,,,899,899
+721,914,conv_state_update-12 (copy of conv_state_last-12),CPY,memory,12,f32,18432x1x1x1,73728,,,912;913,899
+722,915,cache_s_l12 (reshaped),RESHAPE,metadata,-1,f32,262144x1x1x1,1048576,,,916,916
+723,917,cache_s_l12 (reshaped) (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,915,916
+724,918,cache_s_l12 (reshaped) (view) (view),SCALE,vector,-1,f32,262144x1x1x1,1048576,,,917,916
+725,919,node_725,GET_ROWS,memory,-1,f32,262144x1x1x1,1048576,,,915;10,-1
+726,920,node_726,GET_ROWS,memory,-1,f32,262144x0x1x1,0,,,915;13,-1
+727,921,cache_s_l12 (view),VIEW,metadata,-1,f32,262144x0x1x1,0,,,916,916
+728,922,cache_s_l12 (view) (copy of ),CPY,memory,-1,f32,262144x0x1x1,0,,,920;921,916
+729,923,conv_output_raw-12,SSM_CONV,convolution,12,f32,6144x307x1x1,7544832,7544832,15089664,911;924,-1
+730,925,conv_output_silu-12,SILU,vector,12,f32,6144x307x1x1,7544832,,,923,-1
+731,926,q_conv-12,VIEW,metadata,12,f32,128x16x307x1,2514944,,,925,925
+732,927,node_732,RMS_NORM,vector,12,f32,128x16x307x1,2514944,,,926,-1
+733,928,q_conv_predelta-12,SCALE,vector,12,f32,128x16x307x1,2514944,,,927,-1
+734,929,k_conv-12,VIEW,metadata,12,f32,128x16x307x1,2514944,,,925,925
+735,930,node_735,RMS_NORM,vector,12,f32,128x16x307x1,2514944,,,929,-1
+736,931,k_conv_predelta-12,SCALE,vector,12,f32,128x16x307x1,2514944,,,930,-1
+737,932,v_conv_predelta-12,VIEW,metadata,12,f32,128x16x307x1,2514944,,,925,925
+738,933,node_738,MUL_MAT,matrix,12,f32,16x307x1x1,19648,10059776,20119552,934;896,-1
+739,935,alpha-12,RESHAPE,metadata,12,f32,16x307x1x1,19648,,,933,933
+740,936,node_740,ADD,vector,12,f32,16x307x1x1,19648,,,935;937,-1
+741,938,a_softplus-12,SOFTPLUS,vector,12,f32,16x307x1x1,19648,,,936,-1
+742,939,gate-12,MUL,vector,12,f32,16x307x1x1,19648,,,938;940,-1
+743,941,gate-12 (reshaped),RESHAPE,metadata,12,f32,1x16x307x1,19648,,,939,939
+744,942,node_744,MUL_MAT,matrix,12,f32,16x307x1x1,19648,10059776,20119552,943;896,-1
+745,944,beta-12,RESHAPE,metadata,12,f32,1x16x307x1,19648,,,942,942
+746,945,beta_sigmoid-12,SIGMOID,vector,12,f32,1x16x307x1,19648,,,944,-1
+747,946,state_predelta-12,RESHAPE,metadata,12,f32,128x128x16x1,1048576,,,919,919
+748,947,node_748,GATED_DELTA_NET,recurrent,12,f32,2048x435x1x1,3563520,,,928;931;932;941;945;946,-1
+749,948,new_state-12,VIEW,metadata,12,f32,128x128x16x1,1048576,,,947,947
+750,949,cache_s_l12 (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,916,916
+751,950,cache_s_l12 (view) (copy of new_state-12),CPY,memory,12,f32,262144x1x1x1,1048576,,,948;949,916
+752,951,attn_output-12,VIEW,metadata,12,f32,128x16x307x1,2514944,,,947,947
+753,952,norm-12,RMS_NORM,vector,12,f32,128x16x307x1,2514944,,,951,-1
+754,953,node_754,MUL,vector,12,f32,128x16x307x1,2514944,,,952;954,-1
+755,955,z-12,MUL_MAT,matrix,12,f32,2048x307x1x1,2514944,1287651328,2575302656,956;896,-1
+756,957,z-12 (reshaped),RESHAPE,metadata,12,f32,128x16x307x1,2514944,,,955,955
+757,958,node_757,SILU,vector,12,f32,128x16x307x1,2514944,,,957,-1
+758,959,node_758,MUL,vector,12,f32,128x16x307x1,2514944,,,953;958,-1
+759,960,final_output-12,RESHAPE,metadata,12,f32,2048x307x1x1,2514944,,,959,959
+760,961,linear_attn_out-12,MUL_MAT,matrix,12,f32,2048x307x1x1,2514944,1287651328,2575302656,962;960,-1
+761,963,linear_attn_out-12 (reshaped),RESHAPE,metadata,12,f32,2048x307x1x1,2514944,,,961,961
+762,964,attn_residual-12,ADD,vector,12,f32,2048x307x1x1,2514944,,,963;894,-1
+763,965,norm-12,RMS_NORM,vector,12,f32,2048x307x1x1,2514944,,,964,-1
+764,966,attn_post_norm-12,MUL,vector,12,f32,2048x307x1x1,2514944,,,965;967,-1
+765,968,ffn_gate-12,MUL_MAT,matrix,12,f32,6144x307x1x1,7544832,3862953984,7725907968,969;966,-1
+766,970,ffn_up-12,MUL_MAT,matrix,12,f32,6144x307x1x1,7544832,3862953984,7725907968,971;966,-1
+767,972,ffn_swiglu-12,SWIGLU,vector,12,f32,6144x307x1x1,7544832,,,968;970,-1
+768,973,ffn_out-12,MUL_MAT,matrix,12,f32,2048x307x1x1,2514944,3862953984,7725907968,974;972,-1
+769,975,l_out-12,ADD,vector,12,f32,2048x307x1x1,2514944,,,973;964,-1
+770,976,norm-13,RMS_NORM,vector,13,f32,2048x307x1x1,2514944,,,975,-1
+771,977,attn_norm-13,MUL,vector,13,f32,2048x307x1x1,2514944,,,976;978,-1
+772,979,cache_r_l13 (reshaped),RESHAPE,metadata,-1,f32,18432x1x1x1,73728,,,980,980
+773,981,cache_r_l13 (reshaped) (view),VIEW,metadata,-1,f32,18432x1x1x1,73728,,,979,980
+774,982,cache_r_l13 (reshaped) (view) (view),SCALE,vector,-1,f32,18432x1x1x1,73728,,,981,980
+775,983,conv_states-13,GET_ROWS,memory,13,f32,18432x1x1x1,73728,,,979;10,-1
+776,984,node_776,GET_ROWS,memory,-1,f32,18432x0x1x1,0,,,979;13,-1
+777,985,cache_r_l13 (view),VIEW,metadata,-1,f32,18432x0x1x1,0,,,980,980
+778,986,cache_r_l13 (view) (copy of ),CPY,memory,-1,f32,18432x0x1x1,0,,,984;985,980
+779,987,conv_states_reshaped-13,RESHAPE,metadata,13,f32,3x6144x1x1,73728,,,983,983
+780,988,node_780,MUL_MAT,matrix,13,f32,6144x307x1x1,7544832,3862953984,7725907968,989;977,-1
+781,990,linear_attn_qkv_mixed-13,RESHAPE,metadata,13,f32,6144x307x1x1,7544832,,,988,988
+782,991,qkv_mixed_transposed-13,TRANSPOSE,metadata,13,f32,307x6144x1x1,7544832,,,990,988
+783,992,conv_input-13,CONCAT,memory,13,f32,310x6144x1x1,7618560,,,987;991,-1
+784,993,conv_state_last-13,VIEW,metadata,13,f32,3x6144x1x1,73728,,,992,992
+785,994,conv_state_update-13,VIEW,metadata,13,f32,18432x1x1x1,73728,,,980,980
+786,995,conv_state_update-13 (copy of conv_state_last-13),CPY,memory,13,f32,18432x1x1x1,73728,,,993;994,980
+787,996,cache_s_l13 (reshaped),RESHAPE,metadata,-1,f32,262144x1x1x1,1048576,,,997,997
+788,998,cache_s_l13 (reshaped) (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,996,997
+789,999,cache_s_l13 (reshaped) (view) (view),SCALE,vector,-1,f32,262144x1x1x1,1048576,,,998,997
+790,1000,node_790,GET_ROWS,memory,-1,f32,262144x1x1x1,1048576,,,996;10,-1
+791,1001,node_791,GET_ROWS,memory,-1,f32,262144x0x1x1,0,,,996;13,-1
+792,1002,cache_s_l13 (view),VIEW,metadata,-1,f32,262144x0x1x1,0,,,997,997
+793,1003,cache_s_l13 (view) (copy of ),CPY,memory,-1,f32,262144x0x1x1,0,,,1001;1002,997
+794,1004,conv_output_raw-13,SSM_CONV,convolution,13,f32,6144x307x1x1,7544832,7544832,15089664,992;1005,-1
+795,1006,conv_output_silu-13,SILU,vector,13,f32,6144x307x1x1,7544832,,,1004,-1
+796,1007,q_conv-13,VIEW,metadata,13,f32,128x16x307x1,2514944,,,1006,1006
+797,1008,node_797,RMS_NORM,vector,13,f32,128x16x307x1,2514944,,,1007,-1
+798,1009,q_conv_predelta-13,SCALE,vector,13,f32,128x16x307x1,2514944,,,1008,-1
+799,1010,k_conv-13,VIEW,metadata,13,f32,128x16x307x1,2514944,,,1006,1006
+800,1011,node_800,RMS_NORM,vector,13,f32,128x16x307x1,2514944,,,1010,-1
+801,1012,k_conv_predelta-13,SCALE,vector,13,f32,128x16x307x1,2514944,,,1011,-1
+802,1013,v_conv_predelta-13,VIEW,metadata,13,f32,128x16x307x1,2514944,,,1006,1006
+803,1014,node_803,MUL_MAT,matrix,13,f32,16x307x1x1,19648,10059776,20119552,1015;977,-1
+804,1016,alpha-13,RESHAPE,metadata,13,f32,16x307x1x1,19648,,,1014,1014
+805,1017,node_805,ADD,vector,13,f32,16x307x1x1,19648,,,1016;1018,-1
+806,1019,a_softplus-13,SOFTPLUS,vector,13,f32,16x307x1x1,19648,,,1017,-1
+807,1020,gate-13,MUL,vector,13,f32,16x307x1x1,19648,,,1019;1021,-1
+808,1022,gate-13 (reshaped),RESHAPE,metadata,13,f32,1x16x307x1,19648,,,1020,1020
+809,1023,node_809,MUL_MAT,matrix,13,f32,16x307x1x1,19648,10059776,20119552,1024;977,-1
+810,1025,beta-13,RESHAPE,metadata,13,f32,1x16x307x1,19648,,,1023,1023
+811,1026,beta_sigmoid-13,SIGMOID,vector,13,f32,1x16x307x1,19648,,,1025,-1
+812,1027,state_predelta-13,RESHAPE,metadata,13,f32,128x128x16x1,1048576,,,1000,1000
+813,1028,node_813,GATED_DELTA_NET,recurrent,13,f32,2048x435x1x1,3563520,,,1009;1012;1013;1022;1026;1027,-1
+814,1029,new_state-13,VIEW,metadata,13,f32,128x128x16x1,1048576,,,1028,1028
+815,1030,cache_s_l13 (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,997,997
+816,1031,cache_s_l13 (view) (copy of new_state-13),CPY,memory,13,f32,262144x1x1x1,1048576,,,1029;1030,997
+817,1032,attn_output-13,VIEW,metadata,13,f32,128x16x307x1,2514944,,,1028,1028
+818,1033,norm-13,RMS_NORM,vector,13,f32,128x16x307x1,2514944,,,1032,-1
+819,1034,node_819,MUL,vector,13,f32,128x16x307x1,2514944,,,1033;1035,-1
+820,1036,z-13,MUL_MAT,matrix,13,f32,2048x307x1x1,2514944,1287651328,2575302656,1037;977,-1
+821,1038,z-13 (reshaped),RESHAPE,metadata,13,f32,128x16x307x1,2514944,,,1036,1036
+822,1039,node_822,SILU,vector,13,f32,128x16x307x1,2514944,,,1038,-1
+823,1040,node_823,MUL,vector,13,f32,128x16x307x1,2514944,,,1034;1039,-1
+824,1041,final_output-13,RESHAPE,metadata,13,f32,2048x307x1x1,2514944,,,1040,1040
+825,1042,linear_attn_out-13,MUL_MAT,matrix,13,f32,2048x307x1x1,2514944,1287651328,2575302656,1043;1041,-1
+826,1044,linear_attn_out-13 (reshaped),RESHAPE,metadata,13,f32,2048x307x1x1,2514944,,,1042,1042
+827,1045,attn_residual-13,ADD,vector,13,f32,2048x307x1x1,2514944,,,1044;975,-1
+828,1046,norm-13,RMS_NORM,vector,13,f32,2048x307x1x1,2514944,,,1045,-1
+829,1047,attn_post_norm-13,MUL,vector,13,f32,2048x307x1x1,2514944,,,1046;1048,-1
+830,1049,ffn_gate-13,MUL_MAT,matrix,13,f32,6144x307x1x1,7544832,3862953984,7725907968,1050;1047,-1
+831,1051,ffn_up-13,MUL_MAT,matrix,13,f32,6144x307x1x1,7544832,3862953984,7725907968,1052;1047,-1
+832,1053,ffn_swiglu-13,SWIGLU,vector,13,f32,6144x307x1x1,7544832,,,1049;1051,-1
+833,1054,ffn_out-13,MUL_MAT,matrix,13,f32,2048x307x1x1,2514944,3862953984,7725907968,1055;1053,-1
+834,1056,l_out-13,ADD,vector,13,f32,2048x307x1x1,2514944,,,1054;1045,-1
+835,1057,norm-14,RMS_NORM,vector,14,f32,2048x307x1x1,2514944,,,1056,-1
+836,1058,attn_norm-14,MUL,vector,14,f32,2048x307x1x1,2514944,,,1057;1059,-1
+837,1060,cache_r_l14 (reshaped),RESHAPE,metadata,-1,f32,18432x1x1x1,73728,,,1061,1061
+838,1062,cache_r_l14 (reshaped) (view),VIEW,metadata,-1,f32,18432x1x1x1,73728,,,1060,1061
+839,1063,cache_r_l14 (reshaped) (view) (view),SCALE,vector,-1,f32,18432x1x1x1,73728,,,1062,1061
+840,1064,conv_states-14,GET_ROWS,memory,14,f32,18432x1x1x1,73728,,,1060;10,-1
+841,1065,node_841,GET_ROWS,memory,-1,f32,18432x0x1x1,0,,,1060;13,-1
+842,1066,cache_r_l14 (view),VIEW,metadata,-1,f32,18432x0x1x1,0,,,1061,1061
+843,1067,cache_r_l14 (view) (copy of ),CPY,memory,-1,f32,18432x0x1x1,0,,,1065;1066,1061
+844,1068,conv_states_reshaped-14,RESHAPE,metadata,14,f32,3x6144x1x1,73728,,,1064,1064
+845,1069,node_845,MUL_MAT,matrix,14,f32,6144x307x1x1,7544832,3862953984,7725907968,1070;1058,-1
+846,1071,linear_attn_qkv_mixed-14,RESHAPE,metadata,14,f32,6144x307x1x1,7544832,,,1069,1069
+847,1072,qkv_mixed_transposed-14,TRANSPOSE,metadata,14,f32,307x6144x1x1,7544832,,,1071,1069
+848,1073,conv_input-14,CONCAT,memory,14,f32,310x6144x1x1,7618560,,,1068;1072,-1
+849,1074,conv_state_last-14,VIEW,metadata,14,f32,3x6144x1x1,73728,,,1073,1073
+850,1075,conv_state_update-14,VIEW,metadata,14,f32,18432x1x1x1,73728,,,1061,1061
+851,1076,conv_state_update-14 (copy of conv_state_last-14),CPY,memory,14,f32,18432x1x1x1,73728,,,1074;1075,1061
+852,1077,cache_s_l14 (reshaped),RESHAPE,metadata,-1,f32,262144x1x1x1,1048576,,,1078,1078
+853,1079,cache_s_l14 (reshaped) (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,1077,1078
+854,1080,cache_s_l14 (reshaped) (view) (view),SCALE,vector,-1,f32,262144x1x1x1,1048576,,,1079,1078
+855,1081,node_855,GET_ROWS,memory,-1,f32,262144x1x1x1,1048576,,,1077;10,-1
+856,1082,node_856,GET_ROWS,memory,-1,f32,262144x0x1x1,0,,,1077;13,-1
+857,1083,cache_s_l14 (view),VIEW,metadata,-1,f32,262144x0x1x1,0,,,1078,1078
+858,1084,cache_s_l14 (view) (copy of ),CPY,memory,-1,f32,262144x0x1x1,0,,,1082;1083,1078
+859,1085,conv_output_raw-14,SSM_CONV,convolution,14,f32,6144x307x1x1,7544832,7544832,15089664,1073;1086,-1
+860,1087,conv_output_silu-14,SILU,vector,14,f32,6144x307x1x1,7544832,,,1085,-1
+861,1088,q_conv-14,VIEW,metadata,14,f32,128x16x307x1,2514944,,,1087,1087
+862,1089,node_862,RMS_NORM,vector,14,f32,128x16x307x1,2514944,,,1088,-1
+863,1090,q_conv_predelta-14,SCALE,vector,14,f32,128x16x307x1,2514944,,,1089,-1
+864,1091,k_conv-14,VIEW,metadata,14,f32,128x16x307x1,2514944,,,1087,1087
+865,1092,node_865,RMS_NORM,vector,14,f32,128x16x307x1,2514944,,,1091,-1
+866,1093,k_conv_predelta-14,SCALE,vector,14,f32,128x16x307x1,2514944,,,1092,-1
+867,1094,v_conv_predelta-14,VIEW,metadata,14,f32,128x16x307x1,2514944,,,1087,1087
+868,1095,node_868,MUL_MAT,matrix,14,f32,16x307x1x1,19648,10059776,20119552,1096;1058,-1
+869,1097,alpha-14,RESHAPE,metadata,14,f32,16x307x1x1,19648,,,1095,1095
+870,1098,node_870,ADD,vector,14,f32,16x307x1x1,19648,,,1097;1099,-1
+871,1100,a_softplus-14,SOFTPLUS,vector,14,f32,16x307x1x1,19648,,,1098,-1
+872,1101,gate-14,MUL,vector,14,f32,16x307x1x1,19648,,,1100;1102,-1
+873,1103,gate-14 (reshaped),RESHAPE,metadata,14,f32,1x16x307x1,19648,,,1101,1101
+874,1104,node_874,MUL_MAT,matrix,14,f32,16x307x1x1,19648,10059776,20119552,1105;1058,-1
+875,1106,beta-14,RESHAPE,metadata,14,f32,1x16x307x1,19648,,,1104,1104
+876,1107,beta_sigmoid-14,SIGMOID,vector,14,f32,1x16x307x1,19648,,,1106,-1
+877,1108,state_predelta-14,RESHAPE,metadata,14,f32,128x128x16x1,1048576,,,1081,1081
+878,1109,node_878,GATED_DELTA_NET,recurrent,14,f32,2048x435x1x1,3563520,,,1090;1093;1094;1103;1107;1108,-1
+879,1110,new_state-14,VIEW,metadata,14,f32,128x128x16x1,1048576,,,1109,1109
+880,1111,cache_s_l14 (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,1078,1078
+881,1112,cache_s_l14 (view) (copy of new_state-14),CPY,memory,14,f32,262144x1x1x1,1048576,,,1110;1111,1078
+882,1113,attn_output-14,VIEW,metadata,14,f32,128x16x307x1,2514944,,,1109,1109
+883,1114,norm-14,RMS_NORM,vector,14,f32,128x16x307x1,2514944,,,1113,-1
+884,1115,node_884,MUL,vector,14,f32,128x16x307x1,2514944,,,1114;1116,-1
+885,1117,z-14,MUL_MAT,matrix,14,f32,2048x307x1x1,2514944,1287651328,2575302656,1118;1058,-1
+886,1119,z-14 (reshaped),RESHAPE,metadata,14,f32,128x16x307x1,2514944,,,1117,1117
+887,1120,node_887,SILU,vector,14,f32,128x16x307x1,2514944,,,1119,-1
+888,1121,node_888,MUL,vector,14,f32,128x16x307x1,2514944,,,1115;1120,-1
+889,1122,final_output-14,RESHAPE,metadata,14,f32,2048x307x1x1,2514944,,,1121,1121
+890,1123,linear_attn_out-14,MUL_MAT,matrix,14,f32,2048x307x1x1,2514944,1287651328,2575302656,1124;1122,-1
+891,1125,linear_attn_out-14 (reshaped),RESHAPE,metadata,14,f32,2048x307x1x1,2514944,,,1123,1123
+892,1126,attn_residual-14,ADD,vector,14,f32,2048x307x1x1,2514944,,,1125;1056,-1
+893,1127,norm-14,RMS_NORM,vector,14,f32,2048x307x1x1,2514944,,,1126,-1
+894,1128,attn_post_norm-14,MUL,vector,14,f32,2048x307x1x1,2514944,,,1127;1129,-1
+895,1130,ffn_gate-14,MUL_MAT,matrix,14,f32,6144x307x1x1,7544832,3862953984,7725907968,1131;1128,-1
+896,1132,ffn_up-14,MUL_MAT,matrix,14,f32,6144x307x1x1,7544832,3862953984,7725907968,1133;1128,-1
+897,1134,ffn_swiglu-14,SWIGLU,vector,14,f32,6144x307x1x1,7544832,,,1130;1132,-1
+898,1135,ffn_out-14,MUL_MAT,matrix,14,f32,2048x307x1x1,2514944,3862953984,7725907968,1136;1134,-1
+899,1137,l_out-14,ADD,vector,14,f32,2048x307x1x1,2514944,,,1135;1126,-1
+900,1138,norm-15,RMS_NORM,vector,15,f32,2048x307x1x1,2514944,,,1137,-1
+901,1139,attn_norm-15,MUL,vector,15,f32,2048x307x1x1,2514944,,,1138;1140,-1
+902,1141,Qcur_full-15,MUL_MAT,matrix,15,f32,4096x307x1x1,5029888,2575302656,5150605312,1142;1139,-1
+903,1143,Qcur_reshaped-15,VIEW,metadata,15,f32,256x8x307x1,2514944,,,1141,1141
+904,1144,norm-15,RMS_NORM,vector,15,f32,256x8x307x1,2514944,,,1143,-1
+905,1145,Qcur_normed-15,MUL,vector,15,f32,256x8x307x1,2514944,,,1144;1146,-1
+906,1147,Qcur-15,ROPE,vector,15,f32,256x8x307x1,2514944,,,1145;259,-1
+907,1148,Vcur-15,MUL_MAT,matrix,15,f32,512x307x1x1,628736,321912832,643825664,1149;1139,-1
+908,1150,Vcur-15,RESHAPE,metadata,15,f32,256x2x307x1,628736,,,1148,1148
+909,1151,Kcur-15,MUL_MAT,matrix,15,f32,512x307x1x1,628736,321912832,643825664,1152;1139,-1
+910,1153,Kcur-15 (reshaped),RESHAPE,metadata,15,f32,256x2x307x1,628736,,,1151,1151
+911,1154,norm-15,RMS_NORM,vector,15,f32,256x2x307x1,628736,,,1153,-1
+912,1155,Kcur_normed-15,MUL,vector,15,f32,256x2x307x1,628736,,,1154;1156,-1
+913,1157,Kcur-15,ROPE,vector,15,f32,256x2x307x1,628736,,,1155;259,-1
+914,1158,Kcur-15 (view),VIEW,metadata,15,f32,512x307x1x1,628736,,,1157,1157
+915,1159,cache_k_l15 (view),SET_ROWS,memory,15,f16,512x1280x1x1,1310720,,,1158;272;1160,1160
+916,1161,Vcur-15 (view),VIEW,metadata,15,f32,512x307x1x1,628736,,,1150,1148
+917,1162,cache_v_l15 (view),SET_ROWS,memory,15,f16,512x1280x1x1,1310720,,,1161;276;1163,1163
+918,1164,Qcur-15 (view),VIEW,metadata,15,f32,256x8x307x1,2514944,,,1147,1147
+919,1165,Qcur-15 (view) (permuted),PERMUTE,metadata,15,f32,256x307x8x1,2514944,,,1164,1147
+920,1166,cache_k_l15 (view),VIEW,metadata,-1,f16,256x2x512x1,524288,,,1160,1160
+921,1167,cache_k_l15 (view) (permuted),PERMUTE,metadata,-1,f16,256x512x2x1,524288,,,1166,1160
+922,1168,cache_v_l15 (view),VIEW,metadata,-1,f16,256x2x512x1,524288,,,1163,1163
+923,1169,cache_v_l15 (view) (permuted),PERMUTE,metadata,-1,f16,256x512x2x1,524288,,,1168,1163
+924,1170,node_924,FLASH_ATTN_EXT,vector,15,f32,256x8x307x1,2514944,,,1165;1167;1169;285,-1
+925,1171,attn_pregate-15,RESHAPE,metadata,15,f32,2048x307x1x1,2514944,,,1170,1170
+926,1172,Qcur_full-15 (view),VIEW,metadata,15,f32,256x8x307x1,2514944,,,1141,1141
+927,1173,gate_reshaped-15,CONT,memory,15,f32,2048x307x1x1,2514944,,,1172,-1
+928,1174,gate_sigmoid-15,SIGMOID,vector,15,f32,2048x307x1x1,2514944,,,1173,-1
+929,1175,attn_gated-15,MUL,vector,15,f32,2048x307x1x1,2514944,,,1171;1174,-1
+930,1176,attn_output-15,MUL_MAT,matrix,15,f32,2048x307x1x1,2514944,1287651328,2575302656,1177;1175,-1
+931,1178,attn_residual-15,ADD,vector,15,f32,2048x307x1x1,2514944,,,1176;1137,-1
+932,1179,norm-15,RMS_NORM,vector,15,f32,2048x307x1x1,2514944,,,1178,-1
+933,1180,attn_post_norm-15,MUL,vector,15,f32,2048x307x1x1,2514944,,,1179;1181,-1
+934,1182,ffn_gate-15,MUL_MAT,matrix,15,f32,6144x307x1x1,7544832,3862953984,7725907968,1183;1180,-1
+935,1184,ffn_up-15,MUL_MAT,matrix,15,f32,6144x307x1x1,7544832,3862953984,7725907968,1185;1180,-1
+936,1186,ffn_swiglu-15,SWIGLU,vector,15,f32,6144x307x1x1,7544832,,,1182;1184,-1
+937,1187,ffn_out-15,MUL_MAT,matrix,15,f32,2048x307x1x1,2514944,3862953984,7725907968,1188;1186,-1
+938,1189,l_out-15,ADD,vector,15,f32,2048x307x1x1,2514944,,,1187;1178,-1
+939,1190,norm-16,RMS_NORM,vector,16,f32,2048x307x1x1,2514944,,,1189,-1
+940,1191,attn_norm-16,MUL,vector,16,f32,2048x307x1x1,2514944,,,1190;1192,-1
+941,1193,cache_r_l16 (reshaped),RESHAPE,metadata,-1,f32,18432x1x1x1,73728,,,1194,1194
+942,1195,cache_r_l16 (reshaped) (view),VIEW,metadata,-1,f32,18432x1x1x1,73728,,,1193,1194
+943,1196,cache_r_l16 (reshaped) (view) (view),SCALE,vector,-1,f32,18432x1x1x1,73728,,,1195,1194
+944,1197,conv_states-16,GET_ROWS,memory,16,f32,18432x1x1x1,73728,,,1193;10,-1
+945,1198,node_945,GET_ROWS,memory,-1,f32,18432x0x1x1,0,,,1193;13,-1
+946,1199,cache_r_l16 (view),VIEW,metadata,-1,f32,18432x0x1x1,0,,,1194,1194
+947,1200,cache_r_l16 (view) (copy of ),CPY,memory,-1,f32,18432x0x1x1,0,,,1198;1199,1194
+948,1201,conv_states_reshaped-16,RESHAPE,metadata,16,f32,3x6144x1x1,73728,,,1197,1197
+949,1202,node_949,MUL_MAT,matrix,16,f32,6144x307x1x1,7544832,3862953984,7725907968,1203;1191,-1
+950,1204,linear_attn_qkv_mixed-16,RESHAPE,metadata,16,f32,6144x307x1x1,7544832,,,1202,1202
+951,1205,qkv_mixed_transposed-16,TRANSPOSE,metadata,16,f32,307x6144x1x1,7544832,,,1204,1202
+952,1206,conv_input-16,CONCAT,memory,16,f32,310x6144x1x1,7618560,,,1201;1205,-1
+953,1207,conv_state_last-16,VIEW,metadata,16,f32,3x6144x1x1,73728,,,1206,1206
+954,1208,conv_state_update-16,VIEW,metadata,16,f32,18432x1x1x1,73728,,,1194,1194
+955,1209,conv_state_update-16 (copy of conv_state_last-16),CPY,memory,16,f32,18432x1x1x1,73728,,,1207;1208,1194
+956,1210,cache_s_l16 (reshaped),RESHAPE,metadata,-1,f32,262144x1x1x1,1048576,,,1211,1211
+957,1212,cache_s_l16 (reshaped) (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,1210,1211
+958,1213,cache_s_l16 (reshaped) (view) (view),SCALE,vector,-1,f32,262144x1x1x1,1048576,,,1212,1211
+959,1214,node_959,GET_ROWS,memory,-1,f32,262144x1x1x1,1048576,,,1210;10,-1
+960,1215,node_960,GET_ROWS,memory,-1,f32,262144x0x1x1,0,,,1210;13,-1
+961,1216,cache_s_l16 (view),VIEW,metadata,-1,f32,262144x0x1x1,0,,,1211,1211
+962,1217,cache_s_l16 (view) (copy of ),CPY,memory,-1,f32,262144x0x1x1,0,,,1215;1216,1211
+963,1218,conv_output_raw-16,SSM_CONV,convolution,16,f32,6144x307x1x1,7544832,7544832,15089664,1206;1219,-1
+964,1220,conv_output_silu-16,SILU,vector,16,f32,6144x307x1x1,7544832,,,1218,-1
+965,1221,q_conv-16,VIEW,metadata,16,f32,128x16x307x1,2514944,,,1220,1220
+966,1222,node_966,RMS_NORM,vector,16,f32,128x16x307x1,2514944,,,1221,-1
+967,1223,q_conv_predelta-16,SCALE,vector,16,f32,128x16x307x1,2514944,,,1222,-1
+968,1224,k_conv-16,VIEW,metadata,16,f32,128x16x307x1,2514944,,,1220,1220
+969,1225,node_969,RMS_NORM,vector,16,f32,128x16x307x1,2514944,,,1224,-1
+970,1226,k_conv_predelta-16,SCALE,vector,16,f32,128x16x307x1,2514944,,,1225,-1
+971,1227,v_conv_predelta-16,VIEW,metadata,16,f32,128x16x307x1,2514944,,,1220,1220
+972,1228,node_972,MUL_MAT,matrix,16,f32,16x307x1x1,19648,10059776,20119552,1229;1191,-1
+973,1230,alpha-16,RESHAPE,metadata,16,f32,16x307x1x1,19648,,,1228,1228
+974,1231,node_974,ADD,vector,16,f32,16x307x1x1,19648,,,1230;1232,-1
+975,1233,a_softplus-16,SOFTPLUS,vector,16,f32,16x307x1x1,19648,,,1231,-1
+976,1234,gate-16,MUL,vector,16,f32,16x307x1x1,19648,,,1233;1235,-1
+977,1236,gate-16 (reshaped),RESHAPE,metadata,16,f32,1x16x307x1,19648,,,1234,1234
+978,1237,node_978,MUL_MAT,matrix,16,f32,16x307x1x1,19648,10059776,20119552,1238;1191,-1
+979,1239,beta-16,RESHAPE,metadata,16,f32,1x16x307x1,19648,,,1237,1237
+980,1240,beta_sigmoid-16,SIGMOID,vector,16,f32,1x16x307x1,19648,,,1239,-1
+981,1241,state_predelta-16,RESHAPE,metadata,16,f32,128x128x16x1,1048576,,,1214,1214
+982,1242,node_982,GATED_DELTA_NET,recurrent,16,f32,2048x435x1x1,3563520,,,1223;1226;1227;1236;1240;1241,-1
+983,1243,new_state-16,VIEW,metadata,16,f32,128x128x16x1,1048576,,,1242,1242
+984,1244,cache_s_l16 (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,1211,1211
+985,1245,cache_s_l16 (view) (copy of new_state-16),CPY,memory,16,f32,262144x1x1x1,1048576,,,1243;1244,1211
+986,1246,attn_output-16,VIEW,metadata,16,f32,128x16x307x1,2514944,,,1242,1242
+987,1247,norm-16,RMS_NORM,vector,16,f32,128x16x307x1,2514944,,,1246,-1
+988,1248,node_988,MUL,vector,16,f32,128x16x307x1,2514944,,,1247;1249,-1
+989,1250,z-16,MUL_MAT,matrix,16,f32,2048x307x1x1,2514944,1287651328,2575302656,1251;1191,-1
+990,1252,z-16 (reshaped),RESHAPE,metadata,16,f32,128x16x307x1,2514944,,,1250,1250
+991,1253,node_991,SILU,vector,16,f32,128x16x307x1,2514944,,,1252,-1
+992,1254,node_992,MUL,vector,16,f32,128x16x307x1,2514944,,,1248;1253,-1
+993,1255,final_output-16,RESHAPE,metadata,16,f32,2048x307x1x1,2514944,,,1254,1254
+994,1256,linear_attn_out-16,MUL_MAT,matrix,16,f32,2048x307x1x1,2514944,1287651328,2575302656,1257;1255,-1
+995,1258,linear_attn_out-16 (reshaped),RESHAPE,metadata,16,f32,2048x307x1x1,2514944,,,1256,1256
+996,1259,attn_residual-16,ADD,vector,16,f32,2048x307x1x1,2514944,,,1258;1189,-1
+997,1260,norm-16,RMS_NORM,vector,16,f32,2048x307x1x1,2514944,,,1259,-1
+998,1261,attn_post_norm-16,MUL,vector,16,f32,2048x307x1x1,2514944,,,1260;1262,-1
+999,1263,ffn_gate-16,MUL_MAT,matrix,16,f32,6144x307x1x1,7544832,3862953984,7725907968,1264;1261,-1
+1000,1265,ffn_up-16,MUL_MAT,matrix,16,f32,6144x307x1x1,7544832,3862953984,7725907968,1266;1261,-1
+1001,1267,ffn_swiglu-16,SWIGLU,vector,16,f32,6144x307x1x1,7544832,,,1263;1265,-1
+1002,1268,ffn_out-16,MUL_MAT,matrix,16,f32,2048x307x1x1,2514944,3862953984,7725907968,1269;1267,-1
+1003,1270,l_out-16,ADD,vector,16,f32,2048x307x1x1,2514944,,,1268;1259,-1
+1004,1271,norm-17,RMS_NORM,vector,17,f32,2048x307x1x1,2514944,,,1270,-1
+1005,1272,attn_norm-17,MUL,vector,17,f32,2048x307x1x1,2514944,,,1271;1273,-1
+1006,1274,cache_r_l17 (reshaped),RESHAPE,metadata,-1,f32,18432x1x1x1,73728,,,1275,1275
+1007,1276,cache_r_l17 (reshaped) (view),VIEW,metadata,-1,f32,18432x1x1x1,73728,,,1274,1275
+1008,1277,cache_r_l17 (reshaped) (view) (view),SCALE,vector,-1,f32,18432x1x1x1,73728,,,1276,1275
+1009,1278,conv_states-17,GET_ROWS,memory,17,f32,18432x1x1x1,73728,,,1274;10,-1
+1010,1279,node_1010,GET_ROWS,memory,-1,f32,18432x0x1x1,0,,,1274;13,-1
+1011,1280,cache_r_l17 (view),VIEW,metadata,-1,f32,18432x0x1x1,0,,,1275,1275
+1012,1281,cache_r_l17 (view) (copy of ),CPY,memory,-1,f32,18432x0x1x1,0,,,1279;1280,1275
+1013,1282,conv_states_reshaped-17,RESHAPE,metadata,17,f32,3x6144x1x1,73728,,,1278,1278
+1014,1283,node_1014,MUL_MAT,matrix,17,f32,6144x307x1x1,7544832,3862953984,7725907968,1284;1272,-1
+1015,1285,linear_attn_qkv_mixed-17,RESHAPE,metadata,17,f32,6144x307x1x1,7544832,,,1283,1283
+1016,1286,qkv_mixed_transposed-17,TRANSPOSE,metadata,17,f32,307x6144x1x1,7544832,,,1285,1283
+1017,1287,conv_input-17,CONCAT,memory,17,f32,310x6144x1x1,7618560,,,1282;1286,-1
+1018,1288,conv_state_last-17,VIEW,metadata,17,f32,3x6144x1x1,73728,,,1287,1287
+1019,1289,conv_state_update-17,VIEW,metadata,17,f32,18432x1x1x1,73728,,,1275,1275
+1020,1290,conv_state_update-17 (copy of conv_state_last-17),CPY,memory,17,f32,18432x1x1x1,73728,,,1288;1289,1275
+1021,1291,cache_s_l17 (reshaped),RESHAPE,metadata,-1,f32,262144x1x1x1,1048576,,,1292,1292
+1022,1293,cache_s_l17 (reshaped) (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,1291,1292
+1023,1294,cache_s_l17 (reshaped) (view) (view),SCALE,vector,-1,f32,262144x1x1x1,1048576,,,1293,1292
+1024,1295,node_1024,GET_ROWS,memory,-1,f32,262144x1x1x1,1048576,,,1291;10,-1
+1025,1296,node_1025,GET_ROWS,memory,-1,f32,262144x0x1x1,0,,,1291;13,-1
+1026,1297,cache_s_l17 (view),VIEW,metadata,-1,f32,262144x0x1x1,0,,,1292,1292
+1027,1298,cache_s_l17 (view) (copy of ),CPY,memory,-1,f32,262144x0x1x1,0,,,1296;1297,1292
+1028,1299,conv_output_raw-17,SSM_CONV,convolution,17,f32,6144x307x1x1,7544832,7544832,15089664,1287;1300,-1
+1029,1301,conv_output_silu-17,SILU,vector,17,f32,6144x307x1x1,7544832,,,1299,-1
+1030,1302,q_conv-17,VIEW,metadata,17,f32,128x16x307x1,2514944,,,1301,1301
+1031,1303,node_1031,RMS_NORM,vector,17,f32,128x16x307x1,2514944,,,1302,-1
+1032,1304,q_conv_predelta-17,SCALE,vector,17,f32,128x16x307x1,2514944,,,1303,-1
+1033,1305,k_conv-17,VIEW,metadata,17,f32,128x16x307x1,2514944,,,1301,1301
+1034,1306,node_1034,RMS_NORM,vector,17,f32,128x16x307x1,2514944,,,1305,-1
+1035,1307,k_conv_predelta-17,SCALE,vector,17,f32,128x16x307x1,2514944,,,1306,-1
+1036,1308,v_conv_predelta-17,VIEW,metadata,17,f32,128x16x307x1,2514944,,,1301,1301
+1037,1309,node_1037,MUL_MAT,matrix,17,f32,16x307x1x1,19648,10059776,20119552,1310;1272,-1
+1038,1311,alpha-17,RESHAPE,metadata,17,f32,16x307x1x1,19648,,,1309,1309
+1039,1312,node_1039,ADD,vector,17,f32,16x307x1x1,19648,,,1311;1313,-1
+1040,1314,a_softplus-17,SOFTPLUS,vector,17,f32,16x307x1x1,19648,,,1312,-1
+1041,1315,gate-17,MUL,vector,17,f32,16x307x1x1,19648,,,1314;1316,-1
+1042,1317,gate-17 (reshaped),RESHAPE,metadata,17,f32,1x16x307x1,19648,,,1315,1315
+1043,1318,node_1043,MUL_MAT,matrix,17,f32,16x307x1x1,19648,10059776,20119552,1319;1272,-1
+1044,1320,beta-17,RESHAPE,metadata,17,f32,1x16x307x1,19648,,,1318,1318
+1045,1321,beta_sigmoid-17,SIGMOID,vector,17,f32,1x16x307x1,19648,,,1320,-1
+1046,1322,state_predelta-17,RESHAPE,metadata,17,f32,128x128x16x1,1048576,,,1295,1295
+1047,1323,node_1047,GATED_DELTA_NET,recurrent,17,f32,2048x435x1x1,3563520,,,1304;1307;1308;1317;1321;1322,-1
+1048,1324,new_state-17,VIEW,metadata,17,f32,128x128x16x1,1048576,,,1323,1323
+1049,1325,cache_s_l17 (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,1292,1292
+1050,1326,cache_s_l17 (view) (copy of new_state-17),CPY,memory,17,f32,262144x1x1x1,1048576,,,1324;1325,1292
+1051,1327,attn_output-17,VIEW,metadata,17,f32,128x16x307x1,2514944,,,1323,1323
+1052,1328,norm-17,RMS_NORM,vector,17,f32,128x16x307x1,2514944,,,1327,-1
+1053,1329,node_1053,MUL,vector,17,f32,128x16x307x1,2514944,,,1328;1330,-1
+1054,1331,z-17,MUL_MAT,matrix,17,f32,2048x307x1x1,2514944,1287651328,2575302656,1332;1272,-1
+1055,1333,z-17 (reshaped),RESHAPE,metadata,17,f32,128x16x307x1,2514944,,,1331,1331
+1056,1334,node_1056,SILU,vector,17,f32,128x16x307x1,2514944,,,1333,-1
+1057,1335,node_1057,MUL,vector,17,f32,128x16x307x1,2514944,,,1329;1334,-1
+1058,1336,final_output-17,RESHAPE,metadata,17,f32,2048x307x1x1,2514944,,,1335,1335
+1059,1337,linear_attn_out-17,MUL_MAT,matrix,17,f32,2048x307x1x1,2514944,1287651328,2575302656,1338;1336,-1
+1060,1339,linear_attn_out-17 (reshaped),RESHAPE,metadata,17,f32,2048x307x1x1,2514944,,,1337,1337
+1061,1340,attn_residual-17,ADD,vector,17,f32,2048x307x1x1,2514944,,,1339;1270,-1
+1062,1341,norm-17,RMS_NORM,vector,17,f32,2048x307x1x1,2514944,,,1340,-1
+1063,1342,attn_post_norm-17,MUL,vector,17,f32,2048x307x1x1,2514944,,,1341;1343,-1
+1064,1344,ffn_gate-17,MUL_MAT,matrix,17,f32,6144x307x1x1,7544832,3862953984,7725907968,1345;1342,-1
+1065,1346,ffn_up-17,MUL_MAT,matrix,17,f32,6144x307x1x1,7544832,3862953984,7725907968,1347;1342,-1
+1066,1348,ffn_swiglu-17,SWIGLU,vector,17,f32,6144x307x1x1,7544832,,,1344;1346,-1
+1067,1349,ffn_out-17,MUL_MAT,matrix,17,f32,2048x307x1x1,2514944,3862953984,7725907968,1350;1348,-1
+1068,1351,l_out-17,ADD,vector,17,f32,2048x307x1x1,2514944,,,1349;1340,-1
+1069,1352,norm-18,RMS_NORM,vector,18,f32,2048x307x1x1,2514944,,,1351,-1
+1070,1353,attn_norm-18,MUL,vector,18,f32,2048x307x1x1,2514944,,,1352;1354,-1
+1071,1355,cache_r_l18 (reshaped),RESHAPE,metadata,-1,f32,18432x1x1x1,73728,,,1356,1356
+1072,1357,cache_r_l18 (reshaped) (view),VIEW,metadata,-1,f32,18432x1x1x1,73728,,,1355,1356
+1073,1358,cache_r_l18 (reshaped) (view) (view),SCALE,vector,-1,f32,18432x1x1x1,73728,,,1357,1356
+1074,1359,conv_states-18,GET_ROWS,memory,18,f32,18432x1x1x1,73728,,,1355;10,-1
+1075,1360,node_1075,GET_ROWS,memory,-1,f32,18432x0x1x1,0,,,1355;13,-1
+1076,1361,cache_r_l18 (view),VIEW,metadata,-1,f32,18432x0x1x1,0,,,1356,1356
+1077,1362,cache_r_l18 (view) (copy of ),CPY,memory,-1,f32,18432x0x1x1,0,,,1360;1361,1356
+1078,1363,conv_states_reshaped-18,RESHAPE,metadata,18,f32,3x6144x1x1,73728,,,1359,1359
+1079,1364,node_1079,MUL_MAT,matrix,18,f32,6144x307x1x1,7544832,3862953984,7725907968,1365;1353,-1
+1080,1366,linear_attn_qkv_mixed-18,RESHAPE,metadata,18,f32,6144x307x1x1,7544832,,,1364,1364
+1081,1367,qkv_mixed_transposed-18,TRANSPOSE,metadata,18,f32,307x6144x1x1,7544832,,,1366,1364
+1082,1368,conv_input-18,CONCAT,memory,18,f32,310x6144x1x1,7618560,,,1363;1367,-1
+1083,1369,conv_state_last-18,VIEW,metadata,18,f32,3x6144x1x1,73728,,,1368,1368
+1084,1370,conv_state_update-18,VIEW,metadata,18,f32,18432x1x1x1,73728,,,1356,1356
+1085,1371,conv_state_update-18 (copy of conv_state_last-18),CPY,memory,18,f32,18432x1x1x1,73728,,,1369;1370,1356
+1086,1372,cache_s_l18 (reshaped),RESHAPE,metadata,-1,f32,262144x1x1x1,1048576,,,1373,1373
+1087,1374,cache_s_l18 (reshaped) (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,1372,1373
+1088,1375,cache_s_l18 (reshaped) (view) (view),SCALE,vector,-1,f32,262144x1x1x1,1048576,,,1374,1373
+1089,1376,node_1089,GET_ROWS,memory,-1,f32,262144x1x1x1,1048576,,,1372;10,-1
+1090,1377,node_1090,GET_ROWS,memory,-1,f32,262144x0x1x1,0,,,1372;13,-1
+1091,1378,cache_s_l18 (view),VIEW,metadata,-1,f32,262144x0x1x1,0,,,1373,1373
+1092,1379,cache_s_l18 (view) (copy of ),CPY,memory,-1,f32,262144x0x1x1,0,,,1377;1378,1373
+1093,1380,conv_output_raw-18,SSM_CONV,convolution,18,f32,6144x307x1x1,7544832,7544832,15089664,1368;1381,-1
+1094,1382,conv_output_silu-18,SILU,vector,18,f32,6144x307x1x1,7544832,,,1380,-1
+1095,1383,q_conv-18,VIEW,metadata,18,f32,128x16x307x1,2514944,,,1382,1382
+1096,1384,node_1096,RMS_NORM,vector,18,f32,128x16x307x1,2514944,,,1383,-1
+1097,1385,q_conv_predelta-18,SCALE,vector,18,f32,128x16x307x1,2514944,,,1384,-1
+1098,1386,k_conv-18,VIEW,metadata,18,f32,128x16x307x1,2514944,,,1382,1382
+1099,1387,node_1099,RMS_NORM,vector,18,f32,128x16x307x1,2514944,,,1386,-1
+1100,1388,k_conv_predelta-18,SCALE,vector,18,f32,128x16x307x1,2514944,,,1387,-1
+1101,1389,v_conv_predelta-18,VIEW,metadata,18,f32,128x16x307x1,2514944,,,1382,1382
+1102,1390,node_1102,MUL_MAT,matrix,18,f32,16x307x1x1,19648,10059776,20119552,1391;1353,-1
+1103,1392,alpha-18,RESHAPE,metadata,18,f32,16x307x1x1,19648,,,1390,1390
+1104,1393,node_1104,ADD,vector,18,f32,16x307x1x1,19648,,,1392;1394,-1
+1105,1395,a_softplus-18,SOFTPLUS,vector,18,f32,16x307x1x1,19648,,,1393,-1
+1106,1396,gate-18,MUL,vector,18,f32,16x307x1x1,19648,,,1395;1397,-1
+1107,1398,gate-18 (reshaped),RESHAPE,metadata,18,f32,1x16x307x1,19648,,,1396,1396
+1108,1399,node_1108,MUL_MAT,matrix,18,f32,16x307x1x1,19648,10059776,20119552,1400;1353,-1
+1109,1401,beta-18,RESHAPE,metadata,18,f32,1x16x307x1,19648,,,1399,1399
+1110,1402,beta_sigmoid-18,SIGMOID,vector,18,f32,1x16x307x1,19648,,,1401,-1
+1111,1403,state_predelta-18,RESHAPE,metadata,18,f32,128x128x16x1,1048576,,,1376,1376
+1112,1404,node_1112,GATED_DELTA_NET,recurrent,18,f32,2048x435x1x1,3563520,,,1385;1388;1389;1398;1402;1403,-1
+1113,1405,new_state-18,VIEW,metadata,18,f32,128x128x16x1,1048576,,,1404,1404
+1114,1406,cache_s_l18 (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,1373,1373
+1115,1407,cache_s_l18 (view) (copy of new_state-18),CPY,memory,18,f32,262144x1x1x1,1048576,,,1405;1406,1373
+1116,1408,attn_output-18,VIEW,metadata,18,f32,128x16x307x1,2514944,,,1404,1404
+1117,1409,norm-18,RMS_NORM,vector,18,f32,128x16x307x1,2514944,,,1408,-1
+1118,1410,node_1118,MUL,vector,18,f32,128x16x307x1,2514944,,,1409;1411,-1
+1119,1412,z-18,MUL_MAT,matrix,18,f32,2048x307x1x1,2514944,1287651328,2575302656,1413;1353,-1
+1120,1414,z-18 (reshaped),RESHAPE,metadata,18,f32,128x16x307x1,2514944,,,1412,1412
+1121,1415,node_1121,SILU,vector,18,f32,128x16x307x1,2514944,,,1414,-1
+1122,1416,node_1122,MUL,vector,18,f32,128x16x307x1,2514944,,,1410;1415,-1
+1123,1417,final_output-18,RESHAPE,metadata,18,f32,2048x307x1x1,2514944,,,1416,1416
+1124,1418,linear_attn_out-18,MUL_MAT,matrix,18,f32,2048x307x1x1,2514944,1287651328,2575302656,1419;1417,-1
+1125,1420,linear_attn_out-18 (reshaped),RESHAPE,metadata,18,f32,2048x307x1x1,2514944,,,1418,1418
+1126,1421,attn_residual-18,ADD,vector,18,f32,2048x307x1x1,2514944,,,1420;1351,-1
+1127,1422,norm-18,RMS_NORM,vector,18,f32,2048x307x1x1,2514944,,,1421,-1
+1128,1423,attn_post_norm-18,MUL,vector,18,f32,2048x307x1x1,2514944,,,1422;1424,-1
+1129,1425,ffn_gate-18,MUL_MAT,matrix,18,f32,6144x307x1x1,7544832,3862953984,7725907968,1426;1423,-1
+1130,1427,ffn_up-18,MUL_MAT,matrix,18,f32,6144x307x1x1,7544832,3862953984,7725907968,1428;1423,-1
+1131,1429,ffn_swiglu-18,SWIGLU,vector,18,f32,6144x307x1x1,7544832,,,1425;1427,-1
+1132,1430,ffn_out-18,MUL_MAT,matrix,18,f32,2048x307x1x1,2514944,3862953984,7725907968,1431;1429,-1
+1133,1432,l_out-18,ADD,vector,18,f32,2048x307x1x1,2514944,,,1430;1421,-1
+1134,1433,norm-19,RMS_NORM,vector,19,f32,2048x307x1x1,2514944,,,1432,-1
+1135,1434,attn_norm-19,MUL,vector,19,f32,2048x307x1x1,2514944,,,1433;1435,-1
+1136,1436,Qcur_full-19,MUL_MAT,matrix,19,f32,4096x307x1x1,5029888,2575302656,5150605312,1437;1434,-1
+1137,1438,Qcur_reshaped-19,VIEW,metadata,19,f32,256x8x307x1,2514944,,,1436,1436
+1138,1439,norm-19,RMS_NORM,vector,19,f32,256x8x307x1,2514944,,,1438,-1
+1139,1440,Qcur_normed-19,MUL,vector,19,f32,256x8x307x1,2514944,,,1439;1441,-1
+1140,1442,Qcur-19,ROPE,vector,19,f32,256x8x307x1,2514944,,,1440;259,-1
+1141,1443,Vcur-19,MUL_MAT,matrix,19,f32,512x307x1x1,628736,321912832,643825664,1444;1434,-1
+1142,1445,Vcur-19,RESHAPE,metadata,19,f32,256x2x307x1,628736,,,1443,1443
+1143,1446,Kcur-19,MUL_MAT,matrix,19,f32,512x307x1x1,628736,321912832,643825664,1447;1434,-1
+1144,1448,Kcur-19 (reshaped),RESHAPE,metadata,19,f32,256x2x307x1,628736,,,1446,1446
+1145,1449,norm-19,RMS_NORM,vector,19,f32,256x2x307x1,628736,,,1448,-1
+1146,1450,Kcur_normed-19,MUL,vector,19,f32,256x2x307x1,628736,,,1449;1451,-1
+1147,1452,Kcur-19,ROPE,vector,19,f32,256x2x307x1,628736,,,1450;259,-1
+1148,1453,Kcur-19 (view),VIEW,metadata,19,f32,512x307x1x1,628736,,,1452,1452
+1149,1454,cache_k_l19 (view),SET_ROWS,memory,19,f16,512x1280x1x1,1310720,,,1453;272;1455,1455
+1150,1456,Vcur-19 (view),VIEW,metadata,19,f32,512x307x1x1,628736,,,1445,1443
+1151,1457,cache_v_l19 (view),SET_ROWS,memory,19,f16,512x1280x1x1,1310720,,,1456;276;1458,1458
+1152,1459,Qcur-19 (view),VIEW,metadata,19,f32,256x8x307x1,2514944,,,1442,1442
+1153,1460,Qcur-19 (view) (permuted),PERMUTE,metadata,19,f32,256x307x8x1,2514944,,,1459,1442
+1154,1461,cache_k_l19 (view),VIEW,metadata,-1,f16,256x2x512x1,524288,,,1455,1455
+1155,1462,cache_k_l19 (view) (permuted),PERMUTE,metadata,-1,f16,256x512x2x1,524288,,,1461,1455
+1156,1463,cache_v_l19 (view),VIEW,metadata,-1,f16,256x2x512x1,524288,,,1458,1458
+1157,1464,cache_v_l19 (view) (permuted),PERMUTE,metadata,-1,f16,256x512x2x1,524288,,,1463,1458
+1158,1465,node_1158,FLASH_ATTN_EXT,vector,19,f32,256x8x307x1,2514944,,,1460;1462;1464;285,-1
+1159,1466,attn_pregate-19,RESHAPE,metadata,19,f32,2048x307x1x1,2514944,,,1465,1465
+1160,1467,Qcur_full-19 (view),VIEW,metadata,19,f32,256x8x307x1,2514944,,,1436,1436
+1161,1468,gate_reshaped-19,CONT,memory,19,f32,2048x307x1x1,2514944,,,1467,-1
+1162,1469,gate_sigmoid-19,SIGMOID,vector,19,f32,2048x307x1x1,2514944,,,1468,-1
+1163,1470,attn_gated-19,MUL,vector,19,f32,2048x307x1x1,2514944,,,1466;1469,-1
+1164,1471,attn_output-19,MUL_MAT,matrix,19,f32,2048x307x1x1,2514944,1287651328,2575302656,1472;1470,-1
+1165,1473,attn_residual-19,ADD,vector,19,f32,2048x307x1x1,2514944,,,1471;1432,-1
+1166,1474,norm-19,RMS_NORM,vector,19,f32,2048x307x1x1,2514944,,,1473,-1
+1167,1475,attn_post_norm-19,MUL,vector,19,f32,2048x307x1x1,2514944,,,1474;1476,-1
+1168,1477,ffn_gate-19,MUL_MAT,matrix,19,f32,6144x307x1x1,7544832,3862953984,7725907968,1478;1475,-1
+1169,1479,ffn_up-19,MUL_MAT,matrix,19,f32,6144x307x1x1,7544832,3862953984,7725907968,1480;1475,-1
+1170,1481,ffn_swiglu-19,SWIGLU,vector,19,f32,6144x307x1x1,7544832,,,1477;1479,-1
+1171,1482,ffn_out-19,MUL_MAT,matrix,19,f32,2048x307x1x1,2514944,3862953984,7725907968,1483;1481,-1
+1172,1484,l_out-19,ADD,vector,19,f32,2048x307x1x1,2514944,,,1482;1473,-1
+1173,1485,norm-20,RMS_NORM,vector,20,f32,2048x307x1x1,2514944,,,1484,-1
+1174,1486,attn_norm-20,MUL,vector,20,f32,2048x307x1x1,2514944,,,1485;1487,-1
+1175,1488,cache_r_l20 (reshaped),RESHAPE,metadata,-1,f32,18432x1x1x1,73728,,,1489,1489
+1176,1490,cache_r_l20 (reshaped) (view),VIEW,metadata,-1,f32,18432x1x1x1,73728,,,1488,1489
+1177,1491,cache_r_l20 (reshaped) (view) (view),SCALE,vector,-1,f32,18432x1x1x1,73728,,,1490,1489
+1178,1492,conv_states-20,GET_ROWS,memory,20,f32,18432x1x1x1,73728,,,1488;10,-1
+1179,1493,node_1179,GET_ROWS,memory,-1,f32,18432x0x1x1,0,,,1488;13,-1
+1180,1494,cache_r_l20 (view),VIEW,metadata,-1,f32,18432x0x1x1,0,,,1489,1489
+1181,1495,cache_r_l20 (view) (copy of ),CPY,memory,-1,f32,18432x0x1x1,0,,,1493;1494,1489
+1182,1496,conv_states_reshaped-20,RESHAPE,metadata,20,f32,3x6144x1x1,73728,,,1492,1492
+1183,1497,node_1183,MUL_MAT,matrix,20,f32,6144x307x1x1,7544832,3862953984,7725907968,1498;1486,-1
+1184,1499,linear_attn_qkv_mixed-20,RESHAPE,metadata,20,f32,6144x307x1x1,7544832,,,1497,1497
+1185,1500,qkv_mixed_transposed-20,TRANSPOSE,metadata,20,f32,307x6144x1x1,7544832,,,1499,1497
+1186,1501,conv_input-20,CONCAT,memory,20,f32,310x6144x1x1,7618560,,,1496;1500,-1
+1187,1502,conv_state_last-20,VIEW,metadata,20,f32,3x6144x1x1,73728,,,1501,1501
+1188,1503,conv_state_update-20,VIEW,metadata,20,f32,18432x1x1x1,73728,,,1489,1489
+1189,1504,conv_state_update-20 (copy of conv_state_last-20),CPY,memory,20,f32,18432x1x1x1,73728,,,1502;1503,1489
+1190,1505,cache_s_l20 (reshaped),RESHAPE,metadata,-1,f32,262144x1x1x1,1048576,,,1506,1506
+1191,1507,cache_s_l20 (reshaped) (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,1505,1506
+1192,1508,cache_s_l20 (reshaped) (view) (view),SCALE,vector,-1,f32,262144x1x1x1,1048576,,,1507,1506
+1193,1509,node_1193,GET_ROWS,memory,-1,f32,262144x1x1x1,1048576,,,1505;10,-1
+1194,1510,node_1194,GET_ROWS,memory,-1,f32,262144x0x1x1,0,,,1505;13,-1
+1195,1511,cache_s_l20 (view),VIEW,metadata,-1,f32,262144x0x1x1,0,,,1506,1506
+1196,1512,cache_s_l20 (view) (copy of ),CPY,memory,-1,f32,262144x0x1x1,0,,,1510;1511,1506
+1197,1513,conv_output_raw-20,SSM_CONV,convolution,20,f32,6144x307x1x1,7544832,7544832,15089664,1501;1514,-1
+1198,1515,conv_output_silu-20,SILU,vector,20,f32,6144x307x1x1,7544832,,,1513,-1
+1199,1516,q_conv-20,VIEW,metadata,20,f32,128x16x307x1,2514944,,,1515,1515
+1200,1517,node_1200,RMS_NORM,vector,20,f32,128x16x307x1,2514944,,,1516,-1
+1201,1518,q_conv_predelta-20,SCALE,vector,20,f32,128x16x307x1,2514944,,,1517,-1
+1202,1519,k_conv-20,VIEW,metadata,20,f32,128x16x307x1,2514944,,,1515,1515
+1203,1520,node_1203,RMS_NORM,vector,20,f32,128x16x307x1,2514944,,,1519,-1
+1204,1521,k_conv_predelta-20,SCALE,vector,20,f32,128x16x307x1,2514944,,,1520,-1
+1205,1522,v_conv_predelta-20,VIEW,metadata,20,f32,128x16x307x1,2514944,,,1515,1515
+1206,1523,node_1206,MUL_MAT,matrix,20,f32,16x307x1x1,19648,10059776,20119552,1524;1486,-1
+1207,1525,alpha-20,RESHAPE,metadata,20,f32,16x307x1x1,19648,,,1523,1523
+1208,1526,node_1208,ADD,vector,20,f32,16x307x1x1,19648,,,1525;1527,-1
+1209,1528,a_softplus-20,SOFTPLUS,vector,20,f32,16x307x1x1,19648,,,1526,-1
+1210,1529,gate-20,MUL,vector,20,f32,16x307x1x1,19648,,,1528;1530,-1
+1211,1531,gate-20 (reshaped),RESHAPE,metadata,20,f32,1x16x307x1,19648,,,1529,1529
+1212,1532,node_1212,MUL_MAT,matrix,20,f32,16x307x1x1,19648,10059776,20119552,1533;1486,-1
+1213,1534,beta-20,RESHAPE,metadata,20,f32,1x16x307x1,19648,,,1532,1532
+1214,1535,beta_sigmoid-20,SIGMOID,vector,20,f32,1x16x307x1,19648,,,1534,-1
+1215,1536,state_predelta-20,RESHAPE,metadata,20,f32,128x128x16x1,1048576,,,1509,1509
+1216,1537,node_1216,GATED_DELTA_NET,recurrent,20,f32,2048x435x1x1,3563520,,,1518;1521;1522;1531;1535;1536,-1
+1217,1538,new_state-20,VIEW,metadata,20,f32,128x128x16x1,1048576,,,1537,1537
+1218,1539,cache_s_l20 (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,1506,1506
+1219,1540,cache_s_l20 (view) (copy of new_state-20),CPY,memory,20,f32,262144x1x1x1,1048576,,,1538;1539,1506
+1220,1541,attn_output-20,VIEW,metadata,20,f32,128x16x307x1,2514944,,,1537,1537
+1221,1542,norm-20,RMS_NORM,vector,20,f32,128x16x307x1,2514944,,,1541,-1
+1222,1543,node_1222,MUL,vector,20,f32,128x16x307x1,2514944,,,1542;1544,-1
+1223,1545,z-20,MUL_MAT,matrix,20,f32,2048x307x1x1,2514944,1287651328,2575302656,1546;1486,-1
+1224,1547,z-20 (reshaped),RESHAPE,metadata,20,f32,128x16x307x1,2514944,,,1545,1545
+1225,1548,node_1225,SILU,vector,20,f32,128x16x307x1,2514944,,,1547,-1
+1226,1549,node_1226,MUL,vector,20,f32,128x16x307x1,2514944,,,1543;1548,-1
+1227,1550,final_output-20,RESHAPE,metadata,20,f32,2048x307x1x1,2514944,,,1549,1549
+1228,1551,linear_attn_out-20,MUL_MAT,matrix,20,f32,2048x307x1x1,2514944,1287651328,2575302656,1552;1550,-1
+1229,1553,linear_attn_out-20 (reshaped),RESHAPE,metadata,20,f32,2048x307x1x1,2514944,,,1551,1551
+1230,1554,attn_residual-20,ADD,vector,20,f32,2048x307x1x1,2514944,,,1553;1484,-1
+1231,1555,norm-20,RMS_NORM,vector,20,f32,2048x307x1x1,2514944,,,1554,-1
+1232,1556,attn_post_norm-20,MUL,vector,20,f32,2048x307x1x1,2514944,,,1555;1557,-1
+1233,1558,ffn_gate-20,MUL_MAT,matrix,20,f32,6144x307x1x1,7544832,3862953984,7725907968,1559;1556,-1
+1234,1560,ffn_up-20,MUL_MAT,matrix,20,f32,6144x307x1x1,7544832,3862953984,7725907968,1561;1556,-1
+1235,1562,ffn_swiglu-20,SWIGLU,vector,20,f32,6144x307x1x1,7544832,,,1558;1560,-1
+1236,1563,ffn_out-20,MUL_MAT,matrix,20,f32,2048x307x1x1,2514944,3862953984,7725907968,1564;1562,-1
+1237,1565,l_out-20,ADD,vector,20,f32,2048x307x1x1,2514944,,,1563;1554,-1
+1238,1566,norm-21,RMS_NORM,vector,21,f32,2048x307x1x1,2514944,,,1565,-1
+1239,1567,attn_norm-21,MUL,vector,21,f32,2048x307x1x1,2514944,,,1566;1568,-1
+1240,1569,cache_r_l21 (reshaped),RESHAPE,metadata,-1,f32,18432x1x1x1,73728,,,1570,1570
+1241,1571,cache_r_l21 (reshaped) (view),VIEW,metadata,-1,f32,18432x1x1x1,73728,,,1569,1570
+1242,1572,cache_r_l21 (reshaped) (view) (view),SCALE,vector,-1,f32,18432x1x1x1,73728,,,1571,1570
+1243,1573,conv_states-21,GET_ROWS,memory,21,f32,18432x1x1x1,73728,,,1569;10,-1
+1244,1574,node_1244,GET_ROWS,memory,-1,f32,18432x0x1x1,0,,,1569;13,-1
+1245,1575,cache_r_l21 (view),VIEW,metadata,-1,f32,18432x0x1x1,0,,,1570,1570
+1246,1576,cache_r_l21 (view) (copy of ),CPY,memory,-1,f32,18432x0x1x1,0,,,1574;1575,1570
+1247,1577,conv_states_reshaped-21,RESHAPE,metadata,21,f32,3x6144x1x1,73728,,,1573,1573
+1248,1578,node_1248,MUL_MAT,matrix,21,f32,6144x307x1x1,7544832,3862953984,7725907968,1579;1567,-1
+1249,1580,linear_attn_qkv_mixed-21,RESHAPE,metadata,21,f32,6144x307x1x1,7544832,,,1578,1578
+1250,1581,qkv_mixed_transposed-21,TRANSPOSE,metadata,21,f32,307x6144x1x1,7544832,,,1580,1578
+1251,1582,conv_input-21,CONCAT,memory,21,f32,310x6144x1x1,7618560,,,1577;1581,-1
+1252,1583,conv_state_last-21,VIEW,metadata,21,f32,3x6144x1x1,73728,,,1582,1582
+1253,1584,conv_state_update-21,VIEW,metadata,21,f32,18432x1x1x1,73728,,,1570,1570
+1254,1585,conv_state_update-21 (copy of conv_state_last-21),CPY,memory,21,f32,18432x1x1x1,73728,,,1583;1584,1570
+1255,1586,cache_s_l21 (reshaped),RESHAPE,metadata,-1,f32,262144x1x1x1,1048576,,,1587,1587
+1256,1588,cache_s_l21 (reshaped) (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,1586,1587
+1257,1589,cache_s_l21 (reshaped) (view) (view),SCALE,vector,-1,f32,262144x1x1x1,1048576,,,1588,1587
+1258,1590,node_1258,GET_ROWS,memory,-1,f32,262144x1x1x1,1048576,,,1586;10,-1
+1259,1591,node_1259,GET_ROWS,memory,-1,f32,262144x0x1x1,0,,,1586;13,-1
+1260,1592,cache_s_l21 (view),VIEW,metadata,-1,f32,262144x0x1x1,0,,,1587,1587
+1261,1593,cache_s_l21 (view) (copy of ),CPY,memory,-1,f32,262144x0x1x1,0,,,1591;1592,1587
+1262,1594,conv_output_raw-21,SSM_CONV,convolution,21,f32,6144x307x1x1,7544832,7544832,15089664,1582;1595,-1
+1263,1596,conv_output_silu-21,SILU,vector,21,f32,6144x307x1x1,7544832,,,1594,-1
+1264,1597,q_conv-21,VIEW,metadata,21,f32,128x16x307x1,2514944,,,1596,1596
+1265,1598,node_1265,RMS_NORM,vector,21,f32,128x16x307x1,2514944,,,1597,-1
+1266,1599,q_conv_predelta-21,SCALE,vector,21,f32,128x16x307x1,2514944,,,1598,-1
+1267,1600,k_conv-21,VIEW,metadata,21,f32,128x16x307x1,2514944,,,1596,1596
+1268,1601,node_1268,RMS_NORM,vector,21,f32,128x16x307x1,2514944,,,1600,-1
+1269,1602,k_conv_predelta-21,SCALE,vector,21,f32,128x16x307x1,2514944,,,1601,-1
+1270,1603,v_conv_predelta-21,VIEW,metadata,21,f32,128x16x307x1,2514944,,,1596,1596
+1271,1604,node_1271,MUL_MAT,matrix,21,f32,16x307x1x1,19648,10059776,20119552,1605;1567,-1
+1272,1606,alpha-21,RESHAPE,metadata,21,f32,16x307x1x1,19648,,,1604,1604
+1273,1607,node_1273,ADD,vector,21,f32,16x307x1x1,19648,,,1606;1608,-1
+1274,1609,a_softplus-21,SOFTPLUS,vector,21,f32,16x307x1x1,19648,,,1607,-1
+1275,1610,gate-21,MUL,vector,21,f32,16x307x1x1,19648,,,1609;1611,-1
+1276,1612,gate-21 (reshaped),RESHAPE,metadata,21,f32,1x16x307x1,19648,,,1610,1610
+1277,1613,node_1277,MUL_MAT,matrix,21,f32,16x307x1x1,19648,10059776,20119552,1614;1567,-1
+1278,1615,beta-21,RESHAPE,metadata,21,f32,1x16x307x1,19648,,,1613,1613
+1279,1616,beta_sigmoid-21,SIGMOID,vector,21,f32,1x16x307x1,19648,,,1615,-1
+1280,1617,state_predelta-21,RESHAPE,metadata,21,f32,128x128x16x1,1048576,,,1590,1590
+1281,1618,node_1281,GATED_DELTA_NET,recurrent,21,f32,2048x435x1x1,3563520,,,1599;1602;1603;1612;1616;1617,-1
+1282,1619,new_state-21,VIEW,metadata,21,f32,128x128x16x1,1048576,,,1618,1618
+1283,1620,cache_s_l21 (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,1587,1587
+1284,1621,cache_s_l21 (view) (copy of new_state-21),CPY,memory,21,f32,262144x1x1x1,1048576,,,1619;1620,1587
+1285,1622,attn_output-21,VIEW,metadata,21,f32,128x16x307x1,2514944,,,1618,1618
+1286,1623,norm-21,RMS_NORM,vector,21,f32,128x16x307x1,2514944,,,1622,-1
+1287,1624,node_1287,MUL,vector,21,f32,128x16x307x1,2514944,,,1623;1625,-1
+1288,1626,z-21,MUL_MAT,matrix,21,f32,2048x307x1x1,2514944,1287651328,2575302656,1627;1567,-1
+1289,1628,z-21 (reshaped),RESHAPE,metadata,21,f32,128x16x307x1,2514944,,,1626,1626
+1290,1629,node_1290,SILU,vector,21,f32,128x16x307x1,2514944,,,1628,-1
+1291,1630,node_1291,MUL,vector,21,f32,128x16x307x1,2514944,,,1624;1629,-1
+1292,1631,final_output-21,RESHAPE,metadata,21,f32,2048x307x1x1,2514944,,,1630,1630
+1293,1632,linear_attn_out-21,MUL_MAT,matrix,21,f32,2048x307x1x1,2514944,1287651328,2575302656,1633;1631,-1
+1294,1634,linear_attn_out-21 (reshaped),RESHAPE,metadata,21,f32,2048x307x1x1,2514944,,,1632,1632
+1295,1635,attn_residual-21,ADD,vector,21,f32,2048x307x1x1,2514944,,,1634;1565,-1
+1296,1636,norm-21,RMS_NORM,vector,21,f32,2048x307x1x1,2514944,,,1635,-1
+1297,1637,attn_post_norm-21,MUL,vector,21,f32,2048x307x1x1,2514944,,,1636;1638,-1
+1298,1639,ffn_gate-21,MUL_MAT,matrix,21,f32,6144x307x1x1,7544832,3862953984,7725907968,1640;1637,-1
+1299,1641,ffn_up-21,MUL_MAT,matrix,21,f32,6144x307x1x1,7544832,3862953984,7725907968,1642;1637,-1
+1300,1643,ffn_swiglu-21,SWIGLU,vector,21,f32,6144x307x1x1,7544832,,,1639;1641,-1
+1301,1644,ffn_out-21,MUL_MAT,matrix,21,f32,2048x307x1x1,2514944,3862953984,7725907968,1645;1643,-1
+1302,1646,l_out-21,ADD,vector,21,f32,2048x307x1x1,2514944,,,1644;1635,-1
+1303,1647,norm-22,RMS_NORM,vector,22,f32,2048x307x1x1,2514944,,,1646,-1
+1304,1648,attn_norm-22,MUL,vector,22,f32,2048x307x1x1,2514944,,,1647;1649,-1
+1305,1650,cache_r_l22 (reshaped),RESHAPE,metadata,-1,f32,18432x1x1x1,73728,,,1651,1651
+1306,1652,cache_r_l22 (reshaped) (view),VIEW,metadata,-1,f32,18432x1x1x1,73728,,,1650,1651
+1307,1653,cache_r_l22 (reshaped) (view) (view),SCALE,vector,-1,f32,18432x1x1x1,73728,,,1652,1651
+1308,1654,conv_states-22,GET_ROWS,memory,22,f32,18432x1x1x1,73728,,,1650;10,-1
+1309,1655,node_1309,GET_ROWS,memory,-1,f32,18432x0x1x1,0,,,1650;13,-1
+1310,1656,cache_r_l22 (view),VIEW,metadata,-1,f32,18432x0x1x1,0,,,1651,1651
+1311,1657,cache_r_l22 (view) (copy of ),CPY,memory,-1,f32,18432x0x1x1,0,,,1655;1656,1651
+1312,1658,conv_states_reshaped-22,RESHAPE,metadata,22,f32,3x6144x1x1,73728,,,1654,1654
+1313,1659,node_1313,MUL_MAT,matrix,22,f32,6144x307x1x1,7544832,3862953984,7725907968,1660;1648,-1
+1314,1661,linear_attn_qkv_mixed-22,RESHAPE,metadata,22,f32,6144x307x1x1,7544832,,,1659,1659
+1315,1662,qkv_mixed_transposed-22,TRANSPOSE,metadata,22,f32,307x6144x1x1,7544832,,,1661,1659
+1316,1663,conv_input-22,CONCAT,memory,22,f32,310x6144x1x1,7618560,,,1658;1662,-1
+1317,1664,conv_state_last-22,VIEW,metadata,22,f32,3x6144x1x1,73728,,,1663,1663
+1318,1665,conv_state_update-22,VIEW,metadata,22,f32,18432x1x1x1,73728,,,1651,1651
+1319,1666,conv_state_update-22 (copy of conv_state_last-22),CPY,memory,22,f32,18432x1x1x1,73728,,,1664;1665,1651
+1320,1667,cache_s_l22 (reshaped),RESHAPE,metadata,-1,f32,262144x1x1x1,1048576,,,1668,1668
+1321,1669,cache_s_l22 (reshaped) (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,1667,1668
+1322,1670,cache_s_l22 (reshaped) (view) (view),SCALE,vector,-1,f32,262144x1x1x1,1048576,,,1669,1668
+1323,1671,node_1323,GET_ROWS,memory,-1,f32,262144x1x1x1,1048576,,,1667;10,-1
+1324,1672,node_1324,GET_ROWS,memory,-1,f32,262144x0x1x1,0,,,1667;13,-1
+1325,1673,cache_s_l22 (view),VIEW,metadata,-1,f32,262144x0x1x1,0,,,1668,1668
+1326,1674,cache_s_l22 (view) (copy of ),CPY,memory,-1,f32,262144x0x1x1,0,,,1672;1673,1668
+1327,1675,conv_output_raw-22,SSM_CONV,convolution,22,f32,6144x307x1x1,7544832,7544832,15089664,1663;1676,-1
+1328,1677,conv_output_silu-22,SILU,vector,22,f32,6144x307x1x1,7544832,,,1675,-1
+1329,1678,q_conv-22,VIEW,metadata,22,f32,128x16x307x1,2514944,,,1677,1677
+1330,1679,node_1330,RMS_NORM,vector,22,f32,128x16x307x1,2514944,,,1678,-1
+1331,1680,q_conv_predelta-22,SCALE,vector,22,f32,128x16x307x1,2514944,,,1679,-1
+1332,1681,k_conv-22,VIEW,metadata,22,f32,128x16x307x1,2514944,,,1677,1677
+1333,1682,node_1333,RMS_NORM,vector,22,f32,128x16x307x1,2514944,,,1681,-1
+1334,1683,k_conv_predelta-22,SCALE,vector,22,f32,128x16x307x1,2514944,,,1682,-1
+1335,1684,v_conv_predelta-22,VIEW,metadata,22,f32,128x16x307x1,2514944,,,1677,1677
+1336,1685,node_1336,MUL_MAT,matrix,22,f32,16x307x1x1,19648,10059776,20119552,1686;1648,-1
+1337,1687,alpha-22,RESHAPE,metadata,22,f32,16x307x1x1,19648,,,1685,1685
+1338,1688,node_1338,ADD,vector,22,f32,16x307x1x1,19648,,,1687;1689,-1
+1339,1690,a_softplus-22,SOFTPLUS,vector,22,f32,16x307x1x1,19648,,,1688,-1
+1340,1691,gate-22,MUL,vector,22,f32,16x307x1x1,19648,,,1690;1692,-1
+1341,1693,gate-22 (reshaped),RESHAPE,metadata,22,f32,1x16x307x1,19648,,,1691,1691
+1342,1694,node_1342,MUL_MAT,matrix,22,f32,16x307x1x1,19648,10059776,20119552,1695;1648,-1
+1343,1696,beta-22,RESHAPE,metadata,22,f32,1x16x307x1,19648,,,1694,1694
+1344,1697,beta_sigmoid-22,SIGMOID,vector,22,f32,1x16x307x1,19648,,,1696,-1
+1345,1698,state_predelta-22,RESHAPE,metadata,22,f32,128x128x16x1,1048576,,,1671,1671
+1346,1699,node_1346,GATED_DELTA_NET,recurrent,22,f32,2048x435x1x1,3563520,,,1680;1683;1684;1693;1697;1698,-1
+1347,1700,new_state-22,VIEW,metadata,22,f32,128x128x16x1,1048576,,,1699,1699
+1348,1701,cache_s_l22 (view),VIEW,metadata,-1,f32,262144x1x1x1,1048576,,,1668,1668
+1349,1702,cache_s_l22 (view) (copy of new_state-22),CPY,memory,22,f32,262144x1x1x1,1048576,,,1700;1701,1668
+1350,1703,attn_output-22,VIEW,metadata,22,f32,128x16x307x1,2514944,,,1699,1699
+1351,1704,norm-22,RMS_NORM,vector,22,f32,128x16x307x1,2514944,,,1703,-1
+1352,1705,node_1352,MUL,vector,22,f32,128x16x307x1,2514944,,,1704;1706,-1
+1353,1707,z-22,MUL_MAT,matrix,22,f32,2048x307x1x1,2514944,1287651328,2575302656,1708;1648,-1
+1354,1709,z-22 (reshaped),RESHAPE,metadata,22,f32,128x16x307x1,2514944,,,1707,1707
+1355,1710,node_1355,SILU,vector,22,f32,128x16x307x1,2514944,,,1709,-1
+1356,1711,node_1356,MUL,vector,22,f32,128x16x307x1,2514944,,,1705;1710,-1
+1357,1712,final_output-22,RESHAPE,metadata,22,f32,2048x307x1x1,2514944,,,1711,1711
+1358,1713,linear_attn_out-22,MUL_MAT,matrix,22,f32,2048x307x1x1,2514944,1287651328,2575302656,1714;1712,-1
+1359,1715,linear_attn_out-22 (reshaped),RESHAPE,metadata,22,f32,2048x307x1x1,2514944,,,1713,1713
+1360,1716,attn_residual-22,ADD,vector,22,f32,2048x307x1x1,2514944,,,1715;1646,-1
+1361,1717,norm-22,RMS_NORM,vector,22,f32,2048x307x1x1,2514944,,,1716,-1
+1362,1718,attn_post_norm-22,MUL,vector,22,f32,2048x307x1x1,2514944,,,1717;1719,-1
+1363,1720,ffn_gate-22,MUL_MAT,matrix,22,f32,6144x307x1x1,7544832,3862953984,7725907968,1721;1718,-1
+1364,1722,ffn_up-22,MUL_MAT,matrix,22,f32,6144x307x1x1,7544832,3862953984,7725907968,1723;1718,-1
+1365,1724,ffn_swiglu-22,SWIGLU,vector,22,f32,6144x307x1x1,7544832,,,1720;1722,-1
+1366,1725,ffn_out-22,MUL_MAT,matrix,22,f32,2048x307x1x1,2514944,3862953984,7725907968,1726;1724,-1
+1367,1727,l_out-22,ADD,vector,22,f32,2048x307x1x1,2514944,,,1725;1716,-1
+1368,1728,norm-23,RMS_NORM,vector,23,f32,2048x307x1x1,2514944,,,1727,-1
+1369,1729,attn_norm-23,MUL,vector,23,f32,2048x307x1x1,2514944,,,1728;1730,-1
+1370,1731,Qcur_full-23,MUL_MAT,matrix,23,f32,4096x307x1x1,5029888,2575302656,5150605312,1732;1729,-1
+1371,1733,Qcur_reshaped-23,VIEW,metadata,23,f32,256x8x307x1,2514944,,,1731,1731
+1372,1734,norm-23,RMS_NORM,vector,23,f32,256x8x307x1,2514944,,,1733,-1
+1373,1735,Qcur_normed-23,MUL,vector,23,f32,256x8x307x1,2514944,,,1734;1736,-1
+1374,1737,Qcur-23,ROPE,vector,23,f32,256x8x307x1,2514944,,,1735;259,-1
+1375,1738,Vcur-23,MUL_MAT,matrix,23,f32,512x307x1x1,628736,321912832,643825664,1739;1729,-1
+1376,1740,Vcur-23,RESHAPE,metadata,23,f32,256x2x307x1,628736,,,1738,1738
+1377,1741,Kcur-23,MUL_MAT,matrix,23,f32,512x307x1x1,628736,321912832,643825664,1742;1729,-1
+1378,1743,Kcur-23 (reshaped),RESHAPE,metadata,23,f32,256x2x307x1,628736,,,1741,1741
+1379,1744,norm-23,RMS_NORM,vector,23,f32,256x2x307x1,628736,,,1743,-1
+1380,1745,Kcur_normed-23,MUL,vector,23,f32,256x2x307x1,628736,,,1744;1746,-1
+1381,1747,Kcur-23,ROPE,vector,23,f32,256x2x307x1,628736,,,1745;259,-1
+1382,1748,Kcur-23 (view),VIEW,metadata,23,f32,512x307x1x1,628736,,,1747,1747
+1383,1749,cache_k_l23 (view),SET_ROWS,memory,23,f16,512x1280x1x1,1310720,,,1748;272;1750,1750
+1384,1751,Vcur-23 (view),VIEW,metadata,23,f32,512x307x1x1,628736,,,1740,1738
+1385,1752,cache_v_l23 (view),SET_ROWS,memory,23,f16,512x1280x1x1,1310720,,,1751;276;1753,1753
+1386,1754,Qcur-23 (view),VIEW,metadata,23,f32,256x8x307x1,2514944,,,1737,1737
+1387,1755,Qcur-23 (view) (permuted),PERMUTE,metadata,23,f32,256x307x8x1,2514944,,,1754,1737
+1388,1756,cache_k_l23 (view),VIEW,metadata,-1,f16,256x2x512x1,524288,,,1750,1750
+1389,1757,cache_k_l23 (view) (permuted),PERMUTE,metadata,-1,f16,256x512x2x1,524288,,,1756,1750
+1390,1758,cache_v_l23 (view),VIEW,metadata,-1,f16,256x2x512x1,524288,,,1753,1753
+1391,1759,cache_v_l23 (view) (permuted),PERMUTE,metadata,-1,f16,256x512x2x1,524288,,,1758,1753
+1392,1760,node_1392,FLASH_ATTN_EXT,vector,23,f32,256x8x307x1,2514944,,,1755;1757;1759;285,-1
+1393,1761,attn_pregate-23,RESHAPE,metadata,23,f32,2048x307x1x1,2514944,,,1760,1760
+1394,1762,Qcur_full-23 (view),VIEW,metadata,23,f32,256x8x307x1,2514944,,,1731,1731
+1395,1763,gate_reshaped-23,CONT,memory,23,f32,2048x307x1x1,2514944,,,1762,-1
+1396,1764,gate_sigmoid-23,SIGMOID,vector,23,f32,2048x307x1x1,2514944,,,1763,-1
+1397,1765,attn_gated-23,MUL,vector,23,f32,2048x307x1x1,2514944,,,1761;1764,-1
+1398,1766,attn_output-23,MUL_MAT,matrix,23,f32,2048x307x1x1,2514944,1287651328,2575302656,1767;1765,-1
+1399,1768,attn_residual-23,ADD,vector,23,f32,2048x307x1x1,2514944,,,1766;1727,-1
+1400,1769,norm-23,RMS_NORM,vector,23,f32,2048x307x1x1,2514944,,,1768,-1
+1401,1770,attn_post_norm-23,MUL,vector,23,f32,2048x307x1x1,2514944,,,1769;1771,-1
+1402,1772,ffn_gate-23,MUL_MAT,matrix,23,f32,6144x307x1x1,7544832,3862953984,7725907968,1773;1770,-1
+1403,1774,ffn_up-23,MUL_MAT,matrix,23,f32,6144x307x1x1,7544832,3862953984,7725907968,1775;1770,-1
+1404,1776,ffn_swiglu-23,SWIGLU,vector,23,f32,6144x307x1x1,7544832,,,1772;1774,-1
+1405,1777,ffn_out-23,MUL_MAT,matrix,23,f32,2048x307x1x1,2514944,3862953984,7725907968,1778;1776,-1
+1406,1779,l_out-23,ADD,vector,23,f32,2048x307x1x1,2514944,,,1777;1768,-1
+1407,1780,norm,RMS_NORM,vector,23,f32,2048x307x1x1,2514944,,,1779,-1
+1408,1781,h_nextn,MUL,vector,23,f32,2048x307x1x1,2514944,,,1780;1782,-1
+1409,1783,result_norm,GET_ROWS,memory,23,f32,2048x1x1x1,8192,,,1781;1784,-1
+1410,1785,result_output,MUL_MAT,matrix,23,f32,248320x1x1x1,993280,508559360,1017118720,1;1783,-1

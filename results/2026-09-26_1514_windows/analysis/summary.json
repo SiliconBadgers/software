@@ -1,0 +1,42 @@
+[
+  {
+    "run": "cpu-baseline",
+    "prompt_tokens": 128,
+    "repetitions": 1,
+    "decode_steps_per_rep": 8,
+    "prefill_seconds": 2.8527465,
+    "prefill_tps": 44.86904111529013,
+    "decode_ms": 66.76763749999999,
+    "decode_tps": 14.977315918958494,
+    "prefill_min_s": 2.8527465,
+    "prefill_max_s": 2.8527465,
+    "decode_min_ms": 66.76763749999999,
+    "decode_max_ms": 66.76763749999999,
+    "prefill_samples_seconds": [
+      2.8527465
+    ],
+    "decode_run_means_ms": [
+      66.76763749999999
+    ]
+  },
+  {
+    "run": "cpu-profile",
+    "prompt_tokens": 128,
+    "repetitions": 1,
+    "decode_steps_per_rep": 8,
+    "prefill_seconds": 6.1162899,
+    "prefill_tps": 20.927719596809823,
+    "decode_ms": 137.435275,
+    "decode_tps": 7.276152356081799,
+    "prefill_min_s": 6.1162899,
+    "prefill_max_s": 6.1162899,
+    "decode_min_ms": 137.435275,
+    "decode_max_ms": 137.435275,
+    "prefill_samples_seconds": [
+      6.1162899
+    ],
+    "decode_run_means_ms": [
+      137.435275
+    ]
+  }
+]

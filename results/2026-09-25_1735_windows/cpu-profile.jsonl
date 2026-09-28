@@ -1,0 +1,2 @@
+{"kind":"metadata","ngl":0,"threads":6,"reps":1,"decode_steps":8,"layers":24,"vocabulary":248320,"load_us":2646656.4,"mode":"teacher_forced_text_continuation","n_ubatch":512,"flash_attention":"on"}
+{"kind":"measurement","prompt_tokens":128,"rep":0,"prefill_us":2842773.6,"decode_us":[101254.8,82797.3,86921.4,86954.3,87299.6,90282.3,131058.1,101792.2]}

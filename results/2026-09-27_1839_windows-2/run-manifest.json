@@ -1,0 +1,370 @@
+{
+  "schema_version": 1,
+  "run": {
+    "name": "2026-09-27_1839_windows-2",
+    "started_at": "2026-09-27T23:39:25+00:00",
+    "finished_at": "2026-09-28T00:17:33+00:00",
+    "status": "complete",
+    "command": "cli.py --platform-dir 'C:\\SiliconBadgers\\software\\windows' profile",
+    "dry_run": false
+  },
+  "host": {
+    "os_label": "windows",
+    "os": "Windows-11-10.0.26200-SP0",
+    "machine": "AMD64",
+    "cpu_model": "13th Gen Intel(R) Core(TM) i7-13620H",
+    "logical_cpus": 16,
+    "memory_bytes": 16786108416,
+    "python": "3.13.14",
+    "tools": {
+      "git": "git version 2.41.0.windows.1",
+      "cmake": "cmake version 4.4.3",
+      "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+      "graphviz_dot": "dot - graphviz version 16.1.0 (20260904.0139)",
+      "c_compiler": {
+        "path": "C:\\Program Files\\LLVM\\bin\\clang.exe",
+        "version": "clang version 21.1.8"
+      },
+      "cxx_compiler": {
+        "path": "C:\\Program Files\\LLVM\\bin\\clang++.exe",
+        "version": "clang version 21.1.8"
+      }
+    }
+  },
+  "plot_subtitle": "13th Gen Intel(R) Core(TM) i7-13620H \u00b7 Q4_K_M mixed quantization \u00b7 6 CPU threads \u00b7 one sequence",
+  "experiment": {
+    "name": "qwen35-2b-q4km",
+    "llama_cpp": {
+      "repository": "https://github.com/ggml-org/llama.cpp.git",
+      "commit": "f46bc30cb6a7f68a67e34a00061e20a4ad1eff43"
+    },
+    "model": {
+      "repo": "unsloth/Qwen3.5-2B-GGUF",
+      "revision": "f6d5376be1edb4d416d56da11e5397a961aca8ae",
+      "file": "Qwen3.5-2B-Q4_K_M.gguf",
+      "sha256": "aaf42c8b7c3cab2bf3d69c355048d4a0ee9973d48f16c731c0520ee914699223",
+      "size_bytes": 1280835840,
+      "vocabulary_size": 248320,
+      "label": "Q4_K_M mixed quantization"
+    },
+    "policy": {
+      "timing_excluded_prompt_tokens": [
+        8192
+      ],
+      "diagnostic_prompt_tokens": [
+        8192
+      ],
+      "report_prompt_tokens": 2048,
+      "separate_case_prefixes": {
+        "8192": "8k"
+      },
+      "profile_prefixes": {
+        "default": [
+          "cpu-profile"
+        ],
+        "8192": [
+          "cpu-8k-profile",
+          "cpu-8k-profile-repeat"
+        ]
+      },
+      "summary_runs": [
+        "cpu-baseline",
+        "metal-baseline",
+        "cpu-8k",
+        "metal-8k",
+        "cpu-profile",
+        "cpu-control",
+        "cpu-8k-control",
+        "cpu-8k-profile",
+        "cpu-8k-profile-repeat"
+      ],
+      "op_trace_files": [
+        "cpu-op-trace.jsonl",
+        "cpu-8k-op-trace.jsonl"
+      ],
+      "timing_exclusion_note": "Anomalous slowdown; excluded from timing conclusions"
+    }
+  },
+  "config": {
+    "prompt_lengths": [
+      128,
+      512,
+      2048,
+      8192
+    ],
+    "threads": 6,
+    "repetitions": 3,
+    "trace_repetitions": 2,
+    "decode_steps": 32,
+    "backends": [
+      "cpu"
+    ],
+    "trace": true,
+    "include_diagnostic_cases": false,
+    "graphs": {
+      "prompt_lengths": [
+        128,
+        512
+      ],
+      "flash_attention": [
+        "on",
+        "off"
+      ]
+    },
+    "smoke": false,
+    "prompts_only": false,
+    "prompt_graphs": {
+      "prompt_set": "C:\\SiliconBadgers\\software\\core\\prompts\\prompts.json",
+      "flash_attention": [
+        "on",
+        "off"
+      ]
+    },
+    "prompt_timings": {
+      "prompt_set": "C:\\SiliconBadgers\\software\\core\\prompts\\prompts.json",
+      "continuation": "core/prompts/continuation.txt",
+      "repetitions": 3,
+      "trace_repetitions": 2,
+      "decode_steps": 32
+    }
+  },
+  "comparability": "Results from different hosts are not comparable to each other or to the recorded 2026-09-22 Apple M5 Pro baseline. CPU operation shares do not describe accelerator area, bandwidth or speedup.",
+  "graphs": [
+    {
+      "directory": "graphs/pp128-fa-on",
+      "prompt_tokens": 128,
+      "context_capacity": 512,
+      "flash_attention": "on"
+    },
+    {
+      "directory": "graphs/pp128-fa-off",
+      "prompt_tokens": 128,
+      "context_capacity": 512,
+      "flash_attention": "off"
+    },
+    {
+      "directory": "graphs/pp512-fa-on",
+      "prompt_tokens": 512,
+      "context_capacity": 2048,
+      "flash_attention": "on"
+    },
+    {
+      "directory": "graphs/pp512-fa-off",
+      "prompt_tokens": 512,
+      "context_capacity": 2048,
+      "flash_attention": "off"
+    }
+  ],
+  "analysis": {
+    "decode_curves": 4,
+    "profile_checks": 6,
+    "profile_bit_identical": true,
+    "backend_checks": 0,
+    "missing_optional_diagnostic_profile": [
+      {
+        "prompt_tokens": 8192,
+        "phase": "prefill"
+      },
+      {
+        "prompt_tokens": 8192,
+        "phase": "decode"
+      }
+    ]
+  },
+  "build": {
+    "requested": {
+      "BUILD_SHARED_LIBS": "ON",
+      "CMAKE_BUILD_TYPE": "Release",
+      "GGML_BACKEND_DL": "OFF",
+      "GGML_CPU_REPACK": "ON",
+      "GGML_LLAMAFILE": "ON",
+      "GGML_METAL": "OFF",
+      "GGML_NATIVE": "ON",
+      "GGML_OPENMP": "ON"
+    },
+    "baseline_build_has_trace_code": false,
+    "traced_build_has_trace_code": true,
+    "effective": {
+      "openmp": false,
+      "llamafile": true,
+      "march_native": true,
+      "metal": false
+    }
+  },
+  "prompt_graphs": [
+    {
+      "directory": "graphs/prompt-narrative-fa-on",
+      "prompt_id": "narrative",
+      "prompt_file": "core/prompts/narrative.txt",
+      "prompt_sha256": "a4adf39d087070545f7ca5d4c8eb1d7593dccf08a6f327a7fef1e121f3ddc023",
+      "description": "Literary prose, one long paragraph",
+      "prompt_tokens": 191,
+      "context_capacity": 768,
+      "flash_attention": "on"
+    },
+    {
+      "directory": "graphs/prompt-narrative-fa-off",
+      "prompt_id": "narrative",
+      "prompt_file": "core/prompts/narrative.txt",
+      "prompt_sha256": "a4adf39d087070545f7ca5d4c8eb1d7593dccf08a6f327a7fef1e121f3ddc023",
+      "description": "Literary prose, one long paragraph",
+      "prompt_tokens": 191,
+      "context_capacity": 768,
+      "flash_attention": "off"
+    },
+    {
+      "directory": "graphs/prompt-code-fa-on",
+      "prompt_id": "code",
+      "prompt_file": "core/prompts/code.txt",
+      "prompt_sha256": "a23d34f695c214b997850b392645e09793a5be37763e67d46580e871906d8197",
+      "description": "Python function, docstring and tests; indentation and punctuation heavy",
+      "prompt_tokens": 307,
+      "context_capacity": 1280,
+      "flash_attention": "on"
+    },
+    {
+      "directory": "graphs/prompt-code-fa-off",
+      "prompt_id": "code",
+      "prompt_file": "core/prompts/code.txt",
+      "prompt_sha256": "a23d34f695c214b997850b392645e09793a5be37763e67d46580e871906d8197",
+      "description": "Python function, docstring and tests; indentation and punctuation heavy",
+      "prompt_tokens": 307,
+      "context_capacity": 1280,
+      "flash_attention": "off"
+    },
+    {
+      "directory": "graphs/prompt-math-fa-on",
+      "prompt_id": "math",
+      "prompt_file": "core/prompts/math.txt",
+      "prompt_sha256": "b599ba7535ed8ee3dba80232284f0573409afcd7465c054e58016806d508d861",
+      "description": "Word problem with a worked numeric solution",
+      "prompt_tokens": 264,
+      "context_capacity": 1280,
+      "flash_attention": "on"
+    },
+    {
+      "directory": "graphs/prompt-math-fa-off",
+      "prompt_id": "math",
+      "prompt_file": "core/prompts/math.txt",
+      "prompt_sha256": "b599ba7535ed8ee3dba80232284f0573409afcd7465c054e58016806d508d861",
+      "description": "Word problem with a worked numeric solution",
+      "prompt_tokens": 264,
+      "context_capacity": 1280,
+      "flash_attention": "off"
+    },
+    {
+      "directory": "graphs/prompt-json_records-fa-on",
+      "prompt_id": "json_records",
+      "prompt_file": "core/prompts/json_records.txt",
+      "prompt_sha256": "a3ec9fa641b529d3a9e13082074727945fcc84f14e5451afcca3056c369ac600",
+      "description": "Highly repetitive structured data",
+      "prompt_tokens": 628,
+      "context_capacity": 2560,
+      "flash_attention": "on"
+    },
+    {
+      "directory": "graphs/prompt-json_records-fa-off",
+      "prompt_id": "json_records",
+      "prompt_file": "core/prompts/json_records.txt",
+      "prompt_sha256": "a3ec9fa641b529d3a9e13082074727945fcc84f14e5451afcca3056c369ac600",
+      "description": "Highly repetitive structured data",
+      "prompt_tokens": 628,
+      "context_capacity": 2560,
+      "flash_attention": "off"
+    },
+    {
+      "directory": "graphs/prompt-dialogue-fa-on",
+      "prompt_id": "dialogue",
+      "prompt_file": "core/prompts/dialogue.txt",
+      "prompt_sha256": "4bd01f3814cb101c4d27c63eb470dbf872ddc6bf7b8dd73af66b4a67d5ab6689",
+      "description": "Customer-support transcript, alternating speakers",
+      "prompt_tokens": 235,
+      "context_capacity": 1024,
+      "flash_attention": "on"
+    },
+    {
+      "directory": "graphs/prompt-dialogue-fa-off",
+      "prompt_id": "dialogue",
+      "prompt_file": "core/prompts/dialogue.txt",
+      "prompt_sha256": "4bd01f3814cb101c4d27c63eb470dbf872ddc6bf7b8dd73af66b4a67d5ab6689",
+      "description": "Customer-support transcript, alternating speakers",
+      "prompt_tokens": 235,
+      "context_capacity": 1024,
+      "flash_attention": "off"
+    },
+    {
+      "directory": "graphs/prompt-hardware-fa-on",
+      "prompt_id": "hardware",
+      "prompt_file": "core/prompts/hardware.txt",
+      "prompt_sha256": "92f66aa150b92178d00db3e434360a6e25afe2b772e0419ce0b768f7cf0e6c11",
+      "description": "Dense technical prose about the accelerator domain",
+      "prompt_tokens": 230,
+      "context_capacity": 1024,
+      "flash_attention": "on"
+    },
+    {
+      "directory": "graphs/prompt-hardware-fa-off",
+      "prompt_id": "hardware",
+      "prompt_file": "core/prompts/hardware.txt",
+      "prompt_sha256": "92f66aa150b92178d00db3e434360a6e25afe2b772e0419ce0b768f7cf0e6c11",
+      "description": "Dense technical prose about the accelerator domain",
+      "prompt_tokens": 230,
+      "context_capacity": 1024,
+      "flash_attention": "off"
+    },
+    {
+      "directory": "graphs/prompt-multilingual-fa-on",
+      "prompt_id": "multilingual",
+      "prompt_file": "core/prompts/multilingual.txt",
+      "prompt_sha256": "0db1d23486e99ec996af103fa307d56e9a4fbc7eee3bedf2b98a25a7e368ffdd",
+      "description": "The same sentence in six languages and scripts",
+      "prompt_tokens": 152,
+      "context_capacity": 768,
+      "flash_attention": "on"
+    },
+    {
+      "directory": "graphs/prompt-multilingual-fa-off",
+      "prompt_id": "multilingual",
+      "prompt_file": "core/prompts/multilingual.txt",
+      "prompt_sha256": "0db1d23486e99ec996af103fa307d56e9a4fbc7eee3bedf2b98a25a7e368ffdd",
+      "description": "The same sentence in six languages and scripts",
+      "prompt_tokens": 152,
+      "context_capacity": 768,
+      "flash_attention": "off"
+    },
+    {
+      "directory": "graphs/prompt-repetitive-fa-on",
+      "prompt_id": "repetitive",
+      "prompt_file": "core/prompts/repetitive.txt",
+      "prompt_sha256": "cf428c75cbbad68bda229788589af70a40fecff71a09803c9d1681f1244e26f0",
+      "description": "Low-entropy repeating word sequence",
+      "prompt_tokens": 71,
+      "context_capacity": 512,
+      "flash_attention": "on"
+    },
+    {
+      "directory": "graphs/prompt-repetitive-fa-off",
+      "prompt_id": "repetitive",
+      "prompt_file": "core/prompts/repetitive.txt",
+      "prompt_sha256": "cf428c75cbbad68bda229788589af70a40fecff71a09803c9d1681f1244e26f0",
+      "description": "Low-entropy repeating word sequence",
+      "prompt_tokens": 71,
+      "context_capacity": 512,
+      "flash_attention": "off"
+    }
+  ],
+  "prompt_profiles": {
+    "file": "prompt-profiles.json",
+    "prompts": 8
+  },
+  "prompt_timings": [
+    "narrative",
+    "code",
+    "math",
+    "json_records",
+    "dialogue",
+    "hardware",
+    "multilingual",
+    "repetitive"
+  ]
+}

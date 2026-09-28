@@ -1,0 +1,745 @@
+{
+  "note": "Per-step decode time (median over repetitions) at each context length; untraced runs only.",
+  "curves": [
+    {
+      "run": "cpu-baseline",
+      "prompt_tokens": 128,
+      "repetitions": 3,
+      "steps": 32,
+      "first_context_tokens": 129,
+      "last_context_tokens": 160,
+      "context_span_fraction": 0.24031007751937986,
+      "window_steps": 8,
+      "first_window_mean_ms": 66.301575,
+      "last_window_mean_ms": 65.842025,
+      "growth_ratio": 0.9930687921063717,
+      "slope_ms_per_1000_context_tokens": -78.87925219941337,
+      "fit_intercept_ms": 77.56190194281523,
+      "fit_r_squared": 0.051800598039390466,
+      "median_ms": 65.39484999999999,
+      "min_ms": 62.3287,
+      "max_ms": 78.866,
+      "bins": [
+        {
+          "first_context": 129,
+          "last_context": 130,
+          "steps": 2,
+          "mean_ms": 66.50305
+        },
+        {
+          "first_context": 131,
+          "last_context": 132,
+          "steps": 2,
+          "mean_ms": 65.05850000000001
+        },
+        {
+          "first_context": 133,
+          "last_context": 134,
+          "steps": 2,
+          "mean_ms": 68.27544999999999
+        },
+        {
+          "first_context": 135,
+          "last_context": 136,
+          "steps": 2,
+          "mean_ms": 65.3693
+        },
+        {
+          "first_context": 137,
+          "last_context": 138,
+          "steps": 2,
+          "mean_ms": 73.1164
+        },
+        {
+          "first_context": 139,
+          "last_context": 140,
+          "steps": 2,
+          "mean_ms": 65.47575
+        },
+        {
+          "first_context": 141,
+          "last_context": 142,
+          "steps": 2,
+          "mean_ms": 65.55985
+        },
+        {
+          "first_context": 143,
+          "last_context": 144,
+          "steps": 2,
+          "mean_ms": 65.23115
+        },
+        {
+          "first_context": 145,
+          "last_context": 146,
+          "steps": 2,
+          "mean_ms": 66.8184
+        },
+        {
+          "first_context": 147,
+          "last_context": 148,
+          "steps": 2,
+          "mean_ms": 64.08265
+        },
+        {
+          "first_context": 149,
+          "last_context": 150,
+          "steps": 2,
+          "mean_ms": 64.58615
+        },
+        {
+          "first_context": 151,
+          "last_context": 152,
+          "steps": 2,
+          "mean_ms": 65.17685
+        },
+        {
+          "first_context": 153,
+          "last_context": 154,
+          "steps": 2,
+          "mean_ms": 71.25335
+        },
+        {
+          "first_context": 155,
+          "last_context": 156,
+          "steps": 2,
+          "mean_ms": 64.2737
+        },
+        {
+          "first_context": 157,
+          "last_context": 158,
+          "steps": 2,
+          "mean_ms": 62.829049999999995
+        },
+        {
+          "first_context": 159,
+          "last_context": 160,
+          "steps": 2,
+          "mean_ms": 65.012
+        }
+      ],
+      "context_tokens": [
+        129,
+        130,
+        131,
+        132,
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        139,
+        140,
+        141,
+        142,
+        143,
+        144,
+        145,
+        146,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152,
+        153,
+        154,
+        155,
+        156,
+        157,
+        158,
+        159,
+        160
+      ],
+      "per_step_ms": [
+        67.803,
+        65.20309999999999,
+        64.7659,
+        65.3511,
+        68.28569999999999,
+        68.2652,
+        66.0454,
+        64.69319999999999,
+        67.3668,
+        78.866,
+        65.8929,
+        65.0586,
+        64.6168,
+        66.5029,
+        66.9072,
+        63.555099999999996,
+        67.1281,
+        66.50869999999999,
+        64.9518,
+        63.2135,
+        65.4386,
+        63.7337,
+        67.7893,
+        62.5644,
+        74.1402,
+        68.3665,
+        65.2081,
+        63.3393,
+        62.3287,
+        63.3294,
+        64.5745,
+        65.4495
+      ]
+    },
+    {
+      "run": "cpu-baseline",
+      "prompt_tokens": 512,
+      "repetitions": 3,
+      "steps": 32,
+      "first_context_tokens": 513,
+      "last_context_tokens": 544,
+      "context_span_fraction": 0.06042884990253411,
+      "window_steps": 8,
+      "first_window_mean_ms": 70.480875,
+      "last_window_mean_ms": 68.27505,
+      "growth_ratio": 0.9687032120415644,
+      "slope_ms_per_1000_context_tokens": -131.19362170087965,
+      "fit_intercept_ms": 139.3719415689149,
+      "fit_r_squared": 0.07439735640221778,
+      "median_ms": 69.5719,
+      "min_ms": 63.7109,
+      "max_ms": 80.81989999999999,
+      "bins": [
+        {
+          "first_context": 513,
+          "last_context": 514,
+          "steps": 2,
+          "mean_ms": 68.67765
+        },
+        {
+          "first_context": 515,
+          "last_context": 516,
+          "steps": 2,
+          "mean_ms": 70.55109999999999
+        },
+        {
+          "first_context": 517,
+          "last_context": 518,
+          "steps": 2,
+          "mean_ms": 68.0687
+        },
+        {
+          "first_context": 519,
+          "last_context": 520,
+          "steps": 2,
+          "mean_ms": 74.62604999999999
+        },
+        {
+          "first_context": 521,
+          "last_context": 522,
+          "steps": 2,
+          "mean_ms": 77.40605
+        },
+        {
+          "first_context": 523,
+          "last_context": 524,
+          "steps": 2,
+          "mean_ms": 68.598
+        },
+        {
+          "first_context": 525,
+          "last_context": 526,
+          "steps": 2,
+          "mean_ms": 66.68315000000001
+        },
+        {
+          "first_context": 527,
+          "last_context": 528,
+          "steps": 2,
+          "mean_ms": 72.90095
+        },
+        {
+          "first_context": 529,
+          "last_context": 530,
+          "steps": 2,
+          "mean_ms": 70.2738
+        },
+        {
+          "first_context": 531,
+          "last_context": 532,
+          "steps": 2,
+          "mean_ms": 77.04814999999999
+        },
+        {
+          "first_context": 533,
+          "last_context": 534,
+          "steps": 2,
+          "mean_ms": 67.31435
+        },
+        {
+          "first_context": 535,
+          "last_context": 536,
+          "steps": 2,
+          "mean_ms": 65.32965
+        },
+        {
+          "first_context": 537,
+          "last_context": 538,
+          "steps": 2,
+          "mean_ms": 71.52785
+        },
+        {
+          "first_context": 539,
+          "last_context": 540,
+          "steps": 2,
+          "mean_ms": 68.6246
+        },
+        {
+          "first_context": 541,
+          "last_context": 542,
+          "steps": 2,
+          "mean_ms": 67.2655
+        },
+        {
+          "first_context": 543,
+          "last_context": 544,
+          "steps": 2,
+          "mean_ms": 65.68225000000001
+        }
+      ],
+      "context_tokens": [
+        513,
+        514,
+        515,
+        516,
+        517,
+        518,
+        519,
+        520,
+        521,
+        522,
+        523,
+        524,
+        525,
+        526,
+        527,
+        528,
+        529,
+        530,
+        531,
+        532,
+        533,
+        534,
+        535,
+        536,
+        537,
+        538,
+        539,
+        540,
+        541,
+        542,
+        543,
+        544
+      ],
+      "per_step_ms": [
+        70.21560000000001,
+        67.13969999999999,
+        74.49839999999999,
+        66.6038,
+        68.5805,
+        67.5569,
+        70.31519999999999,
+        78.9369,
+        79.14989999999999,
+        75.6622,
+        71.53089999999999,
+        65.66510000000001,
+        66.8131,
+        66.5532,
+        74.979,
+        70.82289999999999,
+        70.9737,
+        69.5739,
+        80.81989999999999,
+        73.2764,
+        70.9178,
+        63.7109,
+        63.956,
+        66.7033,
+        69.1187,
+        73.937,
+        65.9694,
+        71.27980000000001,
+        69.56989999999999,
+        64.9611,
+        67.2702,
+        64.0943
+      ]
+    },
+    {
+      "run": "cpu-baseline",
+      "prompt_tokens": 2048,
+      "repetitions": 3,
+      "steps": 32,
+      "first_context_tokens": 2049,
+      "last_context_tokens": 2080,
+      "context_span_fraction": 0.015129331381161543,
+      "window_steps": 8,
+      "first_window_mean_ms": 69.3177375,
+      "last_window_mean_ms": 70.09633749999999,
+      "growth_ratio": 1.0112323342925031,
+      "slope_ms_per_1000_context_tokens": 23.68031524926665,
+      "fit_intercept_ms": 20.830439167889004,
+      "fit_r_squared": 0.004579658997481056,
+      "median_ms": 68.74674999999999,
+      "min_ms": 65.975,
+      "max_ms": 80.8197,
+      "bins": [
+        {
+          "first_context": 2049,
+          "last_context": 2050,
+          "steps": 2,
+          "mean_ms": 71.4024
+        },
+        {
+          "first_context": 2051,
+          "last_context": 2052,
+          "steps": 2,
+          "mean_ms": 69.95555
+        },
+        {
+          "first_context": 2053,
+          "last_context": 2054,
+          "steps": 2,
+          "mean_ms": 67.06325000000001
+        },
+        {
+          "first_context": 2055,
+          "last_context": 2056,
+          "steps": 2,
+          "mean_ms": 68.84975
+        },
+        {
+          "first_context": 2057,
+          "last_context": 2058,
+          "steps": 2,
+          "mean_ms": 68.46
+        },
+        {
+          "first_context": 2059,
+          "last_context": 2060,
+          "steps": 2,
+          "mean_ms": 69.44805
+        },
+        {
+          "first_context": 2061,
+          "last_context": 2062,
+          "steps": 2,
+          "mean_ms": 69.31915000000001
+        },
+        {
+          "first_context": 2063,
+          "last_context": 2064,
+          "steps": 2,
+          "mean_ms": 73.6199
+        },
+        {
+          "first_context": 2065,
+          "last_context": 2066,
+          "steps": 2,
+          "mean_ms": 72.5129
+        },
+        {
+          "first_context": 2067,
+          "last_context": 2068,
+          "steps": 2,
+          "mean_ms": 68.67635000000001
+        },
+        {
+          "first_context": 2069,
+          "last_context": 2070,
+          "steps": 2,
+          "mean_ms": 67.56869999999999
+        },
+        {
+          "first_context": 2071,
+          "last_context": 2072,
+          "steps": 2,
+          "mean_ms": 68.23384999999999
+        },
+        {
+          "first_context": 2073,
+          "last_context": 2074,
+          "steps": 2,
+          "mean_ms": 67.54939999999999
+        },
+        {
+          "first_context": 2075,
+          "last_context": 2076,
+          "steps": 2,
+          "mean_ms": 67.82905
+        },
+        {
+          "first_context": 2077,
+          "last_context": 2078,
+          "steps": 2,
+          "mean_ms": 74.06805
+        },
+        {
+          "first_context": 2079,
+          "last_context": 2080,
+          "steps": 2,
+          "mean_ms": 70.93885
+        }
+      ],
+      "context_tokens": [
+        2049,
+        2050,
+        2051,
+        2052,
+        2053,
+        2054,
+        2055,
+        2056,
+        2057,
+        2058,
+        2059,
+        2060,
+        2061,
+        2062,
+        2063,
+        2064,
+        2065,
+        2066,
+        2067,
+        2068,
+        2069,
+        2070,
+        2071,
+        2072,
+        2073,
+        2074,
+        2075,
+        2076,
+        2077,
+        2078,
+        2079,
+        2080
+      ],
+      "per_step_ms": [
+        74.235,
+        68.5698,
+        69.0796,
+        70.8315,
+        67.29780000000001,
+        66.8287,
+        66.9955,
+        70.704,
+        70.945,
+        65.975,
+        67.1227,
+        71.7734,
+        67.7776,
+        70.8607,
+        70.9174,
+        76.32239999999999,
+        73.78439999999999,
+        71.2414,
+        69.26610000000001,
+        68.0866,
+        66.93589999999999,
+        68.2015,
+        66.62469999999999,
+        69.843,
+        68.1196,
+        66.97919999999999,
+        68.9237,
+        66.7344,
+        67.31639999999999,
+        80.8197,
+        73.9833,
+        67.89439999999999
+      ]
+    },
+    {
+      "run": "cpu-8k",
+      "prompt_tokens": 8192,
+      "repetitions": 3,
+      "steps": 32,
+      "first_context_tokens": 8193,
+      "last_context_tokens": 8224,
+      "context_span_fraction": 0.0037837178078847797,
+      "window_steps": 8,
+      "first_window_mean_ms": 84.954325,
+      "last_window_mean_ms": 84.6827625,
+      "growth_ratio": 0.996803429372195,
+      "slope_ms_per_1000_context_tokens": -21.090065982404752,
+      "fit_intercept_ms": 257.4187128665694,
+      "fit_r_squared": 0.013090422951349323,
+      "median_ms": 83.87635,
+      "min_ms": 82.4072,
+      "max_ms": 89.9756,
+      "bins": [
+        {
+          "first_context": 8193,
+          "last_context": 8194,
+          "steps": 2,
+          "mean_ms": 86.5607
+        },
+        {
+          "first_context": 8195,
+          "last_context": 8196,
+          "steps": 2,
+          "mean_ms": 83.41839999999999
+        },
+        {
+          "first_context": 8197,
+          "last_context": 8198,
+          "steps": 2,
+          "mean_ms": 83.82565
+        },
+        {
+          "first_context": 8199,
+          "last_context": 8200,
+          "steps": 2,
+          "mean_ms": 86.01255
+        },
+        {
+          "first_context": 8201,
+          "last_context": 8202,
+          "steps": 2,
+          "mean_ms": 84.68255
+        },
+        {
+          "first_context": 8203,
+          "last_context": 8204,
+          "steps": 2,
+          "mean_ms": 84.53125
+        },
+        {
+          "first_context": 8205,
+          "last_context": 8206,
+          "steps": 2,
+          "mean_ms": 82.82105
+        },
+        {
+          "first_context": 8207,
+          "last_context": 8208,
+          "steps": 2,
+          "mean_ms": 83.10480000000001
+        },
+        {
+          "first_context": 8209,
+          "last_context": 8210,
+          "steps": 2,
+          "mean_ms": 84.4747
+        },
+        {
+          "first_context": 8211,
+          "last_context": 8212,
+          "steps": 2,
+          "mean_ms": 83.53934999999998
+        },
+        {
+          "first_context": 8213,
+          "last_context": 8214,
+          "steps": 2,
+          "mean_ms": 83.18764999999999
+        },
+        {
+          "first_context": 8215,
+          "last_context": 8216,
+          "steps": 2,
+          "mean_ms": 83.9248
+        },
+        {
+          "first_context": 8217,
+          "last_context": 8218,
+          "steps": 2,
+          "mean_ms": 85.21594999999999
+        },
+        {
+          "first_context": 8219,
+          "last_context": 8220,
+          "steps": 2,
+          "mean_ms": 85.5504
+        },
+        {
+          "first_context": 8221,
+          "last_context": 8222,
+          "steps": 2,
+          "mean_ms": 84.14285000000001
+        },
+        {
+          "first_context": 8223,
+          "last_context": 8224,
+          "steps": 2,
+          "mean_ms": 83.82185
+        }
+      ],
+      "context_tokens": [
+        8193,
+        8194,
+        8195,
+        8196,
+        8197,
+        8198,
+        8199,
+        8200,
+        8201,
+        8202,
+        8203,
+        8204,
+        8205,
+        8206,
+        8207,
+        8208,
+        8209,
+        8210,
+        8211,
+        8212,
+        8213,
+        8214,
+        8215,
+        8216,
+        8217,
+        8218,
+        8219,
+        8220,
+        8221,
+        8222,
+        8223,
+        8224
+      ],
+      "per_step_ms": [
+        89.9756,
+        83.14580000000001,
+        82.7884,
+        84.0484,
+        83.2325,
+        84.4188,
+        83.1361,
+        88.889,
+        85.27810000000001,
+        84.087,
+        83.75569999999999,
+        85.30680000000001,
+        83.2349,
+        82.4072,
+        82.6825,
+        83.5271,
+        83.9371,
+        85.0123,
+        84.51289999999999,
+        82.5658,
+        83.44489999999999,
+        82.93039999999999,
+        84.9818,
+        82.8678,
+        84.58539999999999,
+        85.8465,
+        87.2852,
+        83.8156,
+        83.1447,
+        85.141,
+        83.65339999999999,
+        83.9903
+      ]
+    }
+  ]
+}

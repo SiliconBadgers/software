@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "run": {
+    "name": "2026-09-25_1735_windows",
+    "started_at": "2026-09-25T22:35:43+00:00",
+    "finished_at": "2026-09-25T22:40:18+00:00",
+    "status": "complete",
+    "command": "cli.py --platform-dir 'C:\\SiliconBadgers\\software\\windows' profile --smoke",
+    "dry_run": false
+  },
+  "host": {
+    "os_label": "windows",
+    "os": "Windows-11-10.0.26200-SP0",
+    "machine": "AMD64",
+    "cpu_model": "13th Gen Intel(R) Core(TM) i7-13620H",
+    "logical_cpus": 16,
+    "memory_bytes": 16786108416,
+    "python": "3.13.14",
+    "tools": {
+      "git": "git version 2.41.0.windows.1",
+      "cmake": "cmake version 3.29.0-rc4",
+      "ninja": null,
+      "graphviz_dot": null,
+      "c_compiler": {
+        "path": "C:\\Program Files\\LLVM\\bin\\clang.exe",
+        "version": "clang version 21.1.8"
+      },
+      "cxx_compiler": {
+        "path": "C:\\Program Files\\LLVM\\bin\\clang++.exe",
+        "version": "clang version 21.1.8"
+      }
+    }
+  },
+  "plot_subtitle": "13th Gen Intel(R) Core(TM) i7-13620H \u00b7 Q4_K_M mixed quantization \u00b7 6 CPU threads \u00b7 one sequence",
+  "experiment": {
+    "name": "qwen35-2b-q4km",
+    "llama_cpp": {
+      "repository": "https://github.com/ggml-org/llama.cpp.git",
+      "commit": "f46bc30cb6a7f68a67e34a00061e20a4ad1eff43"
+    },
+    "model": {
+      "repo": "unsloth/Qwen3.5-2B-GGUF",
+      "revision": "f6d5376be1edb4d416d56da11e5397a961aca8ae",
+      "file": "Qwen3.5-2B-Q4_K_M.gguf",
+      "sha256": "aaf42c8b7c3cab2bf3d69c355048d4a0ee9973d48f16c731c0520ee914699223",
+      "size_bytes": 1280835840,
+      "vocabulary_size": 248320,
+      "label": "Q4_K_M mixed quantization"
+    },
+    "policy": {
+      "timing_excluded_prompt_tokens": [
+        8192
+      ],
+      "diagnostic_prompt_tokens": [
+        8192
+      ],
+      "report_prompt_tokens": 2048,
+      "separate_case_prefixes": {
+        "8192": "8k"
+      },
+      "profile_prefixes": {
+        "default": [
+          "cpu-profile"
+        ],
+        "8192": [
+          "cpu-8k-profile",
+          "cpu-8k-profile-repeat"
+        ]
+      },
+      "summary_runs": [
+        "cpu-baseline",
+        "metal-baseline",
+        "cpu-8k",
+        "metal-8k",
+        "cpu-profile",
+        "cpu-control",
+        "cpu-8k-control",
+        "cpu-8k-profile",
+        "cpu-8k-profile-repeat"
+      ],
+      "op_trace_files": [
+        "cpu-op-trace.jsonl",
+        "cpu-8k-op-trace.jsonl"
+      ],
+      "timing_exclusion_note": "Anomalous slowdown; excluded from timing conclusions"
+    }
+  },
+  "config": {
+    "prompt_lengths": [
+      128
+    ],
+    "threads": 6,
+    "repetitions": 1,
+    "trace_repetitions": 1,
+    "decode_steps": 8,
+    "backends": [
+      "cpu"
+    ],
+    "trace": true,
+    "include_diagnostic_cases": false,
+    "graphs": {
+      "prompt_lengths": [
+        128
+      ],
+      "flash_attention": [
+        "on",
+        "off"
+      ]
+    }
+  },
+  "comparability": "Results from different hosts are not comparable to each other or to the recorded 2026-09-22 Apple M5 Pro baseline. CPU operation shares do not describe accelerator area, bandwidth or speedup.",
+  "graphs": [
+    {
+      "directory": "graphs/pp128-fa-on",
+      "prompt_tokens": 128,
+      "context_capacity": 512,
+      "flash_attention": "on"
+    },
+    {
+      "directory": "graphs/pp128-fa-off",
+      "prompt_tokens": 128,
+      "context_capacity": 512,
+      "flash_attention": "off"
+    }
+  ],
+  "analysis": {
+    "profile_checks": 2,
+    "profile_bit_identical": true,
+    "backend_checks": 0,
+    "missing_optional_diagnostic_profile": []
+  }
+}
