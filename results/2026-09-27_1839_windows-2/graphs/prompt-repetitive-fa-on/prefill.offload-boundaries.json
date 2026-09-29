@@ -1,0 +1,98 @@
+[
+  {
+    "group": "MLP projections",
+    "nodes": 72,
+    "matrix_macs": 64323846144,
+    "arithmetic_ops": 128647692288,
+    "boundary_in_bytes": 69795840,
+    "boundary_out_bytes": 97714176,
+    "boundary_crossing_edges": 144,
+    "arithmetic_ops_per_boundary_byte": 768.0,
+    "measured_cpu_us": 1553520,
+    "measured_cpu_time_percent": 48.13886124163507
+  },
+  {
+    "group": "Attention/DeltaNet projections",
+    "nodes": 114,
+    "matrix_macs": 33139064832,
+    "arithmetic_ops": 66278129664,
+    "boundary_in_bytes": 66306048,
+    "boundary_out_bytes": 71704320,
+    "boundary_crossing_edges": 234,
+    "arithmetic_ops_per_boundary_byte": 480.2402212564204,
+    "measured_cpu_us": 1332635,
+    "measured_cpu_time_percent": 41.294306703966704
+  },
+  {
+    "group": "DeltaNet recurrence",
+    "nodes": 18,
+    "matrix_macs": 0,
+    "arithmetic_ops": 0,
+    "boundary_in_bytes": 50446080,
+    "boundary_out_bytes": 58687488,
+    "boundary_crossing_edges": 144,
+    "arithmetic_ops_per_boundary_byte": 0.0,
+    "measured_cpu_us": 124719,
+    "measured_cpu_time_percent": 3.8646625953933547
+  },
+  {
+    "group": "Copies/gather/state movement",
+    "nodes": 182,
+    "matrix_macs": 0,
+    "arithmetic_ops": 0,
+    "boundary_in_bytes": 119357584,
+    "boundary_out_bytes": 90333184,
+    "boundary_crossing_edges": 388,
+    "arithmetic_ops_per_boundary_byte": 0.0,
+    "measured_cpu_us": 75371,
+    "measured_cpu_time_percent": 2.335518120554146
+  },
+  {
+    "group": "Vector/norm/activation/other",
+    "nodes": 1000,
+    "matrix_macs": 0,
+    "arithmetic_ops": 0,
+    "boundary_in_bytes": 320593664,
+    "boundary_out_bytes": 312541072,
+    "boundary_crossing_edges": 933,
+    "arithmetic_ops_per_boundary_byte": 0.0,
+    "measured_cpu_us": 57426,
+    "measured_cpu_time_percent": 1.7794571332600386
+  },
+  {
+    "group": "Attention QK/softmax/AV",
+    "nodes": 6,
+    "matrix_macs": 0,
+    "arithmetic_ops": 0,
+    "boundary_in_bytes": 6635520,
+    "boundary_out_bytes": 3489792,
+    "boundary_crossing_edges": 24,
+    "arithmetic_ops_per_boundary_byte": 0.0,
+    "measured_cpu_us": 28268,
+    "measured_cpu_time_percent": 0.8759393696756657
+  },
+  {
+    "group": "Convolution",
+    "nodes": 18,
+    "matrix_macs": 31408128,
+    "arithmetic_ops": 62816256,
+    "boundary_in_bytes": 32735232,
+    "boundary_out_bytes": 31408128,
+    "boundary_crossing_edges": 36,
+    "arithmetic_ops_per_boundary_byte": 0.9793103448275862,
+    "measured_cpu_us": 28069,
+    "measured_cpu_time_percent": 0.8697729647455166
+  },
+  {
+    "group": "Vocabulary output head",
+    "nodes": 1,
+    "matrix_macs": 508559360,
+    "arithmetic_ops": 1017118720,
+    "boundary_in_bytes": 8192,
+    "boundary_out_bytes": 0,
+    "boundary_crossing_edges": 1,
+    "arithmetic_ops_per_boundary_byte": 124160.0,
+    "measured_cpu_us": 27156,
+    "measured_cpu_time_percent": 0.8414818707695053
+  }
+]

@@ -1,0 +1,82 @@
+[
+  {
+    "group": "MLP projections",
+    "nodes": 72,
+    "matrix_macs": 905969664,
+    "arithmetic_ops": 1811939328,
+    "boundary_in_bytes": 983040,
+    "boundary_out_bytes": 1376256,
+    "boundary_crossing_edges": 144,
+    "arithmetic_ops_per_boundary_byte": 768.0
+  },
+  {
+    "group": "Vocabulary output head",
+    "nodes": 1,
+    "matrix_macs": 508559360,
+    "arithmetic_ops": 1017118720,
+    "boundary_in_bytes": 8192,
+    "boundary_out_bytes": 0,
+    "boundary_crossing_edges": 1,
+    "arithmetic_ops_per_boundary_byte": 124160.0
+  },
+  {
+    "group": "Attention/DeltaNet projections",
+    "nodes": 114,
+    "matrix_macs": 466747392,
+    "arithmetic_ops": 933494784,
+    "boundary_in_bytes": 933888,
+    "boundary_out_bytes": 1009920,
+    "boundary_crossing_edges": 234,
+    "arithmetic_ops_per_boundary_byte": 480.2402212564204
+  },
+  {
+    "group": "Other matrix products",
+    "nodes": 12,
+    "matrix_macs": 6291456,
+    "arithmetic_ops": 12582912,
+    "boundary_in_bytes": 3244032,
+    "boundary_out_bytes": 98304,
+    "boundary_crossing_edges": 36,
+    "arithmetic_ops_per_boundary_byte": 3.764705882352941
+  },
+  {
+    "group": "Convolution",
+    "nodes": 18,
+    "matrix_macs": 442368,
+    "arithmetic_ops": 884736,
+    "boundary_in_bytes": 1769472,
+    "boundary_out_bytes": 442368,
+    "boundary_crossing_edges": 36,
+    "arithmetic_ops_per_boundary_byte": 0.4
+  },
+  {
+    "group": "Copies/gather/state movement",
+    "nodes": 188,
+    "matrix_macs": 0,
+    "arithmetic_ops": 0,
+    "boundary_in_bytes": 88998032,
+    "boundary_out_bytes": 23863296,
+    "boundary_crossing_edges": 406,
+    "arithmetic_ops_per_boundary_byte": 0.0
+  },
+  {
+    "group": "Vector/norm/activation/other",
+    "nodes": 1018,
+    "matrix_macs": 0,
+    "arithmetic_ops": 0,
+    "boundary_in_bytes": 63056128,
+    "boundary_out_bytes": 113478032,
+    "boundary_crossing_edges": 963,
+    "arithmetic_ops_per_boundary_byte": 0.0
+  },
+  {
+    "group": "DeltaNet recurrence",
+    "nodes": 18,
+    "matrix_macs": 0,
+    "arithmetic_ops": 0,
+    "boundary_in_bytes": 19319040,
+    "boundary_out_bytes": 38043648,
+    "boundary_crossing_edges": 144,
+    "arithmetic_ops_per_boundary_byte": 0.0
+  }
+]
