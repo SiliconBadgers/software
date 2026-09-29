@@ -11,6 +11,12 @@
   "pp512-fa-on": {
     "op_trace": "C:\\SiliconBadgers\\software\\results\\2026-09-27_1839_windows-2\\cpu-op-trace.jsonl.gz"
   },
+  "pp8192-fa-off": {
+    "op_trace": null
+  },
+  "pp8192-fa-on": {
+    "op_trace": "C:\\SiliconBadgers\\software\\results\\2026-09-27_1839_windows-2\\cpu-op-trace.jsonl.gz"
+  },
   "prompt-code-fa-off": {
     "op_trace": null
   },
