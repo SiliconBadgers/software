@@ -1,0 +1,29 @@
+README.md
+  s_5b555a9f3bd0b8::t_0ef6cc0ce1b603 32-33
+integration/README.md
+  s_5b555a9f3bd0b8::t_d696ab40eafb29 1-19
+integration/firmware/link.ld
+  s_5b555a9f3bd0b8::t_6292fd18d1fa82 1-10
+integration/firmware/probe.c
+  s_5b555a9f3bd0b8::t_e29d45f680629b 1-28
+integration/firmware/start.S
+  s_5b555a9f3bd0b8::t_88bb325276cf9e 1-6
+integration/llama_probe.cpp
+  s_5b555a9f3bd0b8::t_20a38c940b7d80 1-167
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9468f924b94d672022bd0b33abb39e9f58292b94",
+  "prompts": {},
+  "sessions": {
+    "s_5b555a9f3bd0b8": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0d977-3795-73c0-aaed-6767eaef473e",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "abhinavnandwani <abhu.srt@gmail.com>"
+    }
+  }
+}
