@@ -13,3 +13,8 @@ research, not a validated accelerator design or a final offload recommendation.
 The [one-dimensional resource-sensitivity study](2026-09-28-resource-sensitivity/REPORT.md)
 freezes Zeb's default workload and identifies model-conditional compute, L1,
 HBM, recurrence and DMA plateaus before dependency-aware scheduling is added.
+
+The [dependency/resource-aware follow-up](2026-09-30-dependency-resource-sensitivity/REPORT.md)
+keeps those operation costs frozen, adds a deterministic list scheduler over
+source and in-place alias dependencies, and compares how the one-dimensional
+knees move under explicit resource contention.

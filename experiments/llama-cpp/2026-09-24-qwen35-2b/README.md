@@ -21,6 +21,8 @@ These are uncalibrated analytical estimates. In particular, SRAM spill behavior 
 node scripts/test_model.cjs
 # Reproducible one-dimensional sensitivity checks:
 node scripts/test_sensitivity.cjs
+# Dependency/resource scheduler checks:
+node scripts/test_scheduler.cjs
 # Regenerate the dashboard's graph data after a compatible recapture:
 python3 scripts/export_explorer_data.py
 ```
@@ -30,6 +32,12 @@ facility runs frozen one-dimensional resource sweeps against the same engine
 and captured graph. The first checked-in study, curves and qualification
 boundaries are in the
 [`2026-09-28 resource-sensitivity report`](../../../research/compute-mapping/2026-09-28-resource-sensitivity/REPORT.md).
+
+The separate [`scheduler.js`](explorer/scheduler.js) layer consumes the same
+per-operation estimates and captured dependency graph without changing the
+browser engine. Its checked-in comparison, limitations and reproduction command
+are in the
+[`2026-09-30 dependency/resource sensitivity report`](../../../research/compute-mapping/2026-09-30-dependency-resource-sensitivity/REPORT.md).
 
 ## What is ready
 

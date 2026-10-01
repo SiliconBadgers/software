@@ -24,6 +24,16 @@ Changing the active precision changes arithmetic packing rates and traffic, but 
 
 The captured scheduler order is preserved. Views/reshapes/permutations/transposes are metadata-only; zero-element operations are skipped. Materialization is charged through CONT/CPY/CONCAT. This version uses all configured units of the selected family cooperatively within one operation and does not overlap independent graph operations. It therefore does not predict a dependency-aware multikernel schedule.
 
+The separate `scheduler.js` companion leaves those equations and the browser
+unchanged. It can consume detailed operation rows and produce a deterministic
+earliest-start list schedule over captured source dependencies plus explicit
+read/write hazards for in-place `CPY` and `SET_ROWS` aliases. Compute families,
+shared L1 and HBM are exclusive for their modeled service durations; dispatch
+is serialized. This is a coarse contention experiment, not a cycle-accurate
+bank, interconnect, pipeline or queue model. Its serial mode must reproduce the
+engine exactly, and its dependency/resource schedule is checked against the DAG
+critical path and aggregate resource-demand bounds.
+
 For a matrix result with dimensions M by N, reduction K, and G independent groups:
 
 ```
@@ -92,7 +102,7 @@ A feasible result has numerical parameters, a mapping for every operation, an ad
 
 ## Validation and extension points
 
-Run `node ../scripts/test_model.cjs` from this directory. Checks cover all four captured matrix-MAC totals; full mapping coverage; missing-capability fallback; no-fallback infeasibility; weight sharing across batch; traffic versus storage distinction; HBM and DSP capacity; L1/HBM sensitivity; SRAM tiling; recurrence implementation; overlap; precision versus physical cost; Pareto dominance; and invalid parameters.
+Run `node ../scripts/test_model.cjs` from this directory. Checks cover all four captured matrix-MAC totals; full mapping coverage; missing-capability fallback; no-fallback infeasibility; weight sharing across batch; traffic versus storage distinction; HBM and DSP capacity; L1/HBM sensitivity; SRAM tiling; recurrence implementation; overlap; precision versus physical cost; Pareto dominance; and invalid parameters. Run `node ../scripts/test_scheduler.cjs` for serial-equivalence, dependency, alias-hazard, resource-exclusion, determinism and lower-bound checks.
 
 The explorer runs entirely in the browser and works from `file://` without a server. `graph-data.js` is the compact graph, `engine.js` contains all formulas, and `app.js` handles interaction. Configurations import/export as JSON, sweeps export CSV, and settings persist in browser-local storage. QA mode (`?qa=1`) skips persistence.
 
