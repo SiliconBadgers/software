@@ -18,3 +18,8 @@ The [dependency/resource-aware follow-up](2026-09-30-dependency-resource-sensiti
 keeps those operation costs frozen, adds a deterministic list scheduler over
 source and in-place alias dependencies, and compares how the one-dimensional
 knees move under explicit resource contention.
+
+The [bounded joint-resource study](2026-10-01-joint-resource-tradeoffs/REPORT.md)
+varies matrix count, modeled L1 banks and HBM bandwidth together. It exposes
+cross-resource bottleneck transfers and reports a mathematical frontier over
+scheduled prefill/decode latency, DSP demand, bank count and HBM bandwidth.
