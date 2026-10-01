@@ -9,3 +9,7 @@ provides captured operation/dependency graphs and configurable analytical
 compute mappings. Its [model assumptions](../../experiments/llama-cpp/2026-09-24-qwen35-2b/explorer/MODEL.md)
 document the uncalibrated timing and resource estimates. These are inputs to
 research, not a validated accelerator design or a final offload recommendation.
+
+The [one-dimensional resource-sensitivity study](2026-09-28-resource-sensitivity/REPORT.md)
+freezes Zeb's default workload and identifies model-conditional compute, L1,
+HBM, recurrence and DMA plateaus before dependency-aware scheduling is added.

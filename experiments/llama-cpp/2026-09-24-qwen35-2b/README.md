@@ -19,9 +19,17 @@ These are uncalibrated analytical estimates. In particular, SRAM spill behavior 
 ./scripts/serve-explorer.sh
 # Model regression / sensitivity checks:
 node scripts/test_model.cjs
+# Reproducible one-dimensional sensitivity checks:
+node scripts/test_sensitivity.cjs
 # Regenerate the dashboard's graph data after a compatible recapture:
 python3 scripts/export_explorer_data.py
 ```
+
+The command-line [`sweep_sensitivity.cjs`](scripts/sweep_sensitivity.cjs)
+facility runs frozen one-dimensional resource sweeps against the same engine
+and captured graph. The first checked-in study, curves and qualification
+boundaries are in the
+[`2026-09-28 resource-sensitivity report`](../../../research/compute-mapping/2026-09-28-resource-sensitivity/REPORT.md).
 
 ## What is ready
 
