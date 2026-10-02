@@ -1,0 +1,3 @@
+run,prompt_tokens,repetitions,decode_steps_per_rep,prefill_seconds,prefill_tps,decode_ms,decode_tps,prefill_min_s,prefill_max_s,decode_min_ms,decode_max_ms,prefill_samples_seconds,decode_run_means_ms
+cpu-baseline,128,1,8,3.1474611,40.66769880015356,67.794325,14.750497183945706,3.1474611,3.1474611,67.794325,67.794325,[3.1474611],[67.794325]
+cpu-profile,128,1,8,2.8427736,45.02644881745067,96.045,10.411786141912645,2.8427736,2.8427736,96.045,96.045,[2.8427736],[96.045]

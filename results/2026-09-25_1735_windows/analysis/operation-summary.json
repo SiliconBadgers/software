@@ -1,0 +1,184 @@
+{
+  "records": 7380,
+  "fused_records": 711,
+  "runs": [
+    {
+      "prompt_tokens": 128,
+      "rep": 0,
+      "phase": "decode",
+      "timing_eligible_for_report": true,
+      "timing_note": "CPU interval shares; not baseline throughput",
+      "timed_interval_us": 613240,
+      "graphs": 8,
+      "groups_us": {
+        "Copies/gather/state movement": 79201,
+        "Vector/norm/activation/other": 51631,
+        "Attention/DeltaNet projections": 128448,
+        "Convolution": 1908,
+        "DeltaNet recurrence": 18486,
+        "MLP projections": 208109,
+        "Attention QK/softmax/AV": 4106,
+        "Vocabulary output head": 121351
+      },
+      "groups_percent": {
+        "Copies/gather/state movement": 12.915171873980825,
+        "Vector/norm/activation/other": 8.419379035940251,
+        "Attention/DeltaNet projections": 20.94579609940643,
+        "Convolution": 0.31113430304611567,
+        "DeltaNet recurrence": 3.0144804644184986,
+        "MLP projections": 33.935979388167766,
+        "Attention QK/softmax/AV": 0.669558411062553,
+        "Vocabulary output head": 19.788500423977563
+      },
+      "operations_us": {
+        "GET_ROWS": 40961,
+        "RMS_NORM": 25684,
+        "SCALE": 5068,
+        "CPY": 19362,
+        "MUL_MAT": 457908,
+        "CONCAT": 18487,
+        "SSM_CONV": 1908,
+        "UNARY": 3680,
+        "ADD": 12437,
+        "MUL": 898,
+        "GATED_DELTA_NET": 18486,
+        "GLU": 2399,
+        "ROPE": 1465,
+        "SET_ROWS": 136,
+        "FLASH_ATTN_EXT": 4106,
+        "CONT": 255
+      }
+    },
+    {
+      "prompt_tokens": 128,
+      "rep": 0,
+      "phase": "prefill",
+      "timing_eligible_for_report": true,
+      "timing_note": "CPU interval shares; not baseline throughput",
+      "timed_interval_us": 2822960,
+      "graphs": 1,
+      "groups_us": {
+        "Copies/gather/state movement": 61496,
+        "Vector/norm/activation/other": 53816,
+        "Attention/DeltaNet projections": 1200386,
+        "Convolution": 33405,
+        "DeltaNet recurrence": 111793,
+        "MLP projections": 1328780,
+        "Attention QK/softmax/AV": 19070,
+        "Vocabulary output head": 14214
+      },
+      "groups_percent": {
+        "Copies/gather/state movement": 2.1784226485674614,
+        "Vector/norm/activation/other": 1.9063677841698077,
+        "Attention/DeltaNet projections": 42.52224615297418,
+        "Convolution": 1.1833323886983875,
+        "DeltaNet recurrence": 3.9601340436988126,
+        "MLP projections": 47.07045087425964,
+        "Attention QK/softmax/AV": 0.6755320656332361,
+        "Vocabulary output head": 0.5035140419984697
+      },
+      "operations_us": {
+        "GET_ROWS": 3809,
+        "RMS_NORM": 20799,
+        "SCALE": 5929,
+        "CPY": 1617,
+        "MUL_MAT": 2543380,
+        "CONCAT": 55387,
+        "SSM_CONV": 33405,
+        "UNARY": 10578,
+        "ADD": 4132,
+        "MUL": 2808,
+        "GATED_DELTA_NET": 111793,
+        "GLU": 7349,
+        "ROPE": 2221,
+        "SET_ROWS": 104,
+        "FLASH_ATTN_EXT": 19070,
+        "CONT": 579
+      }
+    }
+  ],
+  "mac_counts": [
+    {
+      "prompt_tokens": 128,
+      "phase": "prefill",
+      "group": "Attention/DeltaNet projections",
+      "macs": 59743666176
+    },
+    {
+      "prompt_tokens": 128,
+      "phase": "prefill",
+      "group": "MLP projections",
+      "macs": 115964116992
+    },
+    {
+      "prompt_tokens": 128,
+      "phase": "prefill",
+      "group": "Vocabulary output head",
+      "macs": 508559360
+    },
+    {
+      "prompt_tokens": 128,
+      "phase": "decode",
+      "group": "Attention/DeltaNet projections",
+      "macs": 466747392
+    },
+    {
+      "prompt_tokens": 128,
+      "phase": "decode",
+      "group": "MLP projections",
+      "macs": 905969664
+    },
+    {
+      "prompt_tokens": 128,
+      "phase": "decode",
+      "group": "Vocabulary output head",
+      "macs": 508559360
+    }
+  ],
+  "coverage": [
+    {
+      "prompt_tokens": 128,
+      "phase": "prefill",
+      "op_calls": {
+        "GET_ROWS": 74,
+        "RMS_NORM": 115,
+        "SCALE": 72,
+        "CPY": 72,
+        "MUL_MAT": 187,
+        "CONCAT": 18,
+        "SSM_CONV": 18,
+        "UNARY": 78,
+        "ADD": 66,
+        "MUL": 42,
+        "GATED_DELTA_NET": 18,
+        "GLU": 24,
+        "ROPE": 12,
+        "SET_ROWS": 12,
+        "FLASH_ATTN_EXT": 6,
+        "CONT": 6
+      }
+    },
+    {
+      "prompt_tokens": 128,
+      "phase": "decode",
+      "op_calls": {
+        "GET_ROWS": 74,
+        "RMS_NORM": 115,
+        "SCALE": 72,
+        "CPY": 72,
+        "MUL_MAT": 187,
+        "CONCAT": 18,
+        "SSM_CONV": 18,
+        "UNARY": 78,
+        "ADD": 66,
+        "MUL": 42,
+        "GATED_DELTA_NET": 18,
+        "GLU": 24,
+        "ROPE": 12,
+        "SET_ROWS": 12,
+        "FLASH_ATTN_EXT": 6,
+        "CONT": 6
+      }
+    }
+  ]
+}

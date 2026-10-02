@@ -1,0 +1,82 @@
+{
+  "name": "qwen35-2b-q4km",
+  "description": "Qwen3.5-2B Q4_K_M in llama.cpp: CPU/Metal baselines, CPU operation traces, saved-logit checks and scheduled graphs. Definition derived from experiments/llama-cpp/2026-09-22/manifest.json.",
+  "llama_cpp": {
+    "repository": "https://github.com/ggml-org/llama.cpp.git",
+    "commit": "f46bc30cb6a7f68a67e34a00061e20a4ad1eff43"
+  },
+  "model": {
+    "repo": "unsloth/Qwen3.5-2B-GGUF",
+    "revision": "f6d5376be1edb4d416d56da11e5397a961aca8ae",
+    "file": "Qwen3.5-2B-Q4_K_M.gguf",
+    "sha256": "aaf42c8b7c3cab2bf3d69c355048d4a0ee9973d48f16c731c0520ee914699223",
+    "size_bytes": 1280835840,
+    "vocabulary_size": 248320,
+    "label": "Q4_K_M mixed quantization"
+  },
+  "workload": {
+    "prompt_lengths": [
+      128,
+      512,
+      2048,
+      8192
+    ],
+    "threads": 6,
+    "repetitions": 3,
+    "trace_repetitions": 2,
+    "decode_steps": 32,
+    "prompt": "repeated technical paragraph; exact text and token IDs are saved with each run",
+    "long_continuation_steps": 256,
+    "prompt_source_tokens": 9500,
+    "prompt_source_note": "profile.cpp takes prompt and continuation from one repeated passage of this many tokens, so every prompt length n needs n + decode_steps <= this. profile_prompt.cpp repeats its continuation text and has no such limit."
+  },
+  "policy": {
+    "timing_excluded_prompt_tokens": [
+      8192
+    ],
+    "diagnostic_prompt_tokens": [
+      8192
+    ],
+    "report_prompt_tokens": 2048,
+    "separate_case_prefixes": {
+      "8192": "8k"
+    },
+    "profile_prefixes": {
+      "default": [
+        "cpu-profile"
+      ],
+      "8192": [
+        "cpu-8k-profile",
+        "cpu-8k-profile-repeat"
+      ]
+    },
+    "summary_runs": [
+      "cpu-baseline",
+      "metal-baseline",
+      "cpu-8k",
+      "metal-8k",
+      "cpu-profile",
+      "cpu-control",
+      "cpu-8k-control",
+      "cpu-8k-profile",
+      "cpu-8k-profile-repeat"
+    ],
+    "op_trace_files": [
+      "cpu-op-trace.jsonl",
+      "cpu-8k-op-trace.jsonl"
+    ],
+    "timing_exclusion_note": "Anomalous slowdown; excluded from timing conclusions"
+  },
+  "graphs": {
+    "prompt_lengths": [
+      128,
+      512
+    ],
+    "context_multiple": 4,
+    "flash_attention": [
+      "on",
+      "off"
+    ],
+    "note": "One scheduled graph per phase (prefill, then one decode step). Lengths stay <= the 512-token micro-batch so prefill is a single graph. 'on' matches the profiled runs; 'off' keeps QK/softmax/AV visible as separate operations. Convention follows Zeb Taylor's 2026-09-24 captures (context = 4x prompt)."
+  }
+}

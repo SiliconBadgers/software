@@ -1,0 +1,1 @@
+{"kind":"metadata","ngl":0,"threads":6,"reps":1,"decode_steps":8,"layers":24,"vocabulary":248320,"load_us":2490830.1,"mode":"teacher_forced_shared_continuation","n_ubatch":512,"flash_attention":"on","prompt_tokens":191,"continuation_tokens":8}

@@ -1,0 +1,10 @@
+{
+  "family": "unix",
+  "os_labels": {"darwin": "macos", "linux": "linux"},
+  "metal_os_labels": ["macos"],
+  "exe_suffix": "",
+  "cmake_generator": "Ninja",
+  "compilers": {"c": [], "cxx": [], "rc": []},
+  "cmake_args": [],
+  "notes": "Empty compiler lists let CMake choose, honouring CC/CXX. macOS is separated from Linux by os_labels; Metal is offered only on macos/arm64."
+}

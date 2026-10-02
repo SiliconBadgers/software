@@ -1,0 +1,212 @@
+[
+  {
+    "from_category": "matrix",
+    "to_category": "vector",
+    "edge_kind": "shared",
+    "edges": 78,
+    "producer_bytes": 272252928
+  },
+  {
+    "from_category": "vector",
+    "to_category": "metadata",
+    "edge_kind": "shared",
+    "edges": 54,
+    "producer_bytes": 253476864
+  },
+  {
+    "from_category": "vector",
+    "to_category": "matrix",
+    "edge_kind": "shared",
+    "edges": 144,
+    "producer_bytes": 225312768
+  },
+  {
+    "from_category": "vector",
+    "to_category": "vector",
+    "edge_kind": "shared",
+    "edges": 136,
+    "producer_bytes": 212795392
+  },
+  {
+    "from_category": "vector",
+    "to_category": "vector",
+    "edge_kind": "chainable",
+    "edges": 164,
+    "producer_bytes": 186636032
+  },
+  {
+    "from_category": "metadata",
+    "to_category": "memory",
+    "edge_kind": "shared",
+    "edges": 300,
+    "producer_bytes": 173691024
+  },
+  {
+    "from_category": "matrix",
+    "to_category": "metadata",
+    "edge_kind": "chainable",
+    "edges": 108,
+    "producer_bytes": 155342592
+  },
+  {
+    "from_category": "metadata",
+    "to_category": "vector",
+    "edge_kind": "chainable",
+    "edges": 156,
+    "producer_bytes": 145032960
+  },
+  {
+    "from_category": "vector",
+    "to_category": "matrix",
+    "edge_kind": "chainable",
+    "edges": 30,
+    "producer_bytes": 122044416
+  },
+  {
+    "from_category": "metadata",
+    "to_category": "metadata",
+    "edge_kind": "chainable",
+    "edges": 48,
+    "producer_bytes": 101720064
+  },
+  {
+    "from_category": "recurrent",
+    "to_category": "metadata",
+    "edge_kind": "shared",
+    "edges": 36,
+    "producer_bytes": 94076928
+  },
+  {
+    "from_category": "memory",
+    "to_category": "metadata",
+    "edge_kind": "shared",
+    "edges": 18,
+    "producer_bytes": 85819392
+  },
+  {
+    "from_category": "memory",
+    "to_category": "convolution",
+    "edge_kind": "shared",
+    "edges": 18,
+    "producer_bytes": 85819392
+  },
+  {
+    "from_category": "convolution",
+    "to_category": "vector",
+    "edge_kind": "chainable",
+    "edges": 18,
+    "producer_bytes": 84492288
+  },
+  {
+    "from_category": "vector",
+    "to_category": "recurrent",
+    "edge_kind": "shared",
+    "edges": 54,
+    "producer_bytes": 56548224
+  },
+  {
+    "from_category": "metadata",
+    "to_category": "recurrent",
+    "edge_kind": "shared",
+    "edges": 54,
+    "producer_bytes": 47258496
+  },
+  {
+    "from_category": "vector",
+    "to_category": "metadata",
+    "edge_kind": "chainable",
+    "edges": 48,
+    "producer_bytes": 40119168
+  },
+  {
+    "from_category": "matrix",
+    "to_category": "metadata",
+    "edge_kind": "shared",
+    "edges": 12,
+    "producer_bytes": 37552128
+  },
+  {
+    "from_category": "metadata",
+    "to_category": "matrix",
+    "edge_kind": "chainable",
+    "edges": 18,
+    "producer_bytes": 28164096
+  },
+  {
+    "from_category": "metadata",
+    "to_category": "vector",
+    "edge_kind": "shared",
+    "edges": 18,
+    "producer_bytes": 28164096
+  },
+  {
+    "from_category": "metadata",
+    "to_category": "memory",
+    "edge_kind": "chainable",
+    "edges": 18,
+    "producer_bytes": 21123072
+  },
+  {
+    "from_category": "metadata",
+    "to_category": "metadata",
+    "edge_kind": "shared",
+    "edges": 36,
+    "producer_bytes": 20201472
+  },
+  {
+    "from_category": "memory",
+    "to_category": "metadata",
+    "edge_kind": "chainable",
+    "edges": 36,
+    "producer_bytes": 20201472
+  },
+  {
+    "from_category": "metadata",
+    "to_category": "matrix",
+    "edge_kind": "shared",
+    "edges": 18,
+    "producer_bytes": 12533760
+  },
+  {
+    "from_category": "memory",
+    "to_category": "vector",
+    "edge_kind": "shared",
+    "edges": 8,
+    "producer_bytes": 12517376
+  },
+  {
+    "from_category": "matrix",
+    "to_category": "vector",
+    "edge_kind": "chainable",
+    "edges": 6,
+    "producer_bytes": 9388032
+  },
+  {
+    "from_category": "memory",
+    "to_category": "vector",
+    "edge_kind": "chainable",
+    "edges": 6,
+    "producer_bytes": 9388032
+  },
+  {
+    "from_category": "vector",
+    "to_category": "memory",
+    "edge_kind": "chainable",
+    "edges": 1,
+    "producer_bytes": 1564672
+  },
+  {
+    "from_category": "memory",
+    "to_category": "matrix",
+    "edge_kind": "chainable",
+    "edges": 1,
+    "producer_bytes": 8192
+  },
+  {
+    "from_category": "memory",
+    "to_category": "memory",
+    "edge_kind": "shared",
+    "edges": 36,
+    "producer_bytes": 0
+  }
+]

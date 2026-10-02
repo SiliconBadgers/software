@@ -1,0 +1,82 @@
+[
+  {
+    "group": "MLP projections",
+    "nodes": 72,
+    "matrix_macs": 64323846144,
+    "arithmetic_ops": 128647692288,
+    "boundary_in_bytes": 69795840,
+    "boundary_out_bytes": 97714176,
+    "boundary_crossing_edges": 144,
+    "arithmetic_ops_per_boundary_byte": 768.0
+  },
+  {
+    "group": "Attention/DeltaNet projections",
+    "nodes": 114,
+    "matrix_macs": 33139064832,
+    "arithmetic_ops": 66278129664,
+    "boundary_in_bytes": 66306048,
+    "boundary_out_bytes": 71704320,
+    "boundary_crossing_edges": 234,
+    "arithmetic_ops_per_boundary_byte": 480.2402212564204
+  },
+  {
+    "group": "Vocabulary output head",
+    "nodes": 1,
+    "matrix_macs": 508559360,
+    "arithmetic_ops": 1017118720,
+    "boundary_in_bytes": 8192,
+    "boundary_out_bytes": 0,
+    "boundary_crossing_edges": 1,
+    "arithmetic_ops_per_boundary_byte": 124160.0
+  },
+  {
+    "group": "Other matrix products",
+    "nodes": 12,
+    "matrix_macs": 446693376,
+    "arithmetic_ops": 893386752,
+    "boundary_in_bytes": 10125312,
+    "boundary_out_bytes": 6979584,
+    "boundary_crossing_edges": 36,
+    "arithmetic_ops_per_boundary_byte": 52.229885057471265
+  },
+  {
+    "group": "Convolution",
+    "nodes": 18,
+    "matrix_macs": 31408128,
+    "arithmetic_ops": 62816256,
+    "boundary_in_bytes": 32735232,
+    "boundary_out_bytes": 31408128,
+    "boundary_crossing_edges": 36,
+    "arithmetic_ops_per_boundary_byte": 0.9793103448275862
+  },
+  {
+    "group": "Copies/gather/state movement",
+    "nodes": 188,
+    "matrix_macs": 0,
+    "arithmetic_ops": 0,
+    "boundary_in_bytes": 125993104,
+    "boundary_out_bytes": 93822976,
+    "boundary_crossing_edges": 406,
+    "arithmetic_ops_per_boundary_byte": 0.0
+  },
+  {
+    "group": "Vector/norm/activation/other",
+    "nodes": 1018,
+    "matrix_macs": 0,
+    "arithmetic_ops": 0,
+    "boundary_in_bytes": 327573248,
+    "boundary_out_bytes": 322666384,
+    "boundary_crossing_edges": 963,
+    "arithmetic_ops_per_boundary_byte": 0.0
+  },
+  {
+    "group": "DeltaNet recurrence",
+    "nodes": 18,
+    "matrix_macs": 0,
+    "arithmetic_ops": 0,
+    "boundary_in_bytes": 50446080,
+    "boundary_out_bytes": 58687488,
+    "boundary_crossing_edges": 144,
+    "arithmetic_ops_per_boundary_byte": 0.0
+  }
+]
