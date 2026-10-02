@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "study": "Qwen3.5-2B bounded joint matrix/L1/HBM tradeoffs",
+  "constraints": {
+    "maxHbmGBs": 460,
+    "dspLimitSource": "engine configured budget after shell reserve"
+  },
+  "analysis": {
+    "throughputFractions": [0.5, 0.75, 0.9, 0.95]
+  },
+  "configOverrides": {
+    "batch": 1,
+    "prompt": 512,
+    "context": 2048,
+    "precision": "w8a16",
+    "vectorCount": 4,
+    "recurrentCount": 4,
+    "dmaCount": 1,
+    "l1MiB": 8
+  },
+  "dimensions": {
+    "matrixCount": [1, 2, 4, 8, 16],
+    "l1Banks": [16, 32, 64, 128, 256],
+    "hbmGBs": [100, 200, 300, 400, 460]
+  }
+}
