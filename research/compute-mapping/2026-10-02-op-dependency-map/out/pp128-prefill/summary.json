@@ -1,0 +1,229 @@
+{
+  "input": "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/prefill.json",
+  "input_sha256": "5a1a56b6f4e2377aab2564b65d0d97fc9b58a93d1d52f4d2cffdb7c6878bb267",
+  "metadata": {
+    "phase": "prefill",
+    "input_tokens": 128,
+    "past_tokens": 0,
+    "context_capacity": 512,
+    "flash_attention": false,
+    "kv_dtype": "f16",
+    "backend": "CPU",
+    "layers": 24
+  },
+  "counts": {
+    "scheduled_nodes": 1441,
+    "active_ops": 845,
+    "metadata_only_skipped": 524,
+    "zero_sized_skipped": 72,
+    "data_edges": 976,
+    "state_edges": {
+      "state_raw": 48,
+      "state_war": 36,
+      "state_waw": 36
+    },
+    "state_buffers": 48,
+    "parallel_groups": 48,
+    "fusion_groups": 326,
+    "macs": {
+      "MUL_MAT": 177021648896,
+      "SSM_CONV": 56623104
+    }
+  },
+  "layer_types": {
+    "embedding": {
+      "layers": [
+        "pre"
+      ],
+      "representative": "pre",
+      "active_ops_per_layer": 1,
+      "macs_per_layer": 0,
+      "categories_per_layer": {
+        "memory": 1
+      },
+      "parallel_groups_per_layer": 0,
+      "fusion_groups_per_layer": 1,
+      "fusion_patterns_per_layer": {
+        "single op": 1
+      },
+      "cross_category_edges_per_layer": {
+        "before_fusion": 0.0,
+        "after_fusion": 0.0
+      },
+      "fused_internal_bytes_per_layer": 0,
+      "state_read_bytes_per_layer": 0,
+      "state_write_bytes_per_layer": 0
+    },
+    "deltanet": {
+      "layers": [
+        "0",
+        "1",
+        "2",
+        "4",
+        "5",
+        "6",
+        "8",
+        "9",
+        "10",
+        "12",
+        "13",
+        "14",
+        "16",
+        "17",
+        "18",
+        "20",
+        "21",
+        "22"
+      ],
+      "representative": "0",
+      "active_ops_per_layer": 37,
+      "macs_per_layer": 7527727104,
+      "categories_per_layer": {
+        "vector": 22,
+        "memory": 5,
+        "weight_matrix": 8,
+        "conv": 1,
+        "recurrent": 1
+      },
+      "parallel_groups_per_layer": 2,
+      "fusion_groups_per_layer": 15,
+      "fusion_patterns_per_layer": {
+        "conv + epilogue": 1,
+        "parallel weight_matrix group + epilogue": 3,
+        "parallel weight_matrix group + epilogue + side input": 2,
+        "recurrent + prologue": 1,
+        "single op": 4,
+        "vector/memory only": 2,
+        "weight_matrix + epilogue": 2
+      },
+      "cross_category_edges_per_layer": {
+        "before_fusion": 25.0,
+        "after_fusion": 13.0
+      },
+      "fused_internal_bytes_per_layer": 26320896,
+      "state_read_bytes_per_layer": 1122304,
+      "state_write_bytes_per_layer": 1122304
+    },
+    "full_attention": {
+      "layers": [
+        "3",
+        "7",
+        "11",
+        "15",
+        "19",
+        "23"
+      ],
+      "representative": "3",
+      "active_ops_per_layer": 29,
+      "macs_per_layer": 6845104128,
+      "categories_per_layer": {
+        "vector": 16,
+        "weight_matrix": 7,
+        "memory": 4,
+        "act_matrix": 2
+      },
+      "parallel_groups_per_layer": 2,
+      "fusion_groups_per_layer": 9,
+      "fusion_patterns_per_layer": {
+        "attention core + prologue + epilogue + side input": 1,
+        "parallel weight_matrix group + epilogue": 3,
+        "single op": 1,
+        "vector/memory only": 2,
+        "weight_matrix + epilogue": 2
+      },
+      "cross_category_edges_per_layer": {
+        "before_fusion": 20.0,
+        "after_fusion": 7.0
+      },
+      "fused_internal_bytes_per_layer": 21233664,
+      "state_read_bytes_per_layer": 524288,
+      "state_write_bytes_per_layer": 524288
+    },
+    "output_head": {
+      "layers": [
+        "post"
+      ],
+      "representative": "post",
+      "active_ops_per_layer": 4,
+      "macs_per_layer": 508559360,
+      "categories_per_layer": {
+        "vector": 2,
+        "memory": 1,
+        "weight_matrix": 1
+      },
+      "parallel_groups_per_layer": 0,
+      "fusion_groups_per_layer": 1,
+      "fusion_patterns_per_layer": {
+        "weight_matrix + prologue": 1
+      },
+      "cross_category_edges_per_layer": {
+        "before_fusion": 2.0,
+        "after_fusion": 0.0
+      },
+      "fused_internal_bytes_per_layer": 2105344,
+      "state_read_bytes_per_layer": 0,
+      "state_write_bytes_per_layer": 0
+    }
+  },
+  "validations": [
+    {
+      "check": "embedding: all 1 layers structurally identical",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "deltanet: all 18 layers structurally identical",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "full_attention: all 6 layers structurally identical",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "output_head: all 1 layers structurally identical",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "scheduled nodes = active + metadata-only + zero-sized",
+      "pass": true,
+      "detail": "845 + 524 + 72 = 1441"
+    },
+    {
+      "check": "captured schedule respects every data and state edge",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "every active op is in exactly one fusion group",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "every fusion group has at most one anchor unit",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "every written state buffer has ordering edges",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "check": "MACs match the capture's summary.json",
+      "pass": true,
+      "detail": "ours {'MUL_MAT': 177021648896, 'SSM_CONV': 56623104} vs {'MUL_MAT': 177021648896, 'SSM_CONV': 56623104}"
+    }
+  ],
+  "method_notes": [
+    "Metadata-only ops (VIEW/RESHAPE/PERMUTE/TRANSPOSE) and zero-sized nodes are collapsed; their edges pass through to the real producer.",
+    "State edges order in-place CPY/SET_ROWS writes against reads of the same persistent buffer; whole-buffer granularity, so they are conservative.",
+    "Parallel groups: weight MUL_MATs in one layer that read the same activation.",
+    "Fusion groups: producer->consumer merges where the producer has exactly one consumer in the same layer, with at most one anchor unit (a parallel group, the QK/AV attention core, or a single matrix/conv/recurrent op). Vector ops are merged in schedule order, so an op between two anchors joins the earlier one. Labels: prologue ops feed the anchor, epilogue ops consume its result, side inputs join the epilogue without passing through the anchor.",
+    "Handoffs count one tensor sent to one fusion group once, even if several ops in it read it.",
+    "State read bytes are the logical size of the views read; state write bytes are the size of the value written (source dtype), not of the destination cache view.",
+    "Bytes are logical tensor sizes from the capture, not measured memory traffic."
+  ]
+}

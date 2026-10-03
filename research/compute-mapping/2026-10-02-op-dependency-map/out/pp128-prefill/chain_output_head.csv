@@ -1,0 +1,5 @@
+step,sched_pos,op,category,name,shape_ggml,dtype,out_bytes,gemm,macs,inputs,consumers,state,parallel_group,fusion_group
+0,1437,RMS_NORM,vector,norm,2048x128,f32,1048576,,0,<l_out,#1,,,0
+1,1438,MUL,vector,h_nextn,2048x128,f32,1048576,,0,#0; W:output_norm.weight[2048x1 f32],#2,,,0
+2,1439,GET_ROWS,memory,result_norm,2048x1,f32,8192,,0,#1; I:out_ids[1x1 i32],#3,,,0
+3,1440,MUL_MAT,weight_matrix,result_output,248320x1,f32,993280,M=248320 K=2048 N=1,508559360,#2; W:token_embd.weight[2048x248320 bf16],,,,0
