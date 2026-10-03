@@ -38,13 +38,18 @@ The raw file names match the recorded `experiments/llama-cpp/2026-09-22/results/
 
 Run folders are written locally in full, but only a **curated evidence set** is committed: the manifest,
 the measured timing records (`*.jsonl`), `analysis/` summaries and figures, `prompt-profiles.json`, any
-`research/` write-up, and from `graphs/` **only the SVG renders**. Everything else (saved logits, operation
+`research/` write-up, and from `graphs/` **only the SVG renders and the gzipped graph captures**
+(`{prefill,decode}.json.gz`, needed by `engine/`). Everything else (saved logits, operation
 traces, captured graph JSON, DOT, per-op CSVs, per-graph reports, logs, tokens and prompt copies) stays local;
 `.gitignore` excludes it.
 
 [`index.html`](index.html) is the committed browser for the run: a self-contained page (built by
 `core/analysis/site.py --no-raw-links`) with each graph's operation sequence, offload and fusion tables, the
 prompt comparison and the write-up embedded, and the committed SVGs linked by relative path.
+
+The second page is the interactive accelerator model in `engine/` (`cd engine && python -m sbengine serve`,
+then http://127.0.0.1:8765). It re-runs the engine on the committed `.json.gz` graphs as you change its
+controls. Its numbers are estimates under assumed hardware parameters, not measurements.
 
 Each committed run has an `EVIDENCE.md` that lists what is included, what was omitted (with SHA-256 in
 `omitted-files.sha256`, so a copy of the raw outputs can be checked against it), anything added to the folder

@@ -8,6 +8,10 @@ To browse it, open [`../index.html`](../index.html): one self-contained page wit
 sequence, offload and fusion tables, the prompt comparison, the timing summary and this run's write-up, plus
 the graph SVGs committed under `graphs/`.
 
+A second, interactive page models an accelerator on these graphs: `cd engine && python -m sbengine serve`
+(see [`engine/README.md`](../../engine/README.md)). It reads the gzipped graph captures committed here. Its outputs
+are analytical estimates under assumed hardware parameters, not measurements.
+
 ## What was run
 
 The default `profile` command on one Windows host. Nothing here was run on Linux, macOS or Metal.
@@ -52,7 +56,7 @@ The run-folder rule is "never edited afterwards". These additions break it and a
 | `run-manifest.json`, `prompt-profiles.json` | saved logits `*.f32.gz` (needed only for the bit-identity check, already recorded in `analysis/profile-output-validation.json`) |
 | measured timing records `cpu-baseline.jsonl`, `cpu-profile.jsonl`, `cpu-8k.jsonl`, `prompts/*/cpu-*.jsonl` | CPU operation traces `cpu-op-trace.jsonl.gz`, `prompts/*/cpu-op-trace.jsonl.gz` |
 | `analysis/` summaries, CSVs, `decode-curve.png`, `profiling-summary.png`, `matrix-weight-inventory.json` | `analysis/operator-shapes.json`, `profiling-summary.pdf` (same figure as the PNG) |
-| `graphs/`: the SVG renders only (92 files, 17.3 MB): per-layer `{prefill,decode}.layer{0,3}.svg` for every graph and whole-graph `{prefill,decode}.svg` for pp8192 | everything else in `graphs/`: captured graph JSON, `*.ops.csv`, `*.summary.json`, `*.dot`, per-graph `index.html`, `workload.json`, `REPORT.md`, `FUSION-REPORT.md`, `OFFLOAD-REPORT.md`, the fusion/offload JSON, `prompt-comparison.*`. Their content is embedded in `../index.html` |
+| `graphs/`: the SVG renders (92 files, 17.3 MB): per-layer `{prefill,decode}.layer{0,3}.svg` for every graph and whole-graph `{prefill,decode}.svg` for pp8192; and the captured graphs gzipped, `{prefill,decode}.json.gz` (44 files, 2.5 MB, byte-identical to the local `.json` once decompressed), which the engine needs | everything else in `graphs/`: uncompressed graph JSON, `*.ops.csv`, `*.summary.json`, `*.dot`, per-graph `index.html`, `workload.json`, `REPORT.md`, `FUSION-REPORT.md`, `OFFLOAD-REPORT.md`, the fusion/offload JSON, `prompt-comparison.*`. Their content is embedded in `../index.html` |
 | `research/compute-mapping.md`, `compute-mapping-index.json` | `*.log`, `*-prompt.txt`, `*-tokens.json` |
 
 `../index.html` was built with `--no-raw-links`, so it links only to files that are committed (the SVGs and

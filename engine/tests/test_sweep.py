@@ -1,0 +1,98 @@
+"""Sweeps, Pareto fronts, ablation, sensitivity and Monte-Carlo."""
+import json
+import tempfile
+import unittest
+from pathlib import Path
+
+from helpers import real_run
+from sbengine import config, sweep
+from sbengine.graph import load_workload
+from sbengine.model import evaluate
+
+RUN = real_run()
+
+
+class Cost(unittest.TestCase):
+    def test_bandwidth_and_direct_weight_path_are_not_free(self):
+        from sbengine.resources import resources
+        base = config.make_config()
+        more_banks = config.make_config({"l1": {"banks": 128}})
+        direct = config.make_config({"memory": {"weight_path": "direct"}})
+        self.assertGreater(resources(more_banks)["cost"], resources(base)["cost"])
+        self.assertGreater(resources(direct)["cost"], resources(base)["cost"])
+        free = config.make_config({"resources": {"cost": {"l1_bank": 0.0, "direct_weight_buffer_per_pe": 0.0}}, "l1": {"banks": 128}})
+        self.assertEqual(resources(free)["cost"], resources(config.make_config({"resources": {"cost": {"l1_bank": 0.0}}}))["cost"])
+
+
+class Pareto(unittest.TestCase):
+    def test_dominance_and_direction(self):
+        recs = [{"valid": True, "cost": 1, "decode_s": 5}, {"valid": True, "cost": 2, "decode_s": 3},
+                {"valid": True, "cost": 2, "decode_s": 4}, {"valid": True, "cost": 3, "decode_s": 3},
+                {"valid": False, "cost": 0, "decode_s": 0}]
+        front = sweep.pareto(recs)
+        self.assertEqual([(r["cost"], r["decode_s"]) for r in front], [(1, 5), (2, 3)])
+        dup = recs[:2] + [{"valid": True, "cost": 2, "decode_s": 3, "tag": "tie"}]
+        self.assertEqual(len(sweep.pareto(dup)), 2)                                  # identical objective values reported once
+        best = sweep.pareto(recs, (("cost", "min"), ("decode_s", "max")))
+        self.assertIn((1, 5), [(r["cost"], r["decode_s"]) for r in best])
+
+
+@unittest.skipIf(RUN is None, "no captured run under results/")
+class Analyses(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.w = load_workload(RUN / "graphs" / "pp128-fa-on")
+        cls.cfg = config.load_profile("accel-balanced")[0]
+
+    def test_sweep_files_carry_their_assumptions(self):
+        axes = {"matrix.count": [1, 2], "recurrent.count": [0, 2]}
+        records = sweep.run_sweep(self.w, self.cfg, axes)
+        self.assertEqual(len(records), 4)
+        self.assertTrue(all(r["valid"] for r in records))
+        by = {(r["matrix.count"], r["recurrent.count"]): r for r in records}
+        self.assertLessEqual(by[(2, 2)]["prefill_s"], by[(1, 2)]["prefill_s"])      # more matrix units, not slower
+        self.assertLess(by[(1, 0)]["cost"], by[(1, 2)]["cost"])
+        with tempfile.TemporaryDirectory() as tmp:
+            csv_path = sweep.write_sweep(tmp, "t", records, self.cfg, axes, self.w, "test")
+            meta = json.loads(Path(tmp, "t.meta.json").read_text(encoding="utf-8"))
+            self.assertEqual(meta["base_config_hash"], config.config_hash(self.cfg))
+            self.assertEqual(meta["base_config"]["l1"]["banks"], self.cfg["l1"]["banks"])
+            self.assertEqual(meta["workload"], "pp128-fa-on")
+            self.assertEqual(len(csv_path.read_text(encoding="utf-8").splitlines()), 5)
+
+    def test_invalid_grid_points_are_kept_and_flagged(self):
+        records = sweep.run_sweep(self.w, self.cfg, {"matrix.efficiency": [0.5, 2.0]})
+        self.assertEqual([r["valid"] for r in records], [True, False])
+        self.assertIn("efficiency", records[1]["errors"])
+        with self.assertRaises(ValueError):
+            sweep.run_sweep(self.w, self.cfg, {"matrix.count": list(range(50)), "vector.count": list(range(50))}, limit=100)
+
+    def test_ablation_ends_at_the_new_engine(self):
+        legacy, new = config.load_profile("legacy-equations")[0], self.cfg
+        rows, loo = sweep.ablation(self.w, legacy, new)
+        self.assertEqual(len(rows), len(sweep.ABLATION_STEPS) + 1)
+        final = evaluate(self.w, new)
+        self.assertAlmostEqual(rows[-1]["prefill_s"], final["phases"]["prefill"]["seconds"], places=9)
+        self.assertAlmostEqual(rows[-1]["decode_s"], final["phases"]["decode"]["seconds"], places=9)
+        self.assertEqual(len(loo), len(sweep.ABLATION_STEPS))
+
+    def test_sensitivity_direction_and_binding_flags(self):
+        base, rows = sweep.sensitivity(self.w, self.cfg, ["hbm.gbs", "clock_mhz", "l1.banks"], delta=0.3)
+        by = {r["param"]: r for r in rows}
+        self.assertLessEqual(by["clock_mhz"]["decode_s_elasticity"], 0)               # faster clock never slower
+        self.assertLessEqual(by["l1.banks"]["decode_s_elasticity"], 0)
+        self.assertLessEqual(by["hbm.gbs"]["decode_s_elasticity"], 1e-9)
+        self.assertEqual(base["decode_binding"], "l1")                               # the explorer's default L1-bound decode
+
+    def test_montecarlo_is_seeded_and_bounded(self):
+        designs = {n: config.load_profile(n)[0] for n in ("accel-balanced", "accel-efficient")}
+        a = sweep.montecarlo(self.w, designs, samples=8, seed=5)
+        b = sweep.montecarlo(self.w, designs, samples=8, seed=5)
+        self.assertEqual(a, b)
+        for r in a.values():
+            self.assertTrue(0 <= r["frontier_frequency"] <= 1)
+            self.assertLessEqual(r["decode_p05_s"], r["decode_p95_s"])
+
+
+if __name__ == "__main__":
+    unittest.main()

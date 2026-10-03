@@ -24,7 +24,7 @@ __pycache__/
 /results/**/*.offload-boundaries.json
 /results/**/workload.json
 /results/*/graphs/*/index.html
-# graphs/: only the SVG renders are committed (results/index.html links to them)
+# graphs/: only the SVG renders (linked by results/index.html) and {prefill,decode}.json.gz (read by engine/) are committed
 /results/*/graphs/**/*.md
 /results/*/graphs/**/*.json
 /results/**/*-prompt.txt
