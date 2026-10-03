@@ -29,3 +29,5 @@ A reproducible CPU/Metal profiling package and the small MAC reference example e
 [CHARTER.md](CHARTER.md) and [OBJECTIVES.md](OBJECTIVES.md) describe the
 longer-term purpose. Current issues and the starting guide specify the work
 assigned now. [SETUP.md](SETUP.md) describes existing example commands and scope.
+
+Device firmware and llama.cpp integration probes: [integration/](integration/README.md).

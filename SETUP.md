@@ -43,4 +43,4 @@ The combined example lives in the sibling `accelerator` repository. Update that 
 - [generate_vectors.py](generate_vectors.py)
 - [tests/test_reference.py](tests/test_reference.py)
 
-For the shared example, see the [workspace checkout guide](https://github.com/SiliconBadgers/accelerator/blob/main/docs/GETTING_STARTED.md).
+For the shared example, see the [workspace checkout guide](https://github.com/SiliconBadgers/soc/blob/main/docs/GETTING_STARTED.md).
