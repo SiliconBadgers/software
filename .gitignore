@@ -8,3 +8,26 @@ __pycache__/
 # Local/generated tooling outputs
 __pycache__/
 *.pyc
+
+# Raw bulk run outputs stay local; only each run's curated evidence set and results/index.html are committed
+# (see results/README.md and results/<run>/EVIDENCE.md, which lists omitted files with SHA-256).
+/results/**/*.f32.gz
+/results/**/*.jsonl.gz
+/results/**/*.log
+/results/**/*.dot
+/results/**/prefill.json
+/results/**/decode.json
+/results/**/*.ops.csv
+/results/**/*.summary.json
+/results/**/*.fusion-chains.json
+/results/**/*.category-transitions.json
+/results/**/*.offload-boundaries.json
+/results/**/workload.json
+/results/*/graphs/*/index.html
+# graphs/: only the SVG renders are committed (results/index.html links to them)
+/results/*/graphs/**/*.md
+/results/*/graphs/**/*.json
+/results/**/*-prompt.txt
+/results/**/*-tokens.json
+/results/**/operator-shapes.json
+/results/**/profiling-summary.pdf

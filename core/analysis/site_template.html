@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Graph diff · __TITLE__</title>
+<style>
+:root{
+  --bg:#f8fafc; --panel:#ffffff; --ink:#0f172a; --dim:#64748b; --line:#e2e8f0; --accent:#2563eb; --accent-ink:#ffffff;
+  --add:#dcfce7; --add-ink:#166534; --del:#fee2e2; --del-ink:#991b1b; --chg:#fef3c7; --chg-ink:#92400e;
+  --matrix:#2563eb; --vector:#d97706; --metadata:#94a3b8; --memory:#7c3aed; --convolution:#059669; --recurrent:#db2777;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0b1120; --panel:#111827; --ink:#e5e7eb; --dim:#94a3b8; --line:#1f2937; --accent:#60a5fa; --accent-ink:#0b1120;
+    --add:#14351f; --add-ink:#86efac; --del:#3b1418; --del-ink:#fca5a5; --chg:#3a2c0b; --chg-ink:#fcd34d;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0b1120; --panel:#111827; --ink:#e5e7eb; --dim:#94a3b8; --line:#1f2937; --accent:#60a5fa; --accent-ink:#0b1120;
+  --add:#14351f; --add-ink:#86efac; --del:#3b1418; --del-ink:#fca5a5; --chg:#3a2c0b; --chg-ink:#fcd34d;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+a{color:var(--accent)}
+header{position:sticky;top:0;z-index:20;background:var(--panel);border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;
+  align-items:center;gap:8px 20px;padding:10px 16px}
+header h1{font-size:16px;margin:0;font-weight:650}
+header .sub{color:var(--dim);font-size:12px}
+nav{display:flex;gap:4px;margin-left:auto}
+button,select,input[type=number]{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:4px 10px}
+button{cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+main{max-width:1500px;margin:0 auto;padding:16px}
+section{background:var(--panel);border:1px solid var(--line);border-radius:10px;margin:0 0 16px}
+section>h2,summary{font-size:15px;font-weight:650;margin:0;padding:12px 16px;cursor:default}
+details>summary{cursor:pointer}
+section .body{padding:0 16px 16px}
+h3{font-size:13px;margin:18px 0 6px;color:var(--dim);text-transform:uppercase;letter-spacing:.04em}
+p.note,.note{color:var(--dim);font-size:12.5px;margin:6px 0}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:4px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{white-space:nowrap;color:var(--dim);font-weight:600;position:sticky;top:0;background:var(--panel)}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono)}
+.scroll-x{overflow-x:auto}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.card{border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.card .k{color:var(--dim);font-size:12px}
+.card .v{font-size:17px;font-weight:650}
+.ok{color:#16a34a}.bad{color:#dc2626}
+.tag{display:inline-block;border-radius:999px;padding:0 8px;font-size:12px;border:1px solid var(--line);margin-right:4px}
+.tag.seq{background:var(--chg);color:var(--chg-ink)}
+.controls{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding:12px 16px}
+.controls .side{display:flex;gap:6px;align-items:center;padding:6px 10px;border:1px solid var(--line);border-radius:8px}
+.controls label{display:flex;gap:6px;align-items:center;color:var(--dim)}
+.badgeA,.badgeB{font-weight:700;border-radius:4px;padding:0 6px;color:#fff}
+.badgeA{background:#dc2626}.badgeB{background:#16a34a}
+td.chgcell{background:var(--chg);color:var(--chg-ink)}
+tr.d-add td.opcell.b,tr.d-add td.idx.b{background:var(--add);color:var(--add-ink)}
+tr.d-del td.opcell.a,tr.d-del td.idx.a{background:var(--del);color:var(--del-ink)}
+tr.d-chg td.opcell,tr.d-chg td.idx{background:var(--chg);color:var(--chg-ink)}
+tr.gap td{color:var(--dim);text-align:center;font-style:italic;background:var(--bg)}
+td.idx{width:52px;text-align:right;color:var(--dim);font-family:var(--mono)}
+td.opcell{font-family:var(--mono);font-size:12px;border-left:3px solid var(--metadata);white-space:nowrap}
+td.opcell.c-matrix{border-left-color:var(--matrix)}td.opcell.c-vector{border-left-color:var(--vector)}
+td.opcell.c-metadata{border-left-color:var(--metadata)}td.opcell.c-memory{border-left-color:var(--memory)}
+td.opcell.c-convolution{border-left-color:var(--convolution)}td.opcell.c-recurrent{border-left-color:var(--recurrent)}
+td.mid{width:24px;text-align:center;color:var(--dim)}
+.dim{color:var(--dim)}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}
+.chip{border:1px solid var(--line);border-radius:999px;padding:0 8px;font-size:12px;cursor:pointer;background:var(--panel)}
+.chip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.viewer-panes{display:grid;gap:10px}
+.viewer-panes.side{grid-template-columns:1fr 1fr}
+.pane{border:1px solid var(--line);border-radius:8px;overflow:hidden;min-width:0}
+.pane .cap{padding:4px 10px;font-size:12px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:8px}
+.pane .scroll{height:70vh;overflow:auto;background:#fff}
+.pane img{display:block;max-width:none}
+.stack{position:relative;background:#fff;isolation:isolate;width:max-content}
+.stack img.top{position:absolute;left:0;top:0}
+.stack.diffmode{filter:invert(1)}
+.stack.diffmode img.top{mix-blend-mode:difference}
+.missing{padding:40px 16px;color:var(--dim);text-align:center}
+.md h1{font-size:18px}.md h2{font-size:15px;padding:0}.md h3{text-transform:none;letter-spacing:0;color:var(--ink);font-size:14px}
+.md code,code{font-family:var(--mono);font-size:12px;background:var(--bg);padding:0 4px;border-radius:4px}
+.legend span{display:inline-flex;align-items:center;gap:4px;margin-right:12px;font-size:12px}
+.legend i{width:10px;height:10px;border-radius:2px;display:inline-block}
+@media (max-width:800px){.viewer-panes.side{grid-template-columns:1fr}main{padding:12px}}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>Graph diff · <span id="runname"></span></h1><div class="sub" id="subtitle"></div></div>
+  <nav>
+    <button data-tab="diff" class="on">Graph diff</button>
+    <button data-tab="overview">Overview</button>
+    <button id="theme" title="Toggle light/dark">◐</button>
+  </nav>
+</header>
+
+<main id="tab-overview" hidden></main>
+
+<main id="tab-diff">
+  <section>
+    <div class="controls">
+      <div class="side"><span class="badgeA">A</span><select id="selA"></select><select id="phA"><option>prefill</option><option>decode</option></select></div>
+      <button id="swap" title="Swap A and B">⇄</button>
+      <div class="side"><span class="badgeB">B</span><select id="selB"></select><select id="phB"><option>prefill</option><option>decode</option></select></div>
+      <button id="flip" title="Set B to the same workload with flash attention flipped">Flip flash attention</button>
+      <button id="otherphase" title="Set B to the other phase of A">Other phase</button>
+    </div>
+    <div class="controls" style="padding-top:0">
+      <label><input type="checkbox" id="showSame"> Show identical rows</label>
+      <label><input type="checkbox" id="inclShape" checked> Count shape/dtype changes</label>
+      <label><input type="checkbox" id="hideMeta"> Hide metadata ops (VIEW, RESHAPE, …)</label>
+      <label>Layer <select id="layerSel"></select></label>
+    </div>
+  </section>
+  <div id="verdict"></div>
+  <div id="diffbody"></div>
+</main>
+
+<script id="data" type="application/json">__DATA__</script>
+<script>
+"use strict";
+const D = JSON.parse(document.getElementById("data").textContent);
+const S = D.strings, G = D.graphs, byId = Object.fromEntries(G.map(g => [g.id, g]));
+const CATS = ["matrix","convolution","recurrent","vector","memory","metadata"];
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt = (n) => n == null ? "–" : (typeof n === "number" ? n.toLocaleString("en-US", {maximumFractionDigits: 2}) : n);
+const bytes = (n) => n == null ? "–" : n >= 2**30 ? (n/2**30).toFixed(2)+" GiB" : n >= 2**20 ? (n/2**20).toFixed(2)+" MiB" : n >= 1024 ? (n/1024).toFixed(1)+" KiB" : n+" B";
+const totalMacs = (p) => Object.values(p.macs).reduce((a, b) => a + b, 0);
+const link = (href, text) => `<a href="${esc(href)}" target="_blank" rel="noopener">${esc(text)}</a>`;
+
+/* ---- seq/shape groups: graphs with equal hashes in one phase share a label (fa-on and fa-off are compared too) ---- */
+const groupLabel = {};
+for (const ph of ["prefill","decode"]) for (const kind of ["seq","shape"]) {
+  const seen = {};
+  for (const g of G) {
+    const h = g.phases[ph][kind + "_hash"];
+    if (!(h in seen)) seen[h] = `${kind}-${Object.keys(seen).length + 1}`;
+    groupLabel[`${g.id}|${ph}|${kind}`] = seen[h];
+  }
+}
+
+/* ---- tiny markdown renderer (headings, tables, lists, paragraphs, **bold**, `code`) ---- */
+function md(text) {
+  const inline = (s) => esc(s).replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>");
+  const out = []; let para = [], list = [], table = [];
+  const flush = () => {
+    if (para.length) out.push(`<p>${inline(para.join(" "))}</p>`), para = [];
+    if (list.length) out.push("<ul>" + list.map(l => `<li>${inline(l)}</li>`).join("") + "</ul>"), list = [];
+    if (table.length) {
+      const rows = table.map(r => r.replace(/^\||\|$/g, "").split("|").map(c => c.trim()));
+      const head = rows[0], body = rows.slice(2);
+      out.push(`<div class="scroll-x"><table><tr>${head.map(c => `<th>${inline(c)}</th>`).join("")}</tr>` +
+        body.map(r => `<tr>${r.map(c => `<td>${inline(c)}</td>`).join("")}</tr>`).join("") + "</table></div>");
+      table = [];
+    }
+  };
+  for (const line of text.split("\n")) {
+    let m;
+    if (/^\s*\|/.test(line)) { if (!table.length) flush(); table.push(line); continue; }
+    if (table.length) flush();
+    if ((m = line.match(/^(#{1,4})\s+(.*)/))) { flush(); out.push(`<h${m[1].length}>${inline(m[2])}</h${m[1].length}>`); }
+    else if ((m = line.match(/^\s*[-*]\s+(.*)/))) { if (para.length) flush(); list.push(m[1]); }
+    else if (!line.trim()) flush();
+    else para.push(line.trim());
+  }
+  flush();
+  return `<div class="md">${out.join("")}</div>`;
+}
+
+/* ================= Overview ================= */
+function renderOverview() {
+  const h = D.host, r = D.run, c = D.config, t = h.tools || {};
+  const kv = (k, v) => `<div class="card"><div class="k">${k}</div><div class="v" style="font-size:14px;font-weight:500">${v}</div></div>`;
+  let html = `<section><h2>Run</h2><div class="body"><div class="cards">
+    ${kv("Run", esc(r.name) + " · " + esc(r.status))}
+    ${kv("Started → finished (UTC)", esc(r.started_at) + "<br>" + esc(r.finished_at))}
+    ${kv("Host", esc(h.cpu_model) + "<br>" + esc(h.os) + " · " + bytes(h.memory_bytes) + " RAM")}
+    ${kv("Toolchain", esc((t.cxx_compiler||{}).version||"?") + "<br>" + esc(t.cmake||"") + "<br>" + esc(t.graphviz_dot||""))}
+    ${kv("Configuration", `${c.threads} threads · prompt lengths ${c.prompt_lengths.join(", ")} · ${c.repetitions} reps · ${c.decode_steps} decode steps`)}
+    ${kv("Command", `<code>${esc(r.command)}</code>`)}
+  </div>
+  <p class="note">${esc(D.comparability || "")}</p>
+  <p class="note">CPU timing, logical bytes and MAC counts here are not ASIC area/bandwidth measurements or model-quality evaluations.
+  pp128/pp512/pp8192 graphs are one prefill + one decode step at the prompt length; “prompt …” graphs use each prompt's natural token count.
+  Each graph is one run; the diff shows structure, not timing variance.</p></div></section>`;
+
+  html += `<section><h2>Captured graphs (${G.length})</h2><div class="body"><p class="note">Use A / B to load a graph into the Graph diff tab.
+  <span class="tag seq">seq-N</span> graphs with the same N in a phase have an identical operation sequence (control flow);
+  <span class="tag">shape-N</span> also matches data types and shapes. *MUL_MAT + SSM_CONV only, not total model FLOPs. The labels here are numbered across all graphs, so they differ from the per-flash-attention labels in the write-up below.</p>
+  <div class="scroll-x"><table><tr><th></th><th>Graph</th><th class="n">Tokens</th><th class="n">Context</th><th class="n">Nodes</th>
+  <th class="n">Prefill MACs*</th><th class="n">Decode MACs*</th><th>Prefill</th><th>Decode</th><th>Valid</th><th>Files</th></tr>`;
+  for (const g of G) {
+    const p = g.phases.prefill, d = g.phases.decode;
+    const tags = (ph) => `<span class="tag seq">${groupLabel[g.id+"|"+ph+"|seq"]}</span><span class="tag">${groupLabel[g.id+"|"+ph+"|shape"]}</span>`;
+    const files = Object.entries(g.reports).map(([n, h]) => link(h, n.replace(".md", ""))).join(" · ");
+    html += `<tr><td style="white-space:nowrap"><button data-load="A" data-id="${g.id}">A</button> <button data-load="B" data-id="${g.id}">B</button></td>
+      <td>${esc(g.label)}</td><td class="n">${g.tokens}</td><td class="n">${g.context}</td><td class="n">${p.nodes}${p.nodes!==d.nodes?" / "+d.nodes:""}</td>
+      <td class="n">${fmt(totalMacs(p))}</td><td class="n">${fmt(totalMacs(d))}</td><td>${tags("prefill")}</td><td>${tags("decode")}</td>
+      <td>${p.valid && d.valid ? '<span class="ok">✓</span>' : '<span class="bad">✗</span>'}</td><td class="dim">${files}</td></tr>`;
+  }
+  html += `</table></div></div></section>`;
+
+  if (D.performance.length) {
+    html += `<section><h2>CPU timing (this host)</h2><div class="body"><div class="scroll-x"><table><tr><th>Run</th><th class="n">Prompt tokens</th>
+    <th class="n">Prefill tok/s</th><th class="n">Decode ms/token</th><th class="n">Decode tok/s</th></tr>` +
+      D.performance.map(r => `<tr><td>${esc(r.run)}</td><td class="n">${r.prompt_tokens}</td><td class="n">${(+r.prefill_tps).toFixed(2)}</td>
+      <td class="n">${(+r.decode_ms).toFixed(2)}</td><td class="n">${(+r.decode_tps).toFixed(2)}</td></tr>`).join("") + `</table></div>`;
+    for (const [n, src] of Object.entries(D.figures)) html += `<p><img src="${esc(src)}" alt="${esc(n)}" style="max-width:100%;border:1px solid var(--line);border-radius:6px"></p>`;
+    html += `</div></section>`;
+  }
+  if (D.prompt_comparison) html += `<section><h2>Per-prompt graph comparison</h2><div class="body">${md(D.prompt_comparison)}</div></section>`;
+  if (D.research) html += `<section><h2>Compute mapping write-up</h2><div class="body">${md(D.research)}</div></section>`;
+  $("tab-overview").innerHTML = html;
+}
+
+/* ================= Diff engine ================= */
+const st = {a: null, b: null, pa: "prefill", pb: "prefill", layer: "all", view: "side", svg: null, zoom: "fit",
+            showSame: false, inclShape: true, hideMeta: false};
+
+function align(A, B) {
+  const out = [], n0 = A.length, m0 = B.length;
+  let s = 0;
+  while (s < n0 && s < m0 && A[s][0] === B[s][0]) s++;
+  let ea = n0, eb = m0;
+  while (ea > s && eb > s && A[ea-1][0] === B[eb-1][0]) { ea--; eb--; }
+  for (let i = 0; i < s; i++) out.push([i, i]);
+  const n = ea - s, m = eb - s;
+  if (n > 0 && m > 0 && n * m <= 40e6) {
+    const w = m + 1, L = new Uint16Array((n + 1) * w);
+    for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--)
+      L[i*w+j] = A[s+i][0] === B[s+j][0] ? L[(i+1)*w+j+1] + 1 : Math.max(L[(i+1)*w+j], L[i*w+j+1]);
+    let i = 0, j = 0;
+    while (i < n && j < m) {
+      if (A[s+i][0] === B[s+j][0]) { out.push([s+i, s+j]); i++; j++; }
+      else if (L[(i+1)*w+j] >= L[i*w+j+1]) { out.push([s+i, -1]); i++; }
+      else { out.push([-1, s+j]); j++; }
+    }
+    for (; i < n; i++) out.push([s+i, -1]);
+    for (; j < m; j++) out.push([-1, s+j]);
+  } else {
+    for (let i = 0; i < n; i++) out.push([s+i, -1]);
+    for (let j = 0; j < m; j++) out.push([-1, s+j]);
+  }
+  for (let k = 0; k < n0 - ea; k++) out.push([ea + k, eb + k]);
+  return out;
+}
+
+const alignCache = {};
+function alignment(a, pa, b, pb) {
+  const key = [a, pa, b, pb].join("|");
+  if (!alignCache[key]) {
+    const A = byId[a].phases[pa].rows, B = byId[b].phases[pb].rows;
+    alignCache[key] = align(A, B).map(([i, j]) => {
+      const ra = i >= 0 ? A[i] : null, rb = j >= 0 ? B[j] : null;
+      const kind = !ra ? "add" : !rb ? "del" : (ra[3] === rb[3] && ra[4] === rb[4]) ? "eq" : "chg";
+      return {i, j, ra, rb, kind};
+    });
+  }
+  return alignCache[key];
+}
+
+const effectiveKind = (row) => row.kind === "chg" && !st.inclShape ? "eq" : row.kind;
+
+function statTable(title, ma, mb, {fmtv = fmt, unit = ""} = {}) {
+  const keys = [...new Set([...Object.keys(ma), ...Object.keys(mb)])]
+    .sort((x, y) => Math.max(mb[y]||0, ma[y]||0) - Math.max(mb[x]||0, ma[x]||0) || x.localeCompare(y));
+  const rows = keys.map(k => ({k, a: ma[k] || 0, b: mb[k] || 0})).filter(r => st.showSame || r.a !== r.b);
+  const hidden = keys.length - rows.length;
+  let html = `<h3>${title}</h3>`;
+  if (!rows.length) return html + `<p class="note">No differences (${keys.length} rows identical).</p>`;
+  html += `<div class="scroll-x"><table><tr><th>${title.split(" ")[0]}</th><th class="n">A</th><th class="n">B</th><th class="n">Δ (B−A)</th></tr>` +
+    rows.map(r => {
+      const d = r.b - r.a;
+      return `<tr><td>${esc(r.k)}</td><td class="n">${fmtv(r.a)}${unit}</td><td class="n">${fmtv(r.b)}${unit}</td>
+        <td class="n ${d ? "chgcell" : ""}">${d > 0 ? "+" : ""}${d ? fmtv(d) + unit : "0"}</td></tr>`;
+    }).join("") + `</table></div>`;
+  return html + (hidden ? `<p class="note">${hidden} identical rows hidden.</p>` : "");
+}
+
+function verdict(A, B, rows) {
+  const counts = {eq: 0, chg: 0, del: 0, add: 0};
+  for (const r of rows) counts[r.kind]++;
+  const same = st.a === st.b && st.pa === st.pb;
+  const ctrl = counts.del === 0 && counts.add === 0;
+  const macA = totalMacs(A), macB = totalMacs(B), dm = macB - macA;
+  const card = (k, v, sub) => `<div class="card"><div class="k">${k}</div><div class="v">${v}</div><div class="note">${sub || ""}</div></div>`;
+  return `<section><div class="body" style="padding-top:16px"><div class="cards">
+    ${card("Control flow (op sequence)", same ? "same graph" : ctrl ? '<span class="ok">identical</span>' : '<span class="bad">differs</span>',
+        ctrl ? "same operations in the same order" : `${counts.del} ops only in A · ${counts.add} ops only in B`)}
+    ${card("Shapes & dtypes", counts.chg === 0 ? '<span class="ok">identical</span>' : `<span class="bad">${counts.chg} differ</span>`,
+        `across ${counts.eq + counts.chg} matched ops`)}
+    ${card("Scheduled nodes", `${A.nodes} → ${B.nodes}`, `${B.nodes - A.nodes >= 0 ? "+" : ""}${B.nodes - A.nodes}`)}
+    ${card("Matrix + conv MACs", `${fmt(macA)} → ${fmt(macB)}`, macA ? `${dm >= 0 ? "+" : ""}${(100 * dm / macA).toFixed(1)}%` : "")}
+    ${card("Op-sequence group", `${groupLabel[st.a+"|"+st.pa+"|seq"]} / ${groupLabel[st.b+"|"+st.pb+"|seq"]}`,
+        A.seq_hash === B.seq_hash ? "hashes match" : "hashes differ")}
+    ${card("Validation", (A.valid && B.valid) ? '<span class="ok">both ✓</span>' : '<span class="bad">check</span>', "acyclic · topological · finite logits")}
+  </div></div></section>`;
+}
+
+function rowCell(r, side, idx) {
+  if (!r) return `<td class="idx ${side}"></td><td class="opcell ${side}"></td>`;
+  const layer = r[2] < 0 ? "–" : r[2];
+  return `<td class="idx ${side}">${idx}</td>
+    <td class="opcell ${side} c-${S[r[1]]}" title="${esc(S[r[7]])}"><b>${esc(S[r[0]])}</b>
+    <span class="dim">L${layer} · ${esc(S[r[3]])} ${esc(S[r[4]])}</span></td>`;
+}
+
+function sequenceSection(rows) {
+  const layerOf = (r) => (r.ra ? r.ra[2] : r.rb[2]);
+  const isMeta = (r) => S[(r.ra || r.rb)[1]] === "metadata";
+  // layers that carry differences, as jump chips
+  const perLayer = {};
+  for (const r of rows) if (effectiveKind(r) !== "eq") perLayer[layerOf(r)] = (perLayer[layerOf(r)] || 0) + 1;
+  const layerKeys = Object.keys(perLayer).map(Number).sort((a, b) => a - b);
+  const chips = layerKeys.length
+    ? `<div class="chips"><span class="note" style="margin-right:6px">Layers with differences:</span>` +
+      layerKeys.map(l => `<span class="chip ${String(st.layer) === String(l) ? "on" : ""}" data-layer="${l}">${l < 0 ? "outside layers" : "L" + l} · ${perLayer[l]}</span>`).join("") +
+      `<span class="chip ${st.layer === "all" ? "on" : ""}" data-layer="all">all</span></div>` : "";
+  let shown = [], omitted = 0;
+  for (const r of rows) {
+    const kind = effectiveKind(r);
+    if (st.layer !== "all" && String(layerOf(r)) !== String(st.layer)) { omitted++; continue; }
+    if (st.hideMeta && isMeta(r)) { omitted++; continue; }
+    shown.push({...r, kind});
+  }
+  let html = "", gap = 0;
+  const flushGap = () => { if (gap) html += `<tr class="gap"><td colspan="5">··· ${gap} identical ops ···</td></tr>`; gap = 0; };
+  let count = 0;
+  for (const r of shown) {
+    if (r.kind === "eq" && !st.showSame) { gap++; continue; }
+    flushGap(); count++;
+    const mark = {eq: "", chg: "≠", del: "−", add: "+"}[r.kind];
+    html += `<tr class="d-${r.kind}">${rowCell(r.ra, "a", r.i)}<td class="mid">${mark}</td>${rowCell(r.rb, "b", r.j)}</tr>`;
+  }
+  flushGap();
+  const body = count || gap
+    ? `<div class="scroll-x" style="max-height:75vh;overflow:auto"><table><tr><th class="n">A #</th><th>Operation A</th><th></th><th>Operation B</th><th class="n">B #</th></tr>${html}</table></div>`
+    : `<p class="note">Nothing to show with these filters.</p>`;
+  const legend = `<p class="note legend">Rows are aligned by operation (longest-common-subsequence over the scheduled order).
+    <span><i style="background:var(--del-ink)"></i>− only in A</span><span><i style="background:var(--add-ink)"></i>+ only in B</span>
+    <span><i style="background:var(--chg-ink)"></i>≠ same op, different shape/dtype</span>${omitted ? ` · ${omitted} rows outside the layer/metadata filter` : ""}</p>`;
+  return `<section><details open><summary>Operation sequence diff (control flow)</summary><div class="body">${chips}${legend}${body}</div></details></section>`;
+}
+
+/* ---- compute-mapping comparison ---- */
+function pairCell(a, b, f = fmt, cls = "n") {
+  if (a === b) return `<td class="${cls}">${f(a)}</td>`;
+  return `<td class="${cls} chgcell">${f(a)} → ${f(b)}</td>`;
+}
+function mappingSection(A, B) {
+  let html = "";
+  if (!A.offload || !B.offload) {
+    html += `<p class="note">Offload boundary data is missing for ${!A.offload ? "A" : ""}${!A.offload && !B.offload ? " and " : ""}${!B.offload ? "B" : ""}.</p>`;
+  } else {
+    const ga = Object.fromEntries(A.offload.map(g => [g.group, g])), gb = Object.fromEntries(B.offload.map(g => [g.group, g]));
+    const names = [...new Set([...Object.keys(ga), ...Object.keys(gb)])];
+    const z = {nodes: 0, matrix_macs: 0, boundary_in_bytes: 0, boundary_out_bytes: 0, arithmetic_ops_per_boundary_byte: null, measured_cpu_time_percent: null};
+    const pct = (v) => v == null ? "n/a" : v.toFixed(1) + "%";
+    const ai = (v) => v == null ? "n/a" : fmt(v);
+    html += `<h3>Offload / compute-unit boundaries</h3><div class="scroll-x"><table><tr><th>Group</th><th class="n">Nodes</th><th class="n">Matrix MACs</th>
+      <th class="n">Boundary bytes (in+out)</th><th class="n">Arith ops/byte</th><th class="n">Measured CPU time</th></tr>` +
+      names.map(n => {
+        const x = ga[n] || z, y = gb[n] || z;
+        const bx = x.boundary_in_bytes + x.boundary_out_bytes, by = y.boundary_in_bytes + y.boundary_out_bytes;
+        return `<tr><td>${esc(n)}${!ga[n] ? ' <span class="tag">only B</span>' : !gb[n] ? ' <span class="tag">only A</span>' : ""}</td>${pairCell(x.nodes, y.nodes)}${pairCell(x.matrix_macs, y.matrix_macs)}
+          ${pairCell(bx, by, bytes)}${pairCell(x.arithmetic_ops_per_boundary_byte, y.arithmetic_ops_per_boundary_byte, ai)}
+          ${pairCell(x.measured_cpu_time_percent, y.measured_cpu_time_percent, pct)}</tr>`;
+      }).join("") + `</table></div>
+      <p class="note">Boundary bytes are logical tensor sizes crossing a group, not measured transfer time. CPU time exists only for fa-on graphs paired with the run's op trace.</p>`;
+  }
+  if (!A.fusion || !B.fusion) {
+    html += `<p class="note">Fusion chain data is missing for ${!A.fusion ? "A" : ""}${!A.fusion && !B.fusion ? " and " : ""}${!B.fusion ? "B" : ""}.</p>`;
+  } else {
+    const ma = Object.fromEntries(A.fusion.signatures.map(s => [s[0], s])), mb = Object.fromEntries(B.fusion.signatures.map(s => [s[0], s]));
+    let sigs = [...new Set([...Object.keys(ma), ...Object.keys(mb)])].map(k => ({k, a: ma[k], b: mb[k]}));
+    const changed = sigs.filter(s => !s.a || !s.b || s.a[1] !== s.b[1]);
+    const rows = (st.showSame ? sigs : changed).sort((x, y) => Math.abs((y.b?y.b[1]:0) - (y.a?y.a[1]:0)) - Math.abs((x.b?x.b[1]:0) - (x.a?x.a[1]:0)) || x.k.localeCompare(y.k));
+    html += `<h3>Dataflow chains</h3><p class="note">A: ${A.fusion.chains} chains over ${A.fusion.ops} ops · B: ${B.fusion.chains} chains over ${B.fusion.ops} ops.
+      A chain is a run of ops whose only computed input is the previous output; it is a dataflow condition, not a claim about what a backend fuses.</p>`;
+    html += rows.length ? `<div class="scroll-x" style="max-height:60vh;overflow:auto"><table><tr><th>Chain (op sequence)</th><th class="n">Count A</th><th class="n">Count B</th>
+      <th class="n">Δ</th><th class="n">Matrix MACs B</th></tr>` + rows.map(s => {
+        const ca = s.a ? s.a[1] : 0, cb = s.b ? s.b[1] : 0;
+        return `<tr><td style="font-family:var(--mono);font-size:12px">${esc(s.k)}</td><td class="n">${ca}</td><td class="n">${cb}</td>
+          <td class="n ${ca !== cb ? "chgcell" : ""}">${cb - ca > 0 ? "+" : ""}${cb - ca}</td><td class="n">${s.b ? fmt(s.b[2]) : "–"}</td></tr>`;
+      }).join("") + `</table></div>` : `<p class="note">All ${sigs.length} chain signatures have identical counts.</p>`;
+  }
+  if (A.transitions && B.transitions) {
+    const key = (t) => `${t.from_category} → ${t.to_category} (${t.edge_kind})`;
+    const ma = Object.fromEntries(A.transitions.map(t => [key(t), t])), mb = Object.fromEntries(B.transitions.map(t => [key(t), t]));
+    const keys = [...new Set([...Object.keys(ma), ...Object.keys(mb)])];
+    const rows = keys.filter(k => st.showSame || !ma[k] || !mb[k] || ma[k].edges !== mb[k].edges || ma[k].producer_bytes !== mb[k].producer_bytes)
+      .sort((x, y) => Math.max((mb[y]||ma[y]).producer_bytes, (ma[y]||mb[y]).producer_bytes) - Math.max((mb[x]||ma[x]).producer_bytes, (ma[x]||mb[x]).producer_bytes));
+    html += `<h3>Category boundary crossings</h3>` + (rows.length ? `<div class="scroll-x"><table><tr><th>Edge</th><th class="n">Edges</th><th class="n">Producer bytes</th></tr>` +
+      rows.map(k => {
+        const x = ma[k] || {edges: 0, producer_bytes: 0}, y = mb[k] || {edges: 0, producer_bytes: 0};
+        return `<tr><td>${esc(k)}</td>${pairCell(x.edges, y.edges)}${pairCell(x.producer_bytes, y.producer_bytes, bytes)}</tr>`;
+      }).join("") + `</table></div>` : `<p class="note">Identical crossings.</p>`);
+  }
+  return `<section><details open><summary>Compute mapping comparison</summary><div class="body">${html}</div></details></section>`;
+}
+
+/* ---- SVG viewer ---- */
+function viewerSection(A, B, rows) {
+  const ka = Object.keys(A.svgs), kb = Object.keys(B.svgs);
+  const keys = [...new Set([...ka, ...kb])].sort((x, y) => (x === "full") - (y === "full") || (+x || 0) - (+y || 0));
+  if (!keys.length) return `<section><details open><summary>Graph images</summary><div class="body"><p class="note">No SVGs were rendered for either selection.</p></div></details></section>`;
+  if (!keys.includes(st.svg)) {  // default to a diagram whose layer actually differs
+    const differing = new Set(rows.filter(r => effectiveKind(r) !== "eq").map(r => String((r.ra || r.rb)[2])));
+    st.svg = keys.find(k => differing.has(k)) || keys[0];
+  }
+  const opt = (k) => `<option value="${k}" ${k === st.svg ? "selected" : ""}>${k === "full" ? "complete graph (large)" : "layer " + k}</option>`;
+  const files = (phase) => Object.entries(phase.files).map(([n, h]) => link(h, n)).join(" · ");
+  const controls = `<div class="controls" style="padding:0 0 10px">
+    <label>Diagram <select id="svgSel">${keys.map(opt).join("")}</select></label>
+    <span>${["side:Side by side","blink:Blink","diff:Difference"].map(x => { const [v, t] = x.split(":");
+      return `<button data-view="${v}" class="${st.view === v ? "on" : ""}">${t}</button>`; }).join(" ")}</span>
+    <label>Zoom <select id="zoomSel">${["fit","0.1","0.25","0.5","1","2"].map(z => `<option value="${z}" ${String(st.zoom) === z ? "selected" : ""}>${z === "fit" ? "fit width" : Math.round(z * 100) + "%"}</option>`).join("")}</select></label>
+    <button id="blinkBtn" style="display:none">Show B</button>
+    <label id="autoBlink" style="display:none"><input type="checkbox" id="autoBlinkCb"> auto-blink</label>
+  </div>
+  <p class="note">Side-by-side scrolls in sync. Blink and Difference overlay the two images at natural scale, so they are meaningful only when both graphs share a layout
+  (e.g. same op sequence, different tensor sizes); when the op sequences differ, use the sequence diff above.</p>`;
+  return `<section><details open><summary>Graph images</summary><div class="body">${controls}<div id="viewer"></div>
+    ${files(A) || files(B) ? `<p class="note">A files: ${files(A)}<br>B files: ${files(B)}</p>` : ""}</div></details></section>`;
+}
+let blinkTimer = null;
+function mountViewer(A, B) {
+  const host = $("viewer"); if (!host) return;
+  clearInterval(blinkTimer);
+  const srcA = A.svgs[st.svg], srcB = B.svgs[st.svg];
+  const labelA = `<span class="badgeA">A</span> ${esc(byId[st.a].label)} · ${st.pa}`, labelB = `<span class="badgeB">B</span> ${esc(byId[st.b].label)} · ${st.pb}`;
+  const size = (img, scroll) => {
+    if (!img.naturalWidth) return;
+    const z = st.zoom === "fit" ? Math.min(1, (scroll.clientWidth - 2) / img.naturalWidth) : +st.zoom;
+    img.style.width = Math.round(img.naturalWidth * z) + "px";
+  };
+  const overlay = st.view !== "side" && srcA && srcB;
+  if (!overlay) {
+    host.innerHTML = `<div class="viewer-panes side">` + [[srcA, labelA], [srcB, labelB]].map(([s, l]) =>
+      `<div class="pane"><div class="cap"><span>${l}</span>${s ? link(s, "open") : ""}</div>` +
+      (s ? `<div class="scroll"><img src="${esc(s)}"></div>` : `<div class="missing">No SVG for this diagram selection</div>`) + `</div>`).join("") + `</div>`;
+    const scrolls = [...host.querySelectorAll(".scroll")];
+    scrolls.forEach(sc => { const img = sc.querySelector("img"); img.onload = () => size(img, sc); if (img.complete) size(img, sc); });
+    if (scrolls.length === 2) {
+      let lock = false;
+      scrolls.forEach((sc, i) => sc.addEventListener("scroll", () => {
+        if (lock) return; lock = true;
+        const o = scrolls[1 - i];
+        const fx = sc.scrollLeft / Math.max(1, sc.scrollWidth - sc.clientWidth), fy = sc.scrollTop / Math.max(1, sc.scrollHeight - sc.clientHeight);
+        o.scrollLeft = fx * (o.scrollWidth - o.clientWidth); o.scrollTop = fy * (o.scrollHeight - o.clientHeight);
+        requestAnimationFrame(() => lock = false);
+      }));
+    }
+    $("blinkBtn").style.display = $("autoBlink").style.display = "none";
+    return;
+  }
+  host.innerHTML = `<div class="pane"><div class="cap"><span id="ovLabel">${st.view === "blink" ? labelA : `<span class="badgeA">A</span> vs <span class="badgeB">B</span> — black = differs`}</span></div>
+    <div class="scroll"><div class="stack ${st.view === "diff" ? "diffmode" : ""}"><img class="base" src="${esc(srcA)}"><img class="top" src="${esc(srcB)}"></div></div></div>`;
+  const sc = host.querySelector(".scroll"), imgs = [...host.querySelectorAll("img")];
+  imgs.forEach(img => { img.onload = () => size(img, sc); if (img.complete) size(img, sc); });
+  if (st.view === "blink") {
+    $("blinkBtn").style.display = $("autoBlink").style.display = "";
+    let showB = false;
+    const apply = () => { imgs[1].style.visibility = showB ? "visible" : "hidden"; $("blinkBtn").textContent = showB ? "Show A" : "Show B";
+      $("ovLabel").innerHTML = showB ? labelB : labelA; };
+    apply();
+    $("blinkBtn").onclick = () => { showB = !showB; apply(); };
+    $("autoBlinkCb").onchange = (e) => { clearInterval(blinkTimer); if (e.target.checked) blinkTimer = setInterval(() => { showB = !showB; apply(); }, 700); };
+  } else {
+    $("blinkBtn").style.display = $("autoBlink").style.display = "none";
+  }
+}
+
+function renderDiff() {
+  const A = byId[st.a].phases[st.pa], B = byId[st.b].phases[st.pb];
+  const rows = alignment(st.a, st.pa, st.b, st.pb);
+  $("verdict").innerHTML = verdict(A, B, rows);
+  // layer filter options
+  const layers = [...new Set(rows.map(r => (r.ra || r.rb)[2]))].sort((x, y) => x - y);
+  $("layerSel").innerHTML = `<option value="all">all</option>` + layers.map(l => `<option value="${l}">${l < 0 ? "outside layers" : "layer " + l}</option>`).join("");
+  $("layerSel").value = String(st.layer);
+  if ($("layerSel").value !== String(st.layer)) { st.layer = "all"; $("layerSel").value = "all"; }
+  const stats = `<section><details open><summary>Counts</summary><div class="body">` +
+    statTable("Category counts", A.cats, B.cats) + statTable("Operation counts", A.ops, B.ops) +
+    statTable("MACs by op", A.macs, B.macs) +
+    `<p class="note">${esc(A.limitations[0] || "")} ${esc(A.limitations[1] || "")}</p></div></details></section>`;
+  $("diffbody").innerHTML = viewerSection(A, B, rows) + sequenceSection(rows) + stats + mappingSection(A, B);
+  mountViewer(A, B);
+  syncHash();
+}
+
+/* ---- wiring ---- */
+function fillSelects() {
+  const opts = (sel) => ["fixed", "prompt"].map(kind => `<optgroup label="${kind === "fixed" ? "Fixed prompt lengths" : "Per-prompt graphs"}">` +
+    G.filter(g => (g.prompt ? "prompt" : "fixed") === kind).map(g => `<option value="${g.id}" ${g.id === sel ? "selected" : ""}>${esc(g.label)}</option>`).join("") + `</optgroup>`).join("");
+  $("selA").innerHTML = opts(st.a); $("selB").innerHTML = opts(st.b);
+  $("phA").value = st.pa; $("phB").value = st.pb;
+}
+function setState(patch) { Object.assign(st, patch); fillSelects(); renderDiff(); }
+function syncHash() {
+  const p = new URLSearchParams({tab: currentTab, a: st.a, pa: st.pa, b: st.b, pb: st.pb, view: st.view, svg: st.svg || "", layer: st.layer});
+  history.replaceState(null, "", "#" + p);
+}
+let currentTab = "diff";
+function showTab(tab) {
+  currentTab = tab;
+  for (const t of ["overview", "diff"]) $("tab-" + t).hidden = t !== tab;
+  document.querySelectorAll("nav [data-tab]").forEach(b => b.classList.toggle("on", b.dataset.tab === tab));
+  syncHash();
+}
+function init() {
+  $("runname").textContent = D.run.name; $("subtitle").textContent = D.subtitle || "";
+  const p = new URLSearchParams(location.hash.slice(1));
+  const has = (id) => id && byId[id];
+  const pick = (id, fallback) => has(id) ? id : fallback;
+  const first = G.find(g => g.id === "pp8192-fa-on") || G[0];
+  const other = byId[first.id.replace(/-fa-(on|off)$/, m => m === "-fa-on" ? "-fa-off" : "-fa-on")] || G[G.length - 1];
+  Object.assign(st, {a: pick(p.get("a"), first.id), b: pick(p.get("b"), other.id),
+    pa: ["prefill","decode"].includes(p.get("pa")) ? p.get("pa") : "prefill", pb: ["prefill","decode"].includes(p.get("pb")) ? p.get("pb") : "prefill",
+    view: ["side","blink","diff"].includes(p.get("view")) ? p.get("view") : "side", svg: p.get("svg") || null, layer: p.get("layer") || "all"});
+  fillSelects();
+  $("selA").onchange = (e) => setState({a: e.target.value}); $("selB").onchange = (e) => setState({b: e.target.value});
+  $("phA").onchange = (e) => setState({pa: e.target.value}); $("phB").onchange = (e) => setState({pb: e.target.value});
+  $("swap").onclick = () => setState({a: st.b, b: st.a, pa: st.pb, pb: st.pa});
+  $("flip").onclick = () => setState({b: st.a.replace(/-fa-(on|off)$/, m => m === "-fa-on" ? "-fa-off" : "-fa-on"), pb: st.pa});
+  $("otherphase").onclick = () => setState({b: st.a, pb: st.pa === "prefill" ? "decode" : "prefill"});
+  $("showSame").onchange = (e) => setState({showSame: e.target.checked});
+  $("inclShape").onchange = (e) => setState({inclShape: e.target.checked});
+  $("hideMeta").onchange = (e) => setState({hideMeta: e.target.checked});
+  $("layerSel").onchange = (e) => setState({layer: e.target.value});
+  document.addEventListener("click", (e) => {
+    const t = e.target;
+    if (t.dataset.tab) showTab(t.dataset.tab);
+    else if (t.dataset.view) setState({view: t.dataset.view});
+    else if (t.dataset.layer !== undefined && t.classList.contains("chip")) setState({layer: t.dataset.layer});
+    else if (t.dataset.load) { setState(t.dataset.load === "A" ? {a: t.dataset.id} : {b: t.dataset.id}); showTab("diff"); }
+  });
+  document.addEventListener("change", (e) => {
+    if (e.target.id === "svgSel") setState({svg: e.target.value});
+    else if (e.target.id === "zoomSel") setState({zoom: e.target.value});
+  });
+  $("theme").onclick = () => {
+    const root = document.documentElement, dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    root.dataset.theme = dark ? "light" : "dark";
+  };
+  renderOverview();
+  renderDiff();
+  showTab(["overview","diff"].includes(p.get("tab")) ? p.get("tab") : "diff");
+}
+init();
+</script>
+</body>
+</html>

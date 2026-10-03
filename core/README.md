@@ -63,7 +63,7 @@ skips this stage.
 | `harness/` | `profile.cpp` (the same program as the 2026-09-22 harness, reformatted; `tests/test_harness_equivalence.py` fails if anything but layout, comments and string splitting changes) and `sb-cpu-profile.patch` (byte-identical to the original), `capture_graph.cpp` (Zeb Taylor's, see its header), `compat_win.h` (`setenv` shim, force-included so `profile.cpp` needs no Windows-specific code), `CMakeLists.txt`. |
 | `prompts/` | `prompts.json` and the 8 prompt texts (narrative, code, math, JSON records, dialogue, hardware prose, multilingual, repetitive). Add a prompt by adding a file and a line in `prompts.json`. |
 | `runner/` | `cli.py` and the pipeline: `fetch`, `build`, `measure`, `capture`, `hostinfo`, `runpaths`, `platform_profile`. |
-| `analysis/` | `summarize`, `ops`, `validate`, `plot`, `graph`; `result_io` writes LF-only files so outputs are byte-stable across OSes. Recorded `experiments/` is write-protected. |
+| `analysis/` | `summarize`, `ops`, `validate`, `plot`, `graph`; `result_io` writes LF-only files so outputs are byte-stable across OSes. Recorded `experiments/` is write-protected. `fusion`, `offload` and `compute_mapping` derive operation-sharing and boundary evidence from an existing run's graphs and traces (`python core/analysis/compute_mapping.py results/<run>`); they never re-run the model. `site` builds `results/index.html`, a self-contained browser over one run's graphs (`--no-raw-links` for the committed copy). |
 | `tests/` | `python core/tests/test_regression_0922.py` reproduces the recorded 09-22 analysis outputs from their raw evidence (needs only Python + numpy). |
 
 ## Platform profiles

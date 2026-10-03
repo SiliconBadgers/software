@@ -25,9 +25,28 @@ The raw file names match the recorded `experiments/llama-cpp/2026-09-22/results/
 ## Rules
 
 - A run folder is never reused or edited afterwards. Two runs in the same minute get `-2`, `-3`.
+  Exception: `core/runner/cli.py analyze` and `core/analysis/compute_mapping.py` write derived files into an
+  existing run; anything else added later must be listed in that run's `EVIDENCE.md`.
 - `run-manifest.json` is the provenance. The folder name is only a label; read the manifest for the
   host, compiler, pinned llama.cpp commit, model hash and exact command.
 - **Runs from different hosts are not comparable** to each other or to the recorded Apple M5 Pro
   baseline. CPU operation shares do not describe accelerator area, bandwidth or speedup.
 - Model weights never go here (they live in the gitignored `work/`).
 - The 2026-09-22 baseline stays in `experiments/` and is not copied here.
+
+## What is committed
+
+Run folders are written locally in full, but only a **curated evidence set** is committed: the manifest,
+the measured timing records (`*.jsonl`), `analysis/` summaries and figures, `prompt-profiles.json`, any
+`research/` write-up, and from `graphs/` **only the SVG renders**. Everything else (saved logits, operation
+traces, captured graph JSON, DOT, per-op CSVs, per-graph reports, logs, tokens and prompt copies) stays local;
+`.gitignore` excludes it.
+
+[`index.html`](index.html) is the committed browser for the run: a self-contained page (built by
+`core/analysis/site.py --no-raw-links`) with each graph's operation sequence, offload and fusion tables, the
+prompt comparison and the write-up embedded, and the committed SVGs linked by relative path.
+
+Each committed run has an `EVIDENCE.md` that lists what is included, what was omitted (with SHA-256 in
+`omitted-files.sha256`, so a copy of the raw outputs can be checked against it), anything added to the folder
+after the run finished, and the commands that regenerate the derived files. Development and smoke runs are
+not committed.

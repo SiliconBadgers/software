@@ -3,66 +3,66 @@
     "op_trace": null
   },
   "pp128-fa-on": {
-    "op_trace": "C:\\SiliconBadgers\\software\\results\\2026-09-27_1839_windows-2\\cpu-op-trace.jsonl.gz"
+    "op_trace": "cpu-op-trace.jsonl.gz"
   },
   "pp512-fa-off": {
     "op_trace": null
   },
   "pp512-fa-on": {
-    "op_trace": "C:\\SiliconBadgers\\software\\results\\2026-09-27_1839_windows-2\\cpu-op-trace.jsonl.gz"
+    "op_trace": "cpu-op-trace.jsonl.gz"
   },
   "pp8192-fa-off": {
     "op_trace": null
   },
   "pp8192-fa-on": {
-    "op_trace": "C:\\SiliconBadgers\\software\\results\\2026-09-27_1839_windows-2\\cpu-op-trace.jsonl.gz"
+    "op_trace": "cpu-op-trace.jsonl.gz"
   },
   "prompt-code-fa-off": {
     "op_trace": null
   },
   "prompt-code-fa-on": {
-    "op_trace": "C:\\SiliconBadgers\\software\\results\\2026-09-27_1839_windows-2\\prompts\\code\\cpu-op-trace.jsonl.gz"
+    "op_trace": "prompts/code/cpu-op-trace.jsonl.gz"
   },
   "prompt-dialogue-fa-off": {
     "op_trace": null
   },
   "prompt-dialogue-fa-on": {
-    "op_trace": "C:\\SiliconBadgers\\software\\results\\2026-09-27_1839_windows-2\\prompts\\dialogue\\cpu-op-trace.jsonl.gz"
+    "op_trace": "prompts/dialogue/cpu-op-trace.jsonl.gz"
   },
   "prompt-hardware-fa-off": {
     "op_trace": null
   },
   "prompt-hardware-fa-on": {
-    "op_trace": "C:\\SiliconBadgers\\software\\results\\2026-09-27_1839_windows-2\\prompts\\hardware\\cpu-op-trace.jsonl.gz"
+    "op_trace": "prompts/hardware/cpu-op-trace.jsonl.gz"
   },
   "prompt-json_records-fa-off": {
     "op_trace": null
   },
   "prompt-json_records-fa-on": {
-    "op_trace": "C:\\SiliconBadgers\\software\\results\\2026-09-27_1839_windows-2\\prompts\\json_records\\cpu-op-trace.jsonl.gz"
+    "op_trace": "prompts/json_records/cpu-op-trace.jsonl.gz"
   },
   "prompt-math-fa-off": {
     "op_trace": null
   },
   "prompt-math-fa-on": {
-    "op_trace": "C:\\SiliconBadgers\\software\\results\\2026-09-27_1839_windows-2\\prompts\\math\\cpu-op-trace.jsonl.gz"
+    "op_trace": "prompts/math/cpu-op-trace.jsonl.gz"
   },
   "prompt-multilingual-fa-off": {
     "op_trace": null
   },
   "prompt-multilingual-fa-on": {
-    "op_trace": "C:\\SiliconBadgers\\software\\results\\2026-09-27_1839_windows-2\\prompts\\multilingual\\cpu-op-trace.jsonl.gz"
+    "op_trace": "prompts/multilingual/cpu-op-trace.jsonl.gz"
   },
   "prompt-narrative-fa-off": {
     "op_trace": null
   },
   "prompt-narrative-fa-on": {
-    "op_trace": "C:\\SiliconBadgers\\software\\results\\2026-09-27_1839_windows-2\\prompts\\narrative\\cpu-op-trace.jsonl.gz"
+    "op_trace": "prompts/narrative/cpu-op-trace.jsonl.gz"
   },
   "prompt-repetitive-fa-off": {
     "op_trace": null
   },
   "prompt-repetitive-fa-on": {
-    "op_trace": "C:\\SiliconBadgers\\software\\results\\2026-09-27_1839_windows-2\\prompts\\repetitive\\cpu-op-trace.jsonl.gz"
+    "op_trace": "prompts/repetitive/cpu-op-trace.jsonl.gz"
   }
 }

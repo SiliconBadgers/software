@@ -70,13 +70,14 @@
   "graphs": {
     "prompt_lengths": [
       128,
-      512
+      512,
+      8192
     ],
     "context_multiple": 4,
     "flash_attention": [
       "on",
       "off"
     ],
-    "note": "One scheduled graph per phase (prefill, then one decode step). Lengths stay <= the 512-token micro-batch so prefill is a single graph. 'on' matches the profiled runs; 'off' keeps QK/softmax/AV visible as separate operations. Convention follows Zeb Taylor's 2026-09-24 captures (context = 4x prompt)."
+    "note": "One scheduled graph per phase (prefill, then one decode step). capture_graph.cpp sets n_batch=n_ubatch=prompt_tokens, so prefill is always a single graph regardless of length; 8192 was added once that was confirmed (it does not depend on the 512-token micro-batch some earlier notes assumed). 'on' matches the profiled runs; 'off' keeps QK/softmax/AV visible as separate operations. Convention follows Zeb Taylor's 2026-09-24 captures (context = 4x prompt); at 8192 that is 32768, comfortably inside the model's 262144-token trained context."
   }
 }

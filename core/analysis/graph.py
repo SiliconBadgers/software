@@ -27,6 +27,17 @@ RECURRENT_OPS = {"GATED_DELTA_NET"}
 ATTENTION_OPS = {"SOFT_MAX", "FLASH_ATTN_EXT"}
 
 
+def macs_of(t, ts):
+    """MAC count for the two supported dense ops, else None. Shared with fusion.py/offload.py
+    so the three tools never compute this figure two different ways."""
+    op = t["op"]
+    if op == "MUL_MAT":
+        return t["elements"] * ts[t["sources"][0]["tensor"]]["shape"][0]
+    if op == "SSM_CONV":
+        return t["elements"] * ts[t["sources"][1]["tensor"]]["shape"][0]
+    return None
+
+
 def category(n):
     op = n["op"]
     if op in VIEWS:
@@ -105,11 +116,7 @@ def process(path, out_dir, have_dot):
         op = t["op"]
         counts[t["op_desc"]] += 1
         cats[category(t)] += 1
-        macs = None
-        if op == "MUL_MAT":
-            macs = t["elements"] * ts[t["sources"][0]["tensor"]]["shape"][0]
-        elif op == "SSM_CONV":
-            macs = t["elements"] * ts[t["sources"][1]["tensor"]]["shape"][0]
+        macs = macs_of(t, ts)
         if macs is not None:
             work[op] += macs
         elif category(t) not in {"metadata", "memory"}:
