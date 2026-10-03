@@ -1,0 +1,36 @@
+step,sched_pos,op,category,name,shape_ggml,dtype,out_bytes,gemm,macs,inputs,consumers,state,parallel_group,fusion_group
+0,1,RMS_NORM,vector,norm,2048x1,f32,8192,,0,<model.input_embed,#1,,,0
+1,2,MUL,vector,attn_norm,2048x1,f32,8192,,0,#0; W:attn_norm.weight[2048x1 f32],#3; #13; #17; #23,,,0
+2,7,GET_ROWS,memory,conv_states,18432x1,f32,73728,,0,S:cache_r_lN[18432x1 f32]; I:rs_s_copy[1x1 i32],#4,reads cache_r_lN,,1
+3,13,MUL_MAT,weight_matrix,,6144x1,f32,24576,M=6144 K=2048 N=1,12582912,#1; W:attn_qkv.weight[2048x6144 bf16],#4,,P0.0,1
+4,16,CONCAT,memory,conv_input,4x6144,f32,98304,,0,#2; #3,#5; #7,,,1
+5,19,CPY,memory,conv_state_update (copy of conv_state_last),18432x1,f32,73728,,0,#4,,writes cache_r_lN; state_war after #2,,2
+6,23,GET_ROWS,memory,,262144x1,f32,1048576,,0,S:cache_s_lN[262144x1 f32]; I:rs_s_copy[1x1 i32],#19,reads cache_s_lN,,3
+7,27,SSM_CONV,conv,conv_output_raw,6144x1,f32,24576,,24576,#4; W:ssm_conv1d.weight[4x6144 f32],#8,,,4
+8,28,UNARY,vector,conv_output_silu,6144x1,f32,24576,,0,#7,#9; #11; #19,,,4
+9,30,RMS_NORM,vector,,128x16,f32,8192,,0,#8,#10,,,3
+10,31,SCALE,vector,q_conv_predelta,128x16,f32,8192,,0,#9,#19,,,3
+11,33,RMS_NORM,vector,,128x16,f32,8192,,0,#8,#12,,,3
+12,34,SCALE,vector,k_conv_predelta,128x16,f32,8192,,0,#11,#19,,,3
+13,36,MUL_MAT,weight_matrix,,16x1,f32,64,M=16 K=2048 N=1,32768,#1; W:ssm_alpha.weight[2048x16 bf16],#14,,P0.0,5
+14,38,ADD,vector,,16x1,f32,64,,0,#13; W:ssm_dt.bias[16x1 f32],#15,,,5
+15,39,UNARY,vector,a_softplus,16x1,f32,64,,0,#14,#16,,,5
+16,40,MUL,vector,gate,16x1,f32,64,,0,#15; W:ssm_a[16x1 f32],#19,,,5
+17,42,MUL_MAT,weight_matrix,,16x1,f32,64,M=16 K=2048 N=1,32768,#1; W:ssm_beta.weight[2048x16 bf16],#18,,P0.0,6
+18,44,UNARY,vector,beta_sigmoid,1x16,f32,64,,0,#17,#19,,,6
+19,46,GATED_DELTA_NET,recurrent,,2048x129,f32,1056768,,0,#6; #8; #10; #12; #16; #18,#20; #21,,,3
+20,49,CPY,memory,cache_s_lN (view) (copy of new_state),262144x1,f32,1048576,,0,#19,,writes cache_s_lN; state_war after #6,,7
+21,51,RMS_NORM,vector,norm,128x16,f32,8192,,0,#19,#22,,,8
+22,52,MUL,vector,,128x16,f32,8192,,0,#21; W:ssm_norm.weight[128x1 f32],#25,,,8
+23,53,MUL_MAT,weight_matrix,z,2048x1,f32,8192,M=2048 K=2048 N=1,4194304,#1; W:attn_gate.weight[2048x2048 bf16],#24,,P0.0,8
+24,55,UNARY,vector,,128x16,f32,8192,,0,#23,#25,,,8
+25,56,MUL,vector,,128x16,f32,8192,,0,#22; #24,#26,,,8
+26,58,MUL_MAT,weight_matrix,linear_attn_out,2048x1,f32,8192,M=2048 K=2048 N=1,4194304,#25; W:ssm_out.weight[2048x2048 bf16],#27,,,9
+27,60,ADD,vector,attn_residual,2048x1,f32,8192,,0,<model.input_embed; #26,#28; #34,,,9
+28,61,RMS_NORM,vector,norm,2048x1,f32,8192,,0,#27,#29,,,10
+29,62,MUL,vector,attn_post_norm,2048x1,f32,8192,,0,#28; W:post_attention_norm.weight[2048x1 f32],#30; #31,,,10
+30,63,MUL_MAT,weight_matrix,ffn_gate,6144x1,f32,24576,M=6144 K=2048 N=1,12582912,#29; W:ffn_gate.weight[2048x6144 bf16],#32,,P0.1,11
+31,64,MUL_MAT,weight_matrix,ffn_up,6144x1,f32,24576,M=6144 K=2048 N=1,12582912,#29; W:ffn_up.weight[2048x6144 bf16],#32,,P0.1,11
+32,65,GLU,vector,ffn_swiglu,6144x1,f32,24576,,0,#30; #31,#33,,,11
+33,66,MUL_MAT,weight_matrix,ffn_out,2048x1,f32,8192,M=2048 K=6144 N=1,12582912,#32; W:ffn_down.weight[6144x2048 bf16],#34,,,12
+34,67,ADD,vector,l_out,2048x1,f32,8192,,0,#27; #33,>deltanet,,,12
