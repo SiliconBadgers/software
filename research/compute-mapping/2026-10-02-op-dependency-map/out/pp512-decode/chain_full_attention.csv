@@ -1,0 +1,30 @@
+step,sched_pos,op,category,name,shape_ggml,dtype,out_bytes,gemm,macs,inputs,consumers,state,parallel_group,fusion_group
+0,198,RMS_NORM,vector,norm,2048x1,f32,8192,,0,<l_out,#1,,,0
+1,199,MUL,vector,attn_norm,2048x1,f32,8192,,0,#0; W:attn_norm.weight[2048x1 f32],#2; #6; #7,,,0
+2,200,MUL_MAT,weight_matrix,Qcur_full,4096x1,f32,16384,M=4096 K=2048 N=1,8388608,#1; W:attn_q.weight[2048x4096 bf16],#3; #17,,P3.0,1
+3,202,RMS_NORM,vector,norm,256x8,f32,8192,,0,#2,#4,,,2
+4,203,MUL,vector,Qcur_normed,256x8,f32,8192,,0,#3; W:attn_q_norm.weight[256x1 f32],#5,,,2
+5,204,ROPE,vector,Qcur,256x8,f32,8192,,0,#4; I:inp_pos[4x1 i32],#13,,,2
+6,205,MUL_MAT,weight_matrix,Vcur,512x1,f32,2048,M=512 K=2048 N=1,1048576,#1; W:attn_v.weight[2048x512 bf16],#12,,P3.0,3
+7,207,MUL_MAT,weight_matrix,Kcur,512x1,f32,2048,M=512 K=2048 N=1,1048576,#1; W:attn_k.weight[2048x512 bf16],#8,,P3.0,4
+8,209,RMS_NORM,vector,norm,256x2,f32,2048,,0,#7,#9,,,4
+9,210,MUL,vector,Kcur_normed,256x2,f32,2048,,0,#8; W:attn_k_norm.weight[256x1 f32],#10,,,4
+10,211,ROPE,vector,Kcur,256x2,f32,2048,,0,#9; I:inp_pos[4x1 i32],#11,,,4
+11,213,SET_ROWS,memory,cache_k_lN (view),512x2048,f16,2097152,,0,#10; I:attn_inp_k_idxs[1x1 i64],,writes cache_k_lN,,4
+12,217,SET_ROWS,memory,cache_v_lN (reshaped) (view),1x1048576,f16,2097152,,0,#6; I:attn_inp_v_idxs[512x1 i64],,writes cache_v_lN,,3
+13,224,MUL_MAT,act_matrix,kq,768x1x8,f32,24576,M=768 K=256 N=1 batch=8,1572864,#5; S:cache_k_lN[512x2048 f16],#14,reads cache_k_lN; state_raw after #11,,2
+14,225,SOFT_MAX,vector,kq_soft_max,768x1x8,f32,24576,,0,#13; I:attn_inp_kq_mask[768x1 f32],#15,,,2
+15,226,MUL_MAT,act_matrix,kqv,256x1x8,f32,8192,M=256 K=768 N=1 batch=8,1572864,#14; S:cache_v_lN[512x2048 f16],#16,reads cache_v_lN; state_raw after #12,,2
+16,228,CONT,memory,attn_pregate,2048x1,f32,8192,,0,#15,#19,,,2
+17,230,CONT,memory,gate_reshaped,2048x1,f32,8192,,0,#2,#18,,,2
+18,231,UNARY,vector,gate_sigmoid,2048x1,f32,8192,,0,#17,#19,,,2
+19,232,MUL,vector,attn_gated,2048x1,f32,8192,,0,#16; #18,#20,,,2
+20,233,MUL_MAT,weight_matrix,attn_output,2048x1,f32,8192,M=2048 K=2048 N=1,4194304,#19; W:attn_output.weight[2048x2048 bf16],#21,,,5
+21,234,ADD,vector,attn_residual,2048x1,f32,8192,,0,<l_out; #20,#22; #28,,,5
+22,235,RMS_NORM,vector,norm,2048x1,f32,8192,,0,#21,#23,,,6
+23,236,MUL,vector,attn_post_norm,2048x1,f32,8192,,0,#22; W:post_attention_norm.weight[2048x1 f32],#24; #25,,,6
+24,237,MUL_MAT,weight_matrix,ffn_gate,6144x1,f32,24576,M=6144 K=2048 N=1,12582912,#23; W:ffn_gate.weight[2048x6144 bf16],#26,,P3.1,7
+25,238,MUL_MAT,weight_matrix,ffn_up,6144x1,f32,24576,M=6144 K=2048 N=1,12582912,#23; W:ffn_up.weight[2048x6144 bf16],#26,,P3.1,7
+26,239,GLU,vector,ffn_swiglu,6144x1,f32,24576,,0,#24; #25,#27,,,7
+27,240,MUL_MAT,weight_matrix,ffn_out,2048x1,f32,8192,M=2048 K=6144 N=1,12582912,#26; W:ffn_down.weight[6144x2048 bf16],#28,,,8
+28,241,ADD,vector,l_out,2048x1,f32,8192,,0,#21; #27,>deltanet,,,8
