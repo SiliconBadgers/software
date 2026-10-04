@@ -14,11 +14,34 @@ test('slower HBM cannot improve latency',()=>{const a=E.evaluate(G,base),b=E.eva
 test('L1 bandwidth affects latency',()=>{const a=E.evaluate(G,base),b=E.evaluate(G,{...base,l1Banks:1});assert(b.decode.seconds>a.decode.seconds);});
 test('smaller SRAM cannot lower weight reloads',()=>{const a=E.evaluate(G,{...base,l1MiB:8}),b=E.evaluate(G,{...base,l1MiB:.0625});assert(b.prefill.weightRead>=a.prefill.weightRead);});
 test('dedicated recurrence maps and reduces its traffic',()=>{const a=E.evaluate(G,base),b=E.evaluate(G,{...base,recurrentCount:1});const op=r=>r.prefill.ops.find(x=>x.op==='GATED_DELTA_NET');assert(op(b).pools.includes('Recurrent'));assert(op(b).l1<op(a).l1);});
+test('shared matrix recurrence accounts for every captured F32 recurrence MAC class',()=>{
+ const c={...base,recurrentMatrix:true,recurrentMatrixPenalty:4},r=E.evaluate(G,c,true);
+ const expected=18*3*128*128*16*c.prompt*c.batch;
+ assert.equal(r.prefill.recurrentMatrixMacs,expected);
+ const rows=r.prefill.rows.filter(x=>x.op==='GATED_DELTA_NET');
+ assert.equal(rows.length,18);assert(rows.every(x=>x.pool==='Matrix'&&x.secondaryPool==='Vector'&&x.recurrentMatrixMacs>0));
+ assert(r.prefill.ops.find(x=>x.op==='GATED_DELTA_NET').pools.includes('Matrix'));
+});
+test('shared matrix recurrence penalty is monotonic and dedicated units take priority',()=>{
+ const fast=E.evaluate(G,{...base,recurrentMatrix:true,recurrentMatrixPenalty:4},true);
+ const slow=E.evaluate(G,{...base,recurrentMatrix:true,recurrentMatrixPenalty:16},true);
+ const dedicated=E.evaluate(G,{...base,recurrentMatrix:true,recurrentMatrixPenalty:16,recurrentCount:1},true);
+ const gdn=r=>r.prefill.rows.filter(x=>x.op==='GATED_DELTA_NET').reduce((sum,row)=>sum+row.compute,0);
+ assert(gdn(slow)>gdn(fast));
+ assert(dedicated.prefill.rows.filter(x=>x.op==='GATED_DELTA_NET').every(x=>x.pool==='Recurrent'));
+ assert.equal(dedicated.prefill.recurrentMatrixMacs,0);
+});
+test('shared matrix recurrence keeps vector or scalar tail costs explicit',()=>{
+ const c={...base,recurrentMatrix:true,vectorCaps:base.vectorCaps.filter(x=>x!=='exp')},r=E.evaluate(G,c,true);
+ const rows=r.decode.rows.filter(x=>x.op==='GATED_DELTA_NET');
+ assert(rows.every(x=>x.secondaryPool==='RISC-V'&&x.secondaryTime>0));
+ assert(r.decode.ops.find(x=>x.op==='GATED_DELTA_NET').pools.includes('RISC-V'));
+});
 test('no overlap cannot be faster',()=>{const a=E.evaluate(G,base),b=E.evaluate(G,{...base,overlap:false});assert(b.decode.seconds>=a.decode.seconds);assert(b.prefill.seconds>=a.prefill.seconds);});
 test('active precision changes traffic but not physical PE cost',()=>{const a=E.evaluate(G,base),b=E.evaluate(G,{...base,precision:'w4a8'});assert.equal(a.resource.cost,b.resource.cost);assert.equal(a.resource.dsp,b.resource.dsp);assert(b.decode.weightRead<a.decode.weightRead);});
 test('DSP ceiling filters over-budget candidates',()=>{assert(!E.evaluate(G,{...base,matrixCount:64}).valid);});
 test('Pareto dominance removes dominated and duplicate outcomes',()=>{const r=(cost,sec)=>({valid:true,resource:{cost},decode:{seconds:sec,aggregateTPS:1/sec}});const a=r(10,2),b=r(20,1),c=r(20,3),d=r(10,2);assert.deepEqual(E.frontier([a,b,c,d]),[a,b]);});
-test('bad numerical input rejected',()=>{assert(!E.evaluate(G,{...base,frequency:0}).valid);assert(!E.evaluate(G,{...base,l1Efficiency:2}).valid);assert(!E.evaluate(G,{...base,batch:1.5}).valid);});
+test('bad numerical input rejected',()=>{assert(!E.evaluate(G,{...base,frequency:0}).valid);assert(!E.evaluate(G,{...base,l1Efficiency:2}).valid);assert(!E.evaluate(G,{...base,batch:1.5}).valid);assert(!E.evaluate(G,{...base,recurrentMatrixPenalty:0}).valid);assert(!E.evaluate(G,{...base,recurrentMatrix:'yes'}).valid);});
 test('KV footprint matches allocated cache tensors for independent workload lengths',()=>{
  const caches=G.tensors.filter(t=>/^cache_[kv]_l\d+$/.test(t.name)&&t.view<0);
  assert.equal(caches.length,12);

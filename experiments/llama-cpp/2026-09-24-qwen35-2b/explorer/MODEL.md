@@ -24,6 +24,16 @@ Changing the active precision changes arithmetic packing rates and traffic, but 
 
 The captured scheduler order is preserved. Views/reshapes/permutations/transposes are metadata-only; zero-element operations are skipped. Materialization is charged through CONT/CPY/CONCAT. This version uses all configured units of the selected family cooperatively within one operation and does not overlap independent graph operations. It therefore does not predict a dependency-aware multikernel schedule.
 
+The separate `scheduler.js` companion leaves those equations and the browser
+unchanged. It can consume detailed operation rows and produce a deterministic
+earliest-start list schedule over captured source dependencies plus explicit
+read/write hazards for in-place `CPY` and `SET_ROWS` aliases. Compute families,
+shared L1 and HBM are exclusive for their modeled service durations; dispatch
+is serialized. This is a coarse contention experiment, not a cycle-accurate
+bank, interconnect, pipeline or queue model. Its serial mode must reproduce the
+engine exactly, and its dependency/resource schedule is checked against the DAG
+critical path and aggregate resource-demand bounds.
+
 For a matrix result with dimensions M by N, reduction K, and G independent groups:
 
 ```
@@ -44,7 +54,9 @@ This is a simplified reconfigurable GEMV mapping. It is not a claim that an arbi
 
 Vector time is `(basic_ops + special_calls * special_cycles) / (units * lanes * frequency * efficiency)`. Basic counts include 3 operations/element for RMSNorm plus one rsqrt per row; 5 operations and one exp/element for softmax; 3 and one special for sigmoid/SiLU; 2 and two specials for softplus; 4 and one special for SwiGLU; and 3 and one-half special per element for RoPE. These are algebraic cost proxies, not generated instruction counts. Reduction tree latency and small-vector utilization are folded into efficiency and special-function costs.
 
-For gated-delta recurrence with state dimension S=128 and H=16 heads, each sequence token performs approximately `(7*S*S + 3*S)*H` basic arithmetic operations and H exponentials: state decay, state-vector prediction, delta update, outer product, and output projection. This comes from the pinned GGML recurrence implementation. The dedicated unit supports the whole update; its parallel unit count is capped by independent heads times batch. Token recurrence remains serial. Generic vector recurrence requires recurrence-loop, elementwise, reduction, and exp capabilities; otherwise the operation falls back to RISC-V. This version does not implement a separate chunked/prefix-scan GDN lowering to GEMM.
+For gated-delta recurrence with state dimension S=128 and H=16 heads, each sequence token performs approximately `(7*S*S + 3*S)*H` basic arithmetic operations and H exponentials: state decay, state-vector prediction, delta update, outer product, and output projection. This comes from the pinned GGML F32 recurrence implementation. Within that work, two state-vector products and one outer-product update contribute `3*S*S*H` 32-bit MACs per token. All captured Q, K, V, gate, beta, state and output tensors for this operation are F32; quantizing the surrounding weight projections does not by itself quantize this recurrent state update.
+
+The dedicated unit supports the whole update; its parallel unit count is capped by independent heads times batch. Token recurrence remains serial. When `recurrentMatrix` is enabled and no dedicated unit is configured, the three 32-bit MAC classes use the shared matrix units. `recurrentMatrixPenalty` is the number of W8 x A16-equivalent PE cycles charged per 32-bit recurrence MAC. It is an explicit calibration variable, not a derived hardware fact: 4x and 16x represent different multiplier/decomposition assumptions. The remaining state-decay, scalar/vector and exponential work uses vector or RISC-V service and is added serially to the matrix work. The dependency scheduler conservatively reserves the primary matrix pool for the complete fused operation and also reserves the secondary pool for the tail demand. This deliberately double-reserves the tail interval rather than claiming unproven matrix/vector pipelining. Generic vector recurrence remains available when the shared-matrix path is disabled; otherwise the operation falls back to RISC-V. This version does not implement a separate chunked/prefix-scan GDN lowering to GEMM.
 
 Missing capabilities send the whole operation to RISC-V, rather than charging unsupported work as zero. Scalar time is `(basic_ops * instructions_per_basic_op + special_calls * instructions_per_special) / (cores * IPC * core_frequency)`. Multiple cores assume software parallelism; the default is one. These costs are editable software placeholders. No implementation plus no RISC-V means an infeasible design. Mapping is deterministic priority (dedicated, matrix where applicable, vector if complete, scalar), not a compiler search for the fastest legal route.
 
@@ -92,7 +104,7 @@ A feasible result has numerical parameters, a mapping for every operation, an ad
 
 ## Validation and extension points
 
-Run `node ../scripts/test_model.cjs` from this directory. Checks cover all four captured matrix-MAC totals; full mapping coverage; missing-capability fallback; no-fallback infeasibility; weight sharing across batch; traffic versus storage distinction; HBM and DSP capacity; L1/HBM sensitivity; SRAM tiling; recurrence implementation; overlap; precision versus physical cost; Pareto dominance; and invalid parameters.
+Run `node ../scripts/test_model.cjs` from this directory. Checks cover all four captured matrix-MAC totals; full mapping coverage; missing-capability fallback; no-fallback infeasibility; weight sharing across batch; traffic versus storage distinction; HBM and DSP capacity; L1/HBM sensitivity; SRAM tiling; recurrence implementation; overlap; precision versus physical cost; Pareto dominance; and invalid parameters. Run `node ../scripts/test_scheduler.cjs` for serial-equivalence, dependency, alias-hazard, resource-exclusion, determinism and lower-bound checks.
 
 The explorer runs entirely in the browser and works from `file://` without a server. `graph-data.js` is the compact graph, `engine.js` contains all formulas, and `app.js` handles interaction. Configurations import/export as JSON, sweeps export CSV, and settings persist in browser-local storage. QA mode (`?qa=1`) skips persistence.
 

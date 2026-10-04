@@ -19,9 +19,40 @@ These are uncalibrated analytical estimates. In particular, SRAM spill behavior 
 ./scripts/serve-explorer.sh
 # Model regression / sensitivity checks:
 node scripts/test_model.cjs
+# Reproducible one-dimensional sensitivity checks:
+node scripts/test_sensitivity.cjs
+# Dependency/resource scheduler checks:
+node scripts/test_scheduler.cjs
+# Joint matrix/L1/HBM tradeoff checks:
+node scripts/test_joint_resources.cjs
 # Regenerate the dashboard's graph data after a compatible recapture:
 python3 scripts/export_explorer_data.py
 ```
+
+The command-line [`sweep_sensitivity.cjs`](scripts/sweep_sensitivity.cjs)
+facility runs frozen one-dimensional resource sweeps against the same engine
+and captured graph. The first checked-in study, curves and qualification
+boundaries are in the
+[`2026-09-28 resource-sensitivity report`](../../../research/compute-mapping/2026-09-28-resource-sensitivity/REPORT.md).
+
+The separate [`scheduler.js`](explorer/scheduler.js) layer consumes the same
+per-operation estimates and captured dependency graph without changing the
+browser engine. Its checked-in comparison, limitations and reproduction command
+are in the
+[`2026-09-30 dependency/resource sensitivity report`](../../../research/compute-mapping/2026-09-30-dependency-resource-sensitivity/REPORT.md).
+
+The bounded
+[`joint-resource tradeoff study`](../../../research/compute-mapping/2026-10-01-joint-resource-tradeoffs/REPORT.md)
+then varies matrix count, modeled L1 banks and HBM bandwidth together under the
+configured DSP limit and a 460 GB/s HBM ceiling. It reports explicit
+performance/resource Pareto points rather than treating a latency champion as
+a calibrated physical optimum.
+
+The
+[`recurrence multiplier study`](../../../research/compute-mapping/2026-10-03-recurrence-multiplier-sensitivity/REPORT.md)
+audits all captured F32 gated-delta instances and sweeps vector, optional
+shared-matrix and dedicated recurrence mappings. The shared-matrix penalty is
+an editable calibration variable, not a fixed claim about 32-bit hardware.
 
 ## What is ready
 
