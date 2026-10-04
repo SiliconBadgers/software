@@ -83,6 +83,9 @@ function reserve(calendars,resource,start,duration,id){
 function rowRequirements(row){
  const requirements={};
  if(row.compute>EPS)requirements[row.pool]=row.compute;
+ if(row.secondaryTime>EPS&&row.secondaryPool&&row.secondaryPool!==row.pool){
+  requirements[row.secondaryPool]=(requirements[row.secondaryPool]||0)+row.secondaryTime;
+ }
  if(row.l1>EPS)requirements['Shared L1']=row.l1;
  if(row.hbm>EPS)requirements.HBM=row.hbm;
  return requirements;

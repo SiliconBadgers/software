@@ -48,6 +48,12 @@ configured DSP limit and a 460 GB/s HBM ceiling. It reports explicit
 performance/resource Pareto points rather than treating a latency champion as
 a calibrated physical optimum.
 
+The
+[`recurrence multiplier study`](../../../research/compute-mapping/2026-10-03-recurrence-multiplier-sensitivity/REPORT.md)
+audits all captured F32 gated-delta instances and sweeps vector, optional
+shared-matrix and dedicated recurrence mappings. The shared-matrix penalty is
+an editable calibration variable, not a fixed claim about 32-bit hardware.
+
 ## What is ready
 
 - Unmodified llama.cpp checkout, pinned to `308883b335798865e73f8fee0d9a5fbfa13c8480`.

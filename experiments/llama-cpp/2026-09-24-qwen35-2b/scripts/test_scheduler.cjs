@@ -32,6 +32,17 @@ test('independent operations sharing a resource serialize',()=>{
  assert.equal(schedule.seconds,9);
  assert.equal(schedule.bounds.aggregate,9);
 });
+test('secondary compute pools are reserved explicitly',()=>{
+ const graph={tensors:[{id:0,src:[]},{id:1,src:[]}],order:[0,1]};
+ const modeled=phase([
+  row(0,'Matrix',4),
+  {...row(1,'Matrix',3),secondaryPool:'Vector',secondaryTime:2},
+ ]);
+ const scheduled=Q.schedulePhase(graph,modeled);
+ assert.equal(scheduled.bounds.resourceDemands.Vector,2);
+ assert.equal(scheduled.calendars.Vector.length,1);
+ assert.equal(scheduled.calendars.Vector[0].end-scheduled.calendars.Vector[0].start,2);
+});
 
 test('dependencies pass through inactive view nodes',()=>{
  const graph={tensors:[{id:0,src:[]},{id:1,src:[0]},{id:2,src:[1]}],order:[0,1,2]};

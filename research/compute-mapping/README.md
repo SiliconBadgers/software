@@ -23,3 +23,9 @@ The [bounded joint-resource study](2026-10-01-joint-resource-tradeoffs/REPORT.md
 varies matrix count, modeled L1 banks and HBM bandwidth together. It exposes
 cross-resource bottleneck transfers and reports a mathematical frontier over
 scheduled prefill/decode latency, DSP demand, bank count and HBM bandwidth.
+
+The [F32 recurrence multiplier study](2026-10-03-recurrence-multiplier-sensitivity/REPORT.md)
+audits every captured gated-delta instance, adds an opt-in shared-matrix
+lowering with an explicit 32-bit penalty, and compares vector, shared-matrix and
+dedicated recurrence mappings across workload, precision, memory and resource
+classes.
