@@ -86,6 +86,12 @@
             </div>
             <span class="tag">Analytical estimates</span>
           </div>
+          <div class="active-workload-row">
+            <span id="active-workload"></span
+            ><button id="capture-shortcut" hidden>
+              Inspect this capture →
+            </button>
+          </div>
           <div id="metrics" class="metrics"></div>
           <div class="overview-grid">
             <div class="panel">
@@ -199,7 +205,7 @@
               </select></label
             ><a id="raw-graph" href="#">Download graph JSON</a>
           </div>
-          <div class="scope">
+          <div id="graph-scope" class="scope">
             These are recorded BF16-weight CPU graphs with flash attention off.
             The configuration on the left controls estimates; it does not change
             this capture.
@@ -274,6 +280,31 @@
           </div>
           <div id="work-status" class="muted"></div>
           <div id="work-list" class="study-grid"></div>
+          <div class="panel" id="saved-study-panel">
+            <div class="panel-heading">
+              <div>
+                <div class="section-label">ERIC WANG · SAVED STUDY</div>
+                <h2>Recurrence: shared or dedicated?</h2>
+                <p>
+                  Explore the 1,440 saved designs and load a configuration into
+                  the model.
+                </p>
+              </div>
+              <a
+                href="https://github.com/SiliconBadgers/software/blob/main/research/compute-mapping/2026-10-03-recurrence-multiplier-sensitivity/REPORT.md"
+                >Read the study ↗</a
+              >
+            </div>
+            <div class="toolbar" id="saved-study-controls"></div>
+            <p class="muted">
+              These results use the study’s fixed vector capacity and original
+              model assumptions. Matrix penalties are assumed throughput costs.
+              They are not measured multiplier performance or a hardware
+              recommendation.
+            </p>
+            <div id="saved-study-chart"></div>
+            <div class="table-wrap" id="saved-study-table"></div>
+          </div>
           <div class="panel">
             <h2>Contribute a study</h2>
             <p>

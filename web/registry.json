@@ -24,6 +24,61 @@
         }
       ],
       "pullRequests": [6, 9]
+    },
+    {
+      "id": "qwen-python",
+      "title": "Qwen3.5-2B \u00b7 Python model",
+      "contributors": ["Raghav Iyer"],
+      "module": "components/python/adapter.js",
+      "source": "engine",
+      "pullRequest": 7,
+      "description": "Captured mixed-format workloads with tiling, residency, local state storage and compute-pool scheduling.",
+      "assets": [
+        {
+          "source": "web/components/python/worker.js",
+          "target": "components/python/worker.js"
+        },
+        {
+          "source": "web/components/python/bridge.py",
+          "target": "assets/python/bridge.py"
+        },
+        {
+          "source": "engine/sbengine/__init__.py",
+          "target": "assets/python/sbengine/__init__.py"
+        },
+        {
+          "source": "engine/sbengine/config.py",
+          "target": "assets/python/sbengine/config.py"
+        },
+        {
+          "source": "engine/sbengine/formats.py",
+          "target": "assets/python/sbengine/formats.py"
+        },
+        {
+          "source": "engine/sbengine/graph.py",
+          "target": "assets/python/sbengine/graph.py"
+        },
+        {
+          "source": "engine/sbengine/costs.py",
+          "target": "assets/python/sbengine/costs.py"
+        },
+        {
+          "source": "engine/sbengine/memory.py",
+          "target": "assets/python/sbengine/memory.py"
+        },
+        {
+          "source": "engine/sbengine/resources.py",
+          "target": "assets/python/sbengine/resources.py"
+        },
+        {
+          "source": "engine/sbengine/schedule.py",
+          "target": "assets/python/sbengine/schedule.py"
+        },
+        {
+          "source": "engine/sbengine/model.py",
+          "target": "assets/python/sbengine/model.py"
+        }
+      ]
     }
   ],
   "work": [
@@ -83,6 +138,16 @@
       "title": "Research",
       "path": "research/compute-mapping",
       "description": "Operation mapping and compute-boundary studies."
+    },
+    {
+      "title": "Python engine and assumptions",
+      "path": "engine",
+      "description": "Raghav\u2019s native cost equations, hardware assumptions, compute-pool scheduler and tests."
+    },
+    {
+      "title": "Expanded captured workloads",
+      "path": "results/2026-09-27_1839_windows-2",
+      "description": "Recorded Q4_K_M graphs, prompt-specific workloads, flash-attention variants and evidence limits."
     }
   ]
 }

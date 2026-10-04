@@ -104,7 +104,7 @@ def evaluate_phase(ctx, g, cfg, trace_phase=None, detail=False):
             rows.append({"node": n.idx, "spos": n.spos, "name": n.tensor.name, "op": n.op, "pool": c.pool,
                          "compute_s": c.compute_s, "l1_s": ts_l1, "hbm_s": ts_hbm, "duration_s": d,
                          "hbm_bytes": hbm, "l1_bytes": l1, "macs": c.macs, "dominant": dominant, "note": c.note})
-    sched = schedule(durations, pools, g_deps(g), l1_s, hbm_s, ctx.sync_s, aux)
+    sched = schedule(durations, pools, g_deps(g), l1_s, hbm_s, ctx.sync_s, aux, detail=detail)
     seconds = sched["list"] if cfg["schedule"]["mode"] == "pools" else sched["serial"]
     tokens = g.meta["input_tokens"] * ctx.B
     out = {
@@ -122,6 +122,7 @@ def evaluate_phase(ctx, g, cfg, trace_phase=None, detail=False):
     }
     if detail:
         out["rows"] = rows
+        out["pool_schedule"] = {"operations": sched["operations"], "reservations": sched["reservations"]}
     return out
 
 

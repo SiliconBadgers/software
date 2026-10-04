@@ -36,7 +36,7 @@ const { chromium } = require("playwright");
     await page.locator("#sweep-values").fill("1,broken");
     await page.locator("#run-sweep").click();
     assert.match(await page.locator("#notice").innerText(), /comma-separated/);
-    await page.locator("[data-view=graph]").click();
+    await page.locator("nav [data-view=graph]").click();
     await page.waitForFunction(
       () => document.querySelectorAll("#tensor-table tbody tr").length > 0,
     );
@@ -66,7 +66,7 @@ const { chromium } = require("playwright");
       await page.locator("#tensor-detail").innerText(),
       /Direct inputs/,
     );
-    await page.locator("[data-view=execution]").click();
+    await page.locator("nav [data-view=execution]").click();
     await page.locator("#execution-layer").selectOption("3");
     assert((await page.locator("#execution-detail tbody tr").count()) > 20);
     const [download] = await Promise.all([
@@ -118,11 +118,25 @@ const { chromium } = require("playwright");
         "No resource overlap",
       );
     }
-    await page.locator("[data-view=work]").click();
+    await page.locator("nav [data-view=work]").click();
     assert.equal(await page.locator("#work-list article").count(), 5);
-    await page.locator("[data-view=sources]").click();
+    await page.waitForFunction(
+      () => document.querySelectorAll("[data-saved-design]").length === 12,
+    );
+    await page.locator('[data-saved-design="0"]').click();
+    await page.waitForFunction(
+      () =>
+        document.querySelector("#control-executionMode").value ===
+        "dependency-resource",
+    );
+    assert.equal(
+      await page.locator("#control-hbmGBs").inputValue(),
+      "300",
+      "Saved design loads its study memory profile",
+    );
+    await page.locator("nav [data-view=sources]").click();
     assert.match(await page.locator("#build-info").innerText(), /PR #6/);
-    await page.locator("[data-view=model]").click();
+    await page.locator("nav [data-view=model]").click();
     await page.locator("#control-frequency").fill("0");
     await page.waitForFunction(
       () => document.querySelector("#metrics").children.length === 0,

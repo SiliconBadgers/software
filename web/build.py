@@ -2,6 +2,8 @@
 """Build the public software workspace from an explicit component registry."""
 import argparse
 import csv
+import gzip
+import sys
 import hashlib
 import json
 from pathlib import Path
@@ -72,7 +74,7 @@ def build(output, ref, preview=False):
         manifest.append({"source": str(source.relative_to(ROOT)), "published": target,
                          "sha256": hashlib.sha256(source.read_bytes()).hexdigest()})
 
-    for filename in ("index.html", "app.js", "style.css", "registry.json", "graph.js"):
+    for filename in ("index.html", "app.js", "style.css", "registry.json", "graph.js", "studies.js"):
         copy(WEB / filename, filename)
     for component in registry["components"]:
         copy(safe_path(WEB, component["module"]), component["module"])
@@ -101,6 +103,60 @@ def build(output, ref, preview=False):
             dest = output / "assets/dependencies" / f"{capture}-{phase}.json"
             dest.parent.mkdir(parents=True, exist_ok=True)
             dest.write_text(json.dumps(data, separators=(",", ":")) + "\n")
+    if any(component["id"] == "qwen-python" for component in registry["components"]):
+        sys.path.insert(0, str(ROOT / "engine"))
+        try:
+            from sbengine.config import DEFAULTS
+            from sbengine.graph import Graph, layer_of
+            files = [{"virtual": "engine/" + asset["target"].removeprefix("assets/python/"),
+                      "published": asset["target"]}
+                     for component in registry["components"] if component["id"] == "qwen-python"
+                     for asset in component["assets"] if asset["target"].startswith("assets/python/")]
+            (output / "assets/python/manifest.json").write_text(json.dumps({"files": files}) + "\n")
+            (output / "assets/python/defaults.json").write_text(json.dumps(DEFAULTS) + "\n")
+            capture_index = []
+            folders = sorted((ROOT / "results/2026-09-27_1839_windows-2/graphs").iterdir())
+            for folder in folders:
+                if not folder.is_dir() or not (folder / "prefill.json.gz").is_file():
+                    continue
+                metadata = json.loads(gzip.decompress((folder / "prefill.json.gz").read_bytes()))["metadata"]
+                label = f"{folder.name} · {metadata['prompt_tokens']} tokens"
+                capture_index.append({"id": folder.name, "label": label,
+                                      "tokens": metadata["prompt_tokens"], "flashAttention": metadata.get("flash_attention")})
+                for phase in ("prefill", "decode"):
+                    for suffix in (".json.gz", ".layer0.svg", ".layer3.svg"):
+                        filename = phase + suffix
+                        copy(folder / filename, f"assets/captures/{folder.name}/{filename}")
+                    graph = Graph(folder / f"{phase}.json.gz", phase)
+                    nodes = []
+                    current_layer = -1
+                    for node in graph.nodes:
+                        category = "weight_matrix" if node.op in {"MUL_MAT", "FLASH_ATTN_EXT"} else "recurrent" if node.op == "GATED_DELTA_NET" else "memory" if node.op in {"CPY", "GET_ROWS", "SET_ROWS", "CONT", "CONCAT"} else "vector"
+                        layer = layer_of(node.tensor.name)
+                        if layer is not None:
+                            current_layer = layer
+                        nodes.append({"sched_pos": str(node.idx), "tensor_id": str(node.tensor.id),
+                                      "name": node.tensor.name, "op": node.op, "category": category,
+                                      "layer": str(current_layer),
+                                      "shape_ggml": "x".join(map(str,node.tensor.shape)),
+                                      "dtype": node.tensor.dtype, "fusion_group": f"N{node.idx}"})
+                        if node.tensor.name == "l_out-23":
+                            current_layer = 24
+                    edges = []
+                    for node, deps in zip(graph.nodes, graph.deps()):
+                        activation_deps = {graph.producer[root] for root in node.src_roots if root in graph.producer}
+                        for dependency in deps:
+                            source_node = graph.nodes[dependency]
+                            edges.append({"src_name": source_node.tensor.name, "dst_name": node.tensor.name,
+                                          "kind": "data" if dependency in activation_deps else "state_ordering",
+                                          "state_buffer": ""})
+                    (output / f"assets/captures/{folder.name}/{phase}.dependencies.json").write_text(
+                        json.dumps({"nodes": nodes, "edges": edges, "author": "Raghav Iyer", "grouping": False},separators=(",", ":")) + "\n")
+            (output / "assets/captures/index.json").write_text(json.dumps(capture_index) + "\n")
+        finally:
+            sys.path.pop(0)
+    copy(ROOT / "research/compute-mapping/2026-10-03-recurrence-multiplier-sensitivity/sweeps.json",
+         "assets/studies/recurrence.json")
     statuses = []
     try:
         statuses = json.loads(subprocess.check_output([
