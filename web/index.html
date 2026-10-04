@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="SiliconBadgers software studies, captured workloads and accelerator modeling.">
+  <title>SiliconBadgers Software</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <a class="brand" href="#model"><span class="brand-icon">SB</span><span>SiliconBadgers<strong>Software workspace</strong></span></a>
+    <div class="header-links"><span id="build-label"></span><a href="https://github.com/SiliconBadgers/software">Repository ↗</a><a href="https://github.com/SiliconBadgers/software/actions/workflows/software-pages.yml">Publish a preview ↗</a></div>
+  </header>
+  <div id="preview-banner" hidden></div>
+  <nav aria-label="Workspace"><a href="#model" data-view="model">Model & compare</a><a href="#graph" data-view="graph">Operation graph</a><a href="#execution" data-view="execution">Execution</a><a href="#work" data-view="work">Studies & work</a><a href="#sources" data-view="sources">Sources & contributors</a></nav>
+  <div class="workspace">
+    <aside>
+      <div class="section-label">ACTIVE STUDY</div>
+      <label for="study">Study</label><select id="study"></select>
+      <div id="study-credit" class="muted"></div>
+      <details id="configuration-panel" open><summary>Configuration</summary>
+      <div class="aside-heading"><h2>Configuration</h2><button id="reset">Reset</button></div>
+      <div id="controls"></div>
+      <details class="advanced"><summary>All parameters</summary><p class="muted">Edit the complete configuration as JSON.</p><textarea id="config-json" aria-label="Complete configuration" spellcheck="false"></textarea><button id="apply-json">Apply configuration</button></details>
+      <div class="button-row"><button id="export">Export</button><button id="import">Import</button><input id="import-file" type="file" accept="application/json,.json" hidden></div>
+      </details>
+    </aside>
+    <main>
+      <div id="notice" role="status" aria-live="polite"></div>
+      <section data-panel="model">
+        <div class="page-heading"><div><div class="section-label">DESIGN EXPLORATION</div><h1>Accelerator model</h1><p>Compare compute and memory choices against captured model work.</p></div><span class="tag">Analytical estimates</span></div>
+        <div id="metrics" class="metrics"></div>
+        <div id="model-scope" class="scope"></div>
+        <div class="panel"><div class="panel-heading"><div><h2>Compare configurations</h2><p>Keep the workload fixed and vary one hardware parameter.</p></div><button id="run-sweep" class="primary">Run comparison</button></div><div class="toolbar"><label>Parameter <select id="sweep-axis"></select></label><label>Values <input id="sweep-values" value="1,2,4,8" aria-label="Comparison values"></label><label>Phase <select id="sweep-phase"><option value="decode">Decode</option><option value="prefill">Prefill</option></select></label><button id="export-sweep" disabled>Export CSV</button></div><div id="comparison-chart"></div><div id="comparison-table" class="table-wrap"></div></div>
+        <div class="panel"><h2>Operation costs</h2><p class="muted">Estimated latency and memory demand for the selected phase.</p><label>Phase <select id="cost-phase"><option value="decode">Decode</option><option value="prefill">Prefill</option></select></label><div id="operation-table" class="table-wrap"></div></div>
+      </section>
+      <section data-panel="graph" hidden>
+        <div class="page-heading"><div><div class="section-label">CAPTURED COMPUTATION</div><h1>Operation graphs</h1><p>Inspect the original graphs and the tensors that connect operations.</p></div></div>
+        <div class="toolbar"><label>Capture <select id="capture"><option value="pp128">128 tokens</option><option value="pp512" selected>512 tokens</option></select></label><label>Phase <select id="graph-phase"><option value="prefill">Prefill</option><option value="decode">Decode</option></select></label><label>Layer <select id="graph-layer"><option value="0">DeltaNet · layer 0</option><option value="3">Full attention · layer 3</option></select></label><a id="raw-graph" href="#">Download graph JSON</a></div>
+        <div class="scope">These are recorded BF16-weight CPU graphs with flash attention off. The configuration on the left controls estimates; it does not change this capture.</div>
+        <div class="panel graph-panel"><div id="graph-caption" class="muted"></div><div id="graph-viewport"><img id="capture-image" alt="Captured operation graph"></div></div>
+        <div class="panel"><h2>Inspect a tensor</h2><input id="tensor-search" type="search" placeholder="Search name or operation" aria-label="Search tensors"><div id="tensor-table" class="table-wrap"></div><div id="tensor-detail"></div></div>
+      </section>
+      <section data-panel="execution" hidden>
+        <div class="page-heading"><div><div class="section-label">EXECUTION ESTIMATE</div><h1>Execution estimates</h1><p>Inspect the serial execution model, operation costs and memory service.</p></div></div>
+        <div class="toolbar"><label>Phase <select id="execution-phase"><option value="decode">Decode</option><option value="prefill">Prefill</option></select></label><label>Layer <select id="execution-layer"></select></label><button id="export-timeline">Export timeline</button></div>
+        <div class="scope">The merged model executes operations in serial order. Compute and memory can overlap within an operation. Dependency-aware scheduling is under review in Eric's and Raghav's PRs.</div>
+        <div id="execution-summary" class="metrics"></div>
+        <div class="panel"><div id="timeline"></div><div id="execution-detail"></div></div>
+      </section>
+      <section data-panel="work" hidden>
+        <div class="page-heading"><div><div class="section-label">SOFTWARE PROJECT</div><h1>Studies & work.</h1><p>Published components, current proposals and integration work.</p></div></div>
+        <div id="work-status" class="muted"></div><div id="work-list" class="study-grid"></div>
+        <div class="panel"><h2>Contribute a study</h2><p>Register a component, publish a branch preview, then open a PR when it is ready for the shared workspace.</p><a href="https://github.com/SiliconBadgers/software/blob/main/web/README.md">Component format and preview instructions ↗</a></div>
+      </section>
+      <section data-panel="sources" hidden>
+        <div class="page-heading"><div><div class="section-label">REPRODUCIBILITY</div><h1>Sources & contributors</h1><p>Original sources, contributors, model assumptions and build revision.</p></div></div>
+        <div id="source-list" class="study-grid"></div><div class="panel" id="build-info"></div>
+      </section>
+      <footer>SiliconBadgers · Software <span>Text inference studies and design estimates</span></footer>
+    </main>
+  </div>
+  <script src="assets/zeb/graph-data.js"></script>
+  <script src="assets/zeb/engine.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
