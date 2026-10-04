@@ -1,0 +1,97 @@
+[
+  {
+    "source": "web/index.html",
+    "published": "index.html",
+    "sha256": "a8d52e76fac04bf314a06439a92898bfc3ecb4be12dbb0a72e552b11ae9723db"
+  },
+  {
+    "source": "web/app.js",
+    "published": "app.js",
+    "sha256": "10b12a1e5a4275380536f73480e5954edb38d97dd1ee207c54c9fc3df887dfb0"
+  },
+  {
+    "source": "web/style.css",
+    "published": "style.css",
+    "sha256": "9d3248fe86c132349ca5079130f1412d0a1e6446687829384b078548db35952d"
+  },
+  {
+    "source": "web/registry.json",
+    "published": "registry.json",
+    "sha256": "c35a7df57bc6fe77e47f83dfcf19bc017f1290c5da2ccbca98ab9531f4746257"
+  },
+  {
+    "source": "web/components/qwen/adapter.js",
+    "published": "components/qwen/adapter.js",
+    "sha256": "6aa3d7eb98d4c46e62ec4b522fdc6453ab74ef1fdd209ac7a811d0a5ee20cd45"
+  },
+  {
+    "source": "experiments/llama-cpp/2026-09-24-qwen35-2b/explorer/engine.js",
+    "published": "assets/zeb/engine.js",
+    "sha256": "8174a7bdf558365d1cf2453266097c3dabe64974c9c7e0912dad9f36f11d7dd2"
+  },
+  {
+    "source": "experiments/llama-cpp/2026-09-24-qwen35-2b/explorer/graph-data.js",
+    "published": "assets/zeb/graph-data.js",
+    "sha256": "293e9c1c31698bbb75c2c10a702ab66b59eca850ebbf2d899b8a9f4b26d4bf4b"
+  },
+  {
+    "source": "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/prefill.json",
+    "published": "assets/graphs/pp128/prefill.json",
+    "sha256": "5a1a56b6f4e2377aab2564b65d0d97fc9b58a93d1d52f4d2cffdb7c6878bb267"
+  },
+  {
+    "source": "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/prefill.layer0.svg",
+    "published": "assets/graphs/pp128/prefill.layer0.svg",
+    "sha256": "eff1512bae51504f1556ecc148de87d59561d74b59bd4cc65c34106528ecfee0"
+  },
+  {
+    "source": "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/prefill.layer3.svg",
+    "published": "assets/graphs/pp128/prefill.layer3.svg",
+    "sha256": "652090464557ea3186e9dce1137ad5db2980dc2e36e5e3e983e6b81b0a91f736"
+  },
+  {
+    "source": "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/decode.json",
+    "published": "assets/graphs/pp128/decode.json",
+    "sha256": "39cb60765c882a09d47cb6b8a5d1cc74785dbb98bfee2edfa509228d3071bf80"
+  },
+  {
+    "source": "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/decode.layer0.svg",
+    "published": "assets/graphs/pp128/decode.layer0.svg",
+    "sha256": "f9065e6795ed336fc011f7fb2de7f12ee573f2a4be3ad1173f20e3485ea97274"
+  },
+  {
+    "source": "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/decode.layer3.svg",
+    "published": "assets/graphs/pp128/decode.layer3.svg",
+    "sha256": "515649ac936c313378aa0a96c583e17e86374203f1c47a4c80fa6f954599b963"
+  },
+  {
+    "source": "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp512/prefill.json",
+    "published": "assets/graphs/pp512/prefill.json",
+    "sha256": "deb6604ff96784407756e893d2911ec35f51d9b1b938d4a862e7b2d709fc4b32"
+  },
+  {
+    "source": "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp512/prefill.layer0.svg",
+    "published": "assets/graphs/pp512/prefill.layer0.svg",
+    "sha256": "13afc6131389e4261b19ea042c4fb87bc61d48ba3197effd10a8ebbfb7967c6d"
+  },
+  {
+    "source": "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp512/prefill.layer3.svg",
+    "published": "assets/graphs/pp512/prefill.layer3.svg",
+    "sha256": "53914d77bd513a88c9e1c3f3c472a57de649d06db602da4bc1e0952069e3bf61"
+  },
+  {
+    "source": "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp512/decode.json",
+    "published": "assets/graphs/pp512/decode.json",
+    "sha256": "b690ad7db7987e378d402f9ccae30f60fe097f6e9e2a44112660d0ec2aa683b8"
+  },
+  {
+    "source": "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp512/decode.layer0.svg",
+    "published": "assets/graphs/pp512/decode.layer0.svg",
+    "sha256": "a1557d2372fb09bd2346d09dbb8b34c4a9b88a59380b04cd8dc7be36c552d937"
+  },
+  {
+    "source": "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp512/decode.layer3.svg",
+    "published": "assets/graphs/pp512/decode.layer3.svg",
+    "sha256": "073c33088c6dcab7e5502c412d0508af1d6d7ea61385ce641eb2d057d9df9f8c"
+  }
+]

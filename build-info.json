@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "sha": "cf207976f07b77c00c622dcca804d23263562083",
+  "ref": "main",
+  "preview": false,
+  "work": [
+    {
+      "merged_at": "2026-10-04T21:02:09Z",
+      "number": 13,
+      "state": "closed"
+    },
+    {
+      "merged_at": "2026-10-04T20:57:41Z",
+      "number": 12,
+      "state": "closed"
+    },
+    {
+      "merged_at": "2026-10-04T20:40:49Z",
+      "number": 11,
+      "state": "closed"
+    },
+    {
+      "merged_at": null,
+      "number": 10,
+      "state": "open"
+    },
+    {
+      "merged_at": null,
+      "number": 9,
+      "state": "open"
+    },
+    {
+      "merged_at": "2026-10-02T09:38:06Z",
+      "number": 8,
+      "state": "closed"
+    },
+    {
+      "merged_at": null,
+      "number": 7,
+      "state": "open"
+    },
+    {
+      "merged_at": "2026-09-27T04:37:57Z",
+      "number": 6,
+      "state": "closed"
+    },
+    {
+      "merged_at": "2026-09-24T16:21:46Z",
+      "number": 5,
+      "state": "closed"
+    },
+    {
+      "merged_at": "2026-09-23T03:05:44Z",
+      "number": 4,
+      "state": "closed"
+    },
+    {
+      "merged_at": "2026-09-23T02:52:42Z",
+      "number": 2,
+      "state": "closed"
+    },
+    {
+      "merged_at": "2026-09-22T23:43:29Z",
+      "number": 1,
+      "state": "closed"
+    }
+  ]
+}
