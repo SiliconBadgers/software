@@ -17,7 +17,7 @@ the issue. Use existing evidence and explicit assumptions to work in parallel.
    build/simulation databases out of Git.
 5. Commit your changes with a clear description.
 6. Push the branch and open a PR linked to the issue for `@abhinavnandwani` to
-   review. Main requires one code-owner approval; admins can bypass. Do not
+   review. Main requires one approving review; admins can bypass. Do not
    close research/scaffold issues just because folders or templates exist.
 
 Preserve recorded experiments and slide baselines. Put new runs and proposals

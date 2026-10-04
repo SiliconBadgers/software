@@ -10,7 +10,7 @@ model comparisons, captured graphs, execution estimates and source links.
 
 1. Read [the current assignment and artifact locations](docs/START-HERE.md).
 2. Work on a branch and open a PR for `@abhinavnandwani` using
-   [CONTRIBUTING.md](CONTRIBUTING.md). Main requires a code-owner approval;
+   [CONTRIBUTING.md](CONTRIBUTING.md). Main requires one approving review;
    admins can bypass.
 
 ## Current issues
