@@ -27,7 +27,7 @@
   {
     "source": "experiments/llama-cpp/2026-09-24-qwen35-2b/explorer/engine.js",
     "published": "assets/zeb/engine.js",
-    "sha256": "8174a7bdf558365d1cf2453266097c3dabe64974c9c7e0912dad9f36f11d7dd2"
+    "sha256": "1b29867292a747bffb9390c4e8b1c987865f2fe82627ce577931d91379ff3cdd"
   },
   {
     "source": "experiments/llama-cpp/2026-09-24-qwen35-2b/explorer/graph-data.js",

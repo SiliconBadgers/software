@@ -12,6 +12,7 @@ const DEFAULTS={
  vectorCount:2,vectorLanes:32,vectorEfficiency:.7,specialCycles:8,
  vectorCaps:['elementwise','reduce','exp','rope','quant','recurrent','conv'],
  recurrentCount:0,recurrentLanes:128,recurrentEfficiency:.7,recurrentScratch:64,
+ recurrentMatrix:false,recurrentMatrixPenalty:16,
  dmaCount:1,dmaBytes:64,
  rvCount:1,rvIPC:1,rvCycles:4,rvSpecialCycles:40,rvFrequency:300,
  l1MiB:8,l1Banks:32,l1BytesPerBank:16,l1Efficiency:.65,stateReserve:.25,
@@ -29,9 +30,9 @@ function precision(c){return c.precision==='w4a8'?{w:4,a:8,rate:c.rateW4A8,aa:'a
 function validation(c){
  const errors=[];
  for(const k of ['matrixCaps','matrixTypes','vectorCaps'])if(!Array.isArray(c[k])||c[k].some(x=>typeof x!=='string'))errors.push(k+' must be a list of capabilities.');
- if(typeof c.overlap!=='boolean')errors.push('overlap must be a boolean.');
+ for(const k of ['overlap','recurrentMatrix'])if(typeof c[k]!=='boolean')errors.push(k+' must be a boolean.');
  for(const k of Object.keys(DEFAULTS)){if(typeof DEFAULTS[k]==='number'&&(!Number.isFinite(c[k])||c[k]<0))errors.push(k+' must be a nonnegative number.');}
- for(const k of ['frequency','batch','prompt','context','rows','cols','vectorLanes','recurrentLanes','l1MiB','l1Banks','l1BytesPerBank','hbmGiB','hbmGBs','tileN','tileK','rvFrequency','rvIPC','rvCycles','weightGroup'])if(!(c[k]>0))errors.push(k+' must exceed zero.');
+ for(const k of ['frequency','batch','prompt','context','rows','cols','vectorLanes','recurrentLanes','recurrentMatrixPenalty','l1MiB','l1Banks','l1BytesPerBank','hbmGiB','hbmGBs','tileN','tileK','rvFrequency','rvIPC','rvCycles','weightGroup'])if(!(c[k]>0))errors.push(k+' must exceed zero.');
  for(const k of ['matrixCount','vectorCount','recurrentCount','dmaCount','rvCount','batch','prompt','context','rows','cols','vectorLanes','recurrentLanes','l1Banks','tileN','tileK'])if(!Number.isInteger(c[k]))errors.push(k+' must be an integer.');
  for(const k of ['matrixEfficiency','vectorEfficiency','recurrentEfficiency','l1Efficiency','hbmEfficiency'])if(!(c[k]>0&&c[k]<=1))errors.push(k+' must be in (0, 1].');
  for(const k of ['stateReserve','shellReserve'])if(c[k]<0||c[k]>=1)errors.push(k+' must be in [0, 1).');
@@ -86,7 +87,7 @@ function modelPhase(graph,c,phase,detail=false){
  function scalar(ops,special=0){return rvRate>0?(ops*c.rvCycles+special*c.rvSpecialCycles)/rvRate:Infinity;}
  function vectorOrRV(ops,special,caps){return has(...caps)?{pool:'Vector',time:(ops+special*c.specialCycles)/vectorRate}:{pool:'RISC-V',time:scalar(ops,special)};}
  const sums={compute:0,l1:0,hbm:0,launch:0},pools={},ops={},rows=[],unmapped=new Set();
- let latency=0,hbmBytes=0,l1Bytes=0,spillBytes=0,macs=0,arithmetic=0,weightRead=0,peak=0,activeNodes=0,rvTime=0,matUtilNumerator=0,matTime=0;
+ let latency=0,hbmBytes=0,l1Bytes=0,spillBytes=0,macs=0,recurrentMatrixMacs=0,arithmetic=0,weightRead=0,peak=0,activeNodes=0,rvTime=0,matUtilNumerator=0,matTime=0;
  const weightNames=new Set();let weights=0;
  for(const t of graph.tensors){if(t.weight&&t.view<0&&t.op==='NONE'&&!weightNames.has(t.name)){weightNames.add(t.name);weights+=bytes(t.id);}}
  for(const id of graph.order){
@@ -124,6 +125,17 @@ function modelPhase(graph,c,phase,detail=false){
     map={pool:'Recurrent',time:(work+special*c.specialCycles)/(active*c.recurrentLanes*f*c.recurrentEfficiency)};
     const fits=c.recurrentScratch*1024>=S*S*c.stateBits/8;
     read=input+state*c.stateBits/8*(fits?1:5*T);
+   }else if(c.recurrentMatrix&&c.matrixCount>0){
+    // The F32 reference update has two state-vector products and one outer
+    // product per head/token. The penalty is relative to one W8 x A16 MAC per
+    // PE/cycle and deliberately spans implementation choices (bit-serial,
+    // decomposed fixed point, or wider PEs) rather than asserting one cost.
+    const recurrenceMacs=3*S*S*H*T*B;
+    const matrixSeconds=recurrenceMacs*c.recurrentMatrixPenalty/(c.matrixCount*c.rows*c.cols*f*c.matrixEfficiency*c.rateW8A16);
+    const tail=vectorOrRV((S*S+3*S)*H*T*B,special,['elementwise','exp']);
+    recurrentMatrixMacs+=recurrenceMacs;
+    map={pool:'Matrix',time:matrixSeconds+tail.time,secondaryPool:tail.pool,secondaryTime:tail.time,recurrentMatrixMacs:recurrenceMacs,matrixSeconds};
+    read=input+5*state*T*c.stateBits/8;
    }else{
     map=vectorOrRV(work,special,['recurrent','elementwise','reduce','exp']);
     read=input+5*state*T*c.stateBits/8;
@@ -167,18 +179,21 @@ function modelPhase(graph,c,phase,detail=false){
   latency+=time;hbmBytes+=hb;l1Bytes+=local;spillBytes+=spill;
   sums.compute+=ct;sums.l1+=lt;sums.hbm+=ht;sums.launch+=launch;
   pools[map.pool]=(pools[map.pool]||0)+ct;
-  if(map.pool==='RISC-V')rvTime+=ct;else rvTime+=extraRV;
+  if(map.secondaryTime){
+    pools[map.secondaryPool]=(pools[map.secondaryPool]||0)+map.secondaryTime;
+  }
+  if(map.pool==='RISC-V')rvTime+=ct;else rvTime+=extraRV+(map.secondaryPool==='RISC-V'?map.secondaryTime:0);
   if(extraRV){pools['RISC-V']=(pools['RISC-V']||0)+extraRV;pools[map.pool]-=extraRV;}
   if(!ops[op])ops[op]={op,count:0,seconds:0,hbm:0,l1:0,pools:new Set(),fallback:0};
-  const agg=ops[op];agg.count++;agg.seconds+=time;agg.hbm+=hb;agg.l1+=local;agg.pools.add(map.pool);if(map.epilogue)agg.pools.add(map.epilogue);if(map.pool==='RISC-V'||extraRV)agg.fallback++;
-  if(detail)rows.push({id,name:t.name,op,pool:map.pool,epilogue:map.epilogue||'',elements:E,macs:mm,seconds:time,compute:ct,l1:lt,hbm:ht,hbmBytes:hb,l1Bytes:local,dominant,working});
+  const agg=ops[op];agg.count++;agg.seconds+=time;agg.hbm+=hb;agg.l1+=local;agg.pools.add(map.pool);if(map.epilogue)agg.pools.add(map.epilogue);if(map.secondaryPool)agg.pools.add(map.secondaryPool);if(map.pool==='RISC-V'||extraRV||map.secondaryPool==='RISC-V')agg.fallback++;
+  if(detail)rows.push({id,name:t.name,op,pool:map.pool,secondaryPool:map.secondaryPool||'',secondaryTime:map.secondaryTime||0,epilogue:map.epilogue||'',elements:E,macs:mm,recurrentMatrixMacs:map.recurrentMatrixMacs||0,recurrentMatrixSeconds:map.matrixSeconds||0,seconds:time,compute:ct,l1:lt,hbm:ht,hbmBytes:hb,l1Bytes:local,dominant,working});
  }
  const kvBytes=6*2*512*round(Math.max(c.prompt,c.context+1),256)*B*c.kvBits/8;
  const requiredHBM=weights+kvBytes+statePerSequence*B+peak;
  const lowerBound=Math.max(sums.hbm,sums.l1,...Object.values(pools));
  return {phase,seconds:latency,perSequenceTPS:1/latency,aggregateTPS:(phase==='prefill'?c.prompt:1)*B/latency,
   hbmBytes,l1Bytes,spillBytes,weightRead,weights,requiredHBM,kvBytes,stateBytes:statePerSequence*B,stateResident,peakWorkingSet:peak,
-  sums,pools,rvTime,macs,arithmetic,activeNodes,lowerBound,
+  sums,pools,rvTime,macs,recurrentMatrixMacs,arithmetic,activeNodes,lowerBound,
   matrixUtilization:matTime?matUtilNumerator/(matTime*c.matrixCount*c.rows*c.cols*f*p.rate):0,
   unmapped:[...unmapped],ops:Object.values(ops).map(o=>({...o,pools:[...o.pools]})).sort((a,b)=>b.seconds-a.seconds),rows};
 }
