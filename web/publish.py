@@ -7,6 +7,7 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 
 
@@ -31,7 +32,19 @@ def overlay(site, build, ref):
 
 
 def run(*args, cwd=None):
-    return subprocess.run(args, cwd=cwd, text=True, check=True, capture_output=True)
+    result = subprocess.run(args, cwd=cwd, text=True, capture_output=True)
+    if result.returncode:
+        # Git's diagnostics explain authentication and branch-policy failures.
+        print(result.stderr, file=sys.stderr, end="")
+        result.check_returncode()
+    return result
+
+
+def authentication_environment(header, url="https://github.com/"):
+    key = f"http.{url}.extraheader"
+    # extraheader is multi-valued: reset the checkout's value before forwarding it.
+    return {"GIT_CONFIG_COUNT": "2", "GIT_CONFIG_KEY_0": key, "GIT_CONFIG_VALUE_0": "",
+            "GIT_CONFIG_KEY_1": key, "GIT_CONFIG_VALUE_1": header}
 
 
 def publish(build, ref):
@@ -40,8 +53,7 @@ def publish(build, ref):
                             capture_output=True, text=True)
     if header.returncode == 0:
         # Forward the checkout token without saving it in the publication branch.
-        os.environ.update(GIT_CONFIG_COUNT="1", GIT_CONFIG_KEY_0="http.https://github.com/.extraheader",
-                          GIT_CONFIG_VALUE_0=header.stdout.strip())
+        os.environ.update(authentication_environment(header.stdout.strip()))
     with tempfile.TemporaryDirectory(prefix="sb-software-pages-") as temp:
         site = Path(temp) / "site"
         exists = run("git", "ls-remote", "--heads", "origin", "gh-pages").stdout.strip()
