@@ -784,6 +784,59 @@ td small {
 .study-grid .panel {
   margin: 0 0 4px;
 }
+.study-card,
+.edition-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.study-card h2,
+.edition-card h2 {
+  overflow-wrap: anywhere;
+}
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 18px;
+}
+.button-link {
+  display: inline-block;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 12px;
+  font-weight: 600;
+}
+.preview-guide {
+  margin-top: 24px;
+}
+.preview-guide ol {
+  padding-left: 20px;
+}
+.preview-guide li {
+  margin-bottom: 8px;
+}
+#preview-status {
+  margin: 0 0 20px;
+}
+#saved-study-panel {
+  scroll-margin-top: 20px;
+}
+body:is([data-view="work"], [data-view="previews"], [data-view="sources"])
+  .workspace {
+  display: block;
+}
+body:is([data-view="work"], [data-view="previews"], [data-view="sources"])
+  aside {
+  display: none;
+}
+body:is([data-view="work"], [data-view="previews"], [data-view="sources"])
+  main {
+  max-width: 1280px;
+  margin: 0 auto;
+}
 .card-top {
   display: flex;
   justify-content: space-between;

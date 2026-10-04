@@ -119,7 +119,12 @@ const { chromium } = require("playwright");
       );
     }
     await page.locator("nav [data-view=work]").click();
+    await page.locator("aside").waitFor({ state: "hidden" });
     assert.equal(await page.locator("#work-list article").count(), 5);
+    assert(
+      await page.locator("aside").isHidden(),
+      "Study browsing uses the content width",
+    );
     await page.waitForFunction(
       () => document.querySelectorAll("[data-saved-design]").length === 12,
     );
@@ -134,8 +139,51 @@ const { chromium } = require("playwright");
       "300",
       "Saved design loads its study memory profile",
     );
+    await page.waitForFunction(() => document.body.dataset.view === "model");
+    assert.equal(
+      await page.evaluate(() => window.scrollY),
+      0,
+      "Opening a loaded design starts at its results",
+    );
     await page.locator("nav [data-view=sources]").click();
     assert.match(await page.locator("#build-info").innerText(), /PR #6/);
+    await page.locator("nav [data-view=previews]").click();
+    await page.locator("#preview-list article").first().waitFor();
+    assert(await page.locator("aside").isHidden());
+    const editionLinks = await page
+      .locator("#preview-list .button-link")
+      .evaluateAll((links) => links.map((link) => link.href));
+    for (const link of editionLinks) {
+      const response = await page.request.get(
+        new URL("build-info.json", link).href,
+      );
+      assert.equal(
+        response.status(),
+        200,
+        "Listed edition links reach a built workspace",
+      );
+    }
+    await page.route("**/editions.json", (route) =>
+      route.fulfill({ status: 503, body: "Unavailable" }),
+    );
+    await page.locator("#refresh-previews").click();
+    await page.waitForFunction(() =>
+      document
+        .querySelector("#preview-status")
+        .textContent.includes("Use Refresh"),
+    );
+    assert(
+      (await page.locator("#preview-list article").count()) > 0,
+      "Existing edition links survive a refresh failure",
+    );
+    await page.unroute("**/editions.json");
+    await page.locator("#refresh-previews").click();
+    await page.waitForFunction(
+      () =>
+        !document
+          .querySelector("#preview-status")
+          .textContent.includes("Use Refresh"),
+    );
     await page.locator("nav [data-view=model]").click();
     await page.locator("#control-frequency").fill("0");
     await page.waitForFunction(
@@ -155,6 +203,18 @@ const { chromium } = require("playwright");
       await page.locator("#configuration-panel").getAttribute("open"),
       null,
     );
+    for (const view of ["work", "previews", "sources"]) {
+      await page.locator(`nav [data-view=${view}]`).click();
+      await page.waitForFunction(
+        (view) => document.body.dataset.view === view,
+        view,
+      );
+      assert(await page.locator("aside").isHidden());
+      assert.equal(
+        await page.evaluate(() => document.documentElement.scrollWidth),
+        390,
+      );
+    }
     assert.deepEqual(errors, [], "No client exceptions");
     console.log(
       "PASS workspace navigation, controls, comparison, graphs, timeline export, invalid input and mobile layout",

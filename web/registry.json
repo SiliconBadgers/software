@@ -86,22 +86,28 @@
       "title": "Qwen captures and original explorer",
       "contributor": "Zeb Taylor",
       "pullRequest": 6,
-      "description": "The merged computational graphs and model behind the active study.",
-      "view": "model"
+      "description": "Explore matrix, vector and recurrence capacity with the original captured graphs and JS model.",
+      "view": "model",
+      "component": "qwen-baseline",
+      "actionLabel": "Open JS model"
     },
     {
       "title": "Dependency maps and grouping",
       "contributor": "Adrian Luo",
       "pullRequest": 10,
       "description": "State ordering, shared-input projections and proposed fusion groups.",
-      "view": "graph"
+      "view": "graph",
+      "component": "qwen-baseline",
+      "capture": "pp512",
+      "actionLabel": "Explore dependencies"
     },
     {
       "title": "Resource scheduling and recurrence studies",
       "contributor": "Eric Wang",
       "pullRequest": 9,
       "description": "Compute and memory scheduling, resource sweeps and shared-matrix recurrence costs.",
-      "view": "model"
+      "view": "work/recurrence",
+      "actionLabel": "Compare recurrence designs"
     },
     {
       "title": "Expanded profiling and Python engine",
@@ -109,13 +115,15 @@
       "pullRequest": 7,
       "description": "Additional captures, activation residency, hardware modeling and sensitivity analysis.",
       "view": "model",
-      "component": "qwen-python"
+      "component": "qwen-python",
+      "actionLabel": "Open Python model"
     },
     {
       "title": "Device integration probes",
       "contributor": "Abhinav Nandwani",
       "pullRequest": 8,
-      "description": "RISC-V mailbox firmware and llama.cpp checks. Tensor computation remains on the host."
+      "description": "RISC-V mailbox firmware and llama.cpp checks. Run these probes locally; tensor computation remains on the host.",
+      "source": "integration"
     }
   ],
   "sources": [
