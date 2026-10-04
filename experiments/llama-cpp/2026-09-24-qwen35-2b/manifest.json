@@ -1,0 +1,53 @@
+{
+  "model": "Qwen3.5-2B",
+  "scope": "Text language-model trunk only",
+  "upstream_model": "https://huggingface.co/Qwen/Qwen3.5-2B",
+  "upstream_revision": "15852e8c16360a2fea060d615a32b45270f8a8fc",
+  "gguf_repository": "https://huggingface.co/unsloth/Qwen3.5-2B-GGUF",
+  "gguf_revision": "f6d5376be1edb4d416d56da11e5397a961aca8ae",
+  "gguf_file": "Qwen3.5-2B-BF16.gguf",
+  "gguf_sha256_expected": "dc11be2ca4519954a3e4b013ef59497b5522209987d67891851113eda89619f1",
+  "gguf_size_expected": 3775709216,
+  "llama_cpp_repository": "https://github.com/ggml-org/llama.cpp",
+  "llama_cpp_revision": "308883b335798865e73f8fee0d9a5fbfa13c8480",
+  "build_backend": "CPU",
+  "capture_flash_attention": false,
+  "license": "Apache-2.0 model; MIT llama.cpp",
+  "gguf_sha256_verified": "dc11be2ca4519954a3e4b013ef59497b5522209987d67891851113eda89619f1",
+  "graph_workloads": [
+    {
+      "directory": "graphs/pp128",
+      "prefill_tokens": 128,
+      "decode_past_tokens": 128,
+      "context_capacity": 512
+    },
+    {
+      "directory": "graphs/pp512",
+      "prefill_tokens": 512,
+      "decode_past_tokens": 512,
+      "context_capacity": 2048
+    }
+  ],
+  "post_crash_integrity_verified": true,
+  "explorer": {
+    "version": "1.0",
+    "entrypoint": "explorer/index.html",
+    "engine": "explorer/engine.js",
+    "specification": "explorer/MODEL.md",
+    "model_kind": "uncalibrated analytical serial graph model with within-op transfer overlap",
+    "precision_modes": [
+      "W8/A16 integer with INT32 accumulation",
+      "W4/A8 integer with INT32 accumulation"
+    ],
+    "validation_checks_passed": 20,
+    "browser_verified": [
+      "160-candidate sweep",
+      "objective selection",
+      "vector removal and scalar fallback",
+      "frontier selection loads configuration"
+    ],
+    "default_hbm_capacity_gib": 16,
+    "default_hbm_peak_gb_per_second": 460,
+    "host_tokenization_excluded": true
+  }
+}

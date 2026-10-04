@@ -2,6 +2,10 @@
 
 Use llama.cpp profiling and numerical evidence to guide compute-unit boundaries, shared resources and host/device work. Software also owns operation mapping, backend/runtime and host integration.
 
+Open the [software workspace](https://siliconbadgers.com/software/) for
+model comparisons, captured graphs, execution estimates and source links.
+[Workspace development](web/README.md) describes components and branch previews.
+
 ## Start here
 
 1. Read [the current assignment and artifact locations](docs/START-HERE.md).
@@ -29,3 +33,5 @@ A reproducible CPU/Metal profiling package and the small MAC reference example e
 [CHARTER.md](CHARTER.md) and [OBJECTIVES.md](OBJECTIVES.md) describe the
 longer-term purpose. Current issues and the starting guide specify the work
 assigned now. [SETUP.md](SETUP.md) describes existing example commands and scope.
+
+Device firmware and llama.cpp integration probes: [integration/](integration/README.md).

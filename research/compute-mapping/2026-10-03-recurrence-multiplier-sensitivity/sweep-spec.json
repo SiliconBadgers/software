@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "study": "Qwen3.5-2B F32 recurrence multiplier and mapping sensitivity",
+  "captures": [
+    {"name": "pp128-prefill", "phase": "prefill", "path": "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/prefill.json"},
+    {"name": "pp128-decode", "phase": "decode", "path": "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/decode.json"},
+    {"name": "pp512-prefill", "phase": "prefill", "path": "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp512/prefill.json"},
+    {"name": "pp512-decode", "phase": "decode", "path": "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp512/decode.json"}
+  ],
+  "configOverrides": {
+    "prompt": 512,
+    "context": 2048,
+    "batch": 1,
+    "vectorCount": 4,
+    "vectorLanes": 32,
+    "dmaCount": 1,
+    "l1MiB": 8,
+    "recurrentMatrixPenalty": 16
+  },
+  "workloads": [
+    {"name": "captured-pp128", "config": {"prompt": 128, "context": 128, "batch": 1}},
+    {"name": "captured-pp512", "config": {"prompt": 512, "context": 512, "batch": 1}},
+    {"name": "target-batch1", "config": {"prompt": 512, "context": 2048, "batch": 1}},
+    {"name": "target-batch8", "config": {"prompt": 512, "context": 2048, "batch": 8}}
+  ],
+  "precisions": ["w8a16", "w4a8"],
+  "memoryProfiles": [
+    {"name": "bandwidth-constrained", "config": {"l1Banks": 32, "hbmGBs": 100}},
+    {"name": "middle", "config": {"l1Banks": 128, "hbmGBs": 300}},
+    {"name": "f2-ceiling", "config": {"l1Banks": 256, "hbmGBs": 460}}
+  ],
+  "matrixCounts": [1, 2, 4, 8, 16],
+  "penalties": [1, 2, 4, 8, 16, 32],
+  "dedicatedCounts": [1, 2, 4, 8, 16]
+}

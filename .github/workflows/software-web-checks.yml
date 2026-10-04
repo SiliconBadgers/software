@@ -1,0 +1,36 @@
+name: Software workspace checks
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Existing model checks
+        run: node experiments/llama-cpp/2026-09-24-qwen35-2b/scripts/test_model.cjs
+      - name: Workspace and publication checks
+        run: python3 -m unittest discover -s tests/web -v
+      - name: Build workspace
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 web/build.py --ref check
+      - name: Browser checks
+        run: |
+          npm install --prefix build/browser-tests --no-save --ignore-scripts playwright@1.62.1
+          build/browser-tests/node_modules/.bin/playwright install --with-deps chromium
+          python3 -m http.server 8767 --directory build/site > /tmp/software-web-server.log 2>&1 &
+          NODE_PATH="$PWD/build/browser-tests/node_modules" node tests/web/smoke.cjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: software-workspace
+          path: build/site

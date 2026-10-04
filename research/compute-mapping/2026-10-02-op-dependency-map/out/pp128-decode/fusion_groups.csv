@@ -1,0 +1,291 @@
+group,layer,layer_type,n_ops,pattern,ops,names,categories,units,writes_state,reads_state,internal_edges,internal_bytes,handoffs_removed
+Fpre.0,pre,embedding,1,single op,GET_ROWS,model.input_embed,memory,,0,0,0,0,0
+F0.0,0,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_norm,vector/vector,,0,0,1,8192,0
+F0.1,0,deltanet,3,parallel weight_matrix group + epilogue + side input,GET_ROWS -> MUL_MAT -> CONCAT,conv_states -> _ -> conv_input,memory/weight_matrix/memory,P0.0,0,1,2,98304,1
+F0.2,0,deltanet,1,single op,CPY,conv_state_update (copy of conv_state_last),memory,,1,0,0,0,0
+F0.3,0,deltanet,6,recurrent + prologue,GET_ROWS -> RMS_NORM -> SCALE -> RMS_NORM -> SCALE -> GATED_DELTA_NET,_ -> _ -> q_conv_predelta -> _ -> k_conv_predelta -> _,memory/vector/vector/vector/vector/recurrent,U58,0,1,5,1081344,3
+F0.4,0,deltanet,2,conv + epilogue,SSM_CONV -> UNARY,conv_output_raw -> conv_output_silu,conv/vector,U34,0,0,1,24576,1
+F0.5,0,deltanet,4,parallel weight_matrix group + epilogue,MUL_MAT -> ADD -> UNARY -> MUL,_ -> _ -> a_softplus -> gate,weight_matrix/vector/vector/vector,P0.0,0,0,3,192,1
+F0.6,0,deltanet,2,parallel weight_matrix group + epilogue,MUL_MAT -> UNARY,_ -> beta_sigmoid,weight_matrix/vector,P0.0,0,0,1,64,1
+F0.7,0,deltanet,1,single op,CPY,cache_s_lN (view) (copy of new_state),memory,,1,0,0,0,0
+F0.8,0,deltanet,5,parallel weight_matrix group + epilogue + side input,RMS_NORM -> MUL -> MUL_MAT -> UNARY -> MUL,norm -> _ -> z -> _ -> _,vector/vector/weight_matrix/vector/vector,P0.0,0,0,4,32768,1
+F0.9,0,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,linear_attn_out -> attn_residual,weight_matrix/vector,U72,0,0,1,8192,1
+F0.10,0,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_post_norm,vector/vector,,0,0,1,8192,0
+F0.11,0,deltanet,3,parallel weight_matrix group + epilogue,MUL_MAT -> MUL_MAT -> GLU,ffn_gate -> ffn_up -> ffn_swiglu,weight_matrix/weight_matrix/vector,P0.1,0,0,2,49152,2
+F0.12,0,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,ffn_out -> l_out,weight_matrix/vector,U84,0,0,1,8192,1
+F1.0,1,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_norm,vector/vector,,0,0,1,8192,0
+F1.1,1,deltanet,3,parallel weight_matrix group + epilogue + side input,GET_ROWS -> MUL_MAT -> CONCAT,conv_states -> _ -> conv_input,memory/weight_matrix/memory,P1.0,0,1,2,98304,1
+F1.2,1,deltanet,1,single op,CPY,conv_state_update (copy of conv_state_last),memory,,1,0,0,0,0
+F1.3,1,deltanet,6,recurrent + prologue,GET_ROWS -> RMS_NORM -> SCALE -> RMS_NORM -> SCALE -> GATED_DELTA_NET,_ -> _ -> q_conv_predelta -> _ -> k_conv_predelta -> _,memory/vector/vector/vector/vector/recurrent,U139,0,1,5,1081344,3
+F1.4,1,deltanet,2,conv + epilogue,SSM_CONV -> UNARY,conv_output_raw -> conv_output_silu,conv/vector,U115,0,0,1,24576,1
+F1.5,1,deltanet,4,parallel weight_matrix group + epilogue,MUL_MAT -> ADD -> UNARY -> MUL,_ -> _ -> a_softplus -> gate,weight_matrix/vector/vector/vector,P1.0,0,0,3,192,1
+F1.6,1,deltanet,2,parallel weight_matrix group + epilogue,MUL_MAT -> UNARY,_ -> beta_sigmoid,weight_matrix/vector,P1.0,0,0,1,64,1
+F1.7,1,deltanet,1,single op,CPY,cache_s_lN (view) (copy of new_state),memory,,1,0,0,0,0
+F1.8,1,deltanet,5,parallel weight_matrix group + epilogue + side input,RMS_NORM -> MUL -> MUL_MAT -> UNARY -> MUL,norm -> _ -> z -> _ -> _,vector/vector/weight_matrix/vector/vector,P1.0,0,0,4,32768,1
+F1.9,1,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,linear_attn_out -> attn_residual,weight_matrix/vector,U153,0,0,1,8192,1
+F1.10,1,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_post_norm,vector/vector,,0,0,1,8192,0
+F1.11,1,deltanet,3,parallel weight_matrix group + epilogue,MUL_MAT -> MUL_MAT -> GLU,ffn_gate -> ffn_up -> ffn_swiglu,weight_matrix/weight_matrix/vector,P1.1,0,0,2,49152,2
+F1.12,1,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,ffn_out -> l_out,weight_matrix/vector,U165,0,0,1,8192,1
+F2.0,2,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_norm,vector/vector,,0,0,1,8192,0
+F2.1,2,deltanet,3,parallel weight_matrix group + epilogue + side input,GET_ROWS -> MUL_MAT -> CONCAT,conv_states -> _ -> conv_input,memory/weight_matrix/memory,P2.0,0,1,2,98304,1
+F2.2,2,deltanet,1,single op,CPY,conv_state_update (copy of conv_state_last),memory,,1,0,0,0,0
+F2.3,2,deltanet,6,recurrent + prologue,GET_ROWS -> RMS_NORM -> SCALE -> RMS_NORM -> SCALE -> GATED_DELTA_NET,_ -> _ -> q_conv_predelta -> _ -> k_conv_predelta -> _,memory/vector/vector/vector/vector/recurrent,U220,0,1,5,1081344,3
+F2.4,2,deltanet,2,conv + epilogue,SSM_CONV -> UNARY,conv_output_raw -> conv_output_silu,conv/vector,U196,0,0,1,24576,1
+F2.5,2,deltanet,4,parallel weight_matrix group + epilogue,MUL_MAT -> ADD -> UNARY -> MUL,_ -> _ -> a_softplus -> gate,weight_matrix/vector/vector/vector,P2.0,0,0,3,192,1
+F2.6,2,deltanet,2,parallel weight_matrix group + epilogue,MUL_MAT -> UNARY,_ -> beta_sigmoid,weight_matrix/vector,P2.0,0,0,1,64,1
+F2.7,2,deltanet,1,single op,CPY,cache_s_lN (view) (copy of new_state),memory,,1,0,0,0,0
+F2.8,2,deltanet,5,parallel weight_matrix group + epilogue + side input,RMS_NORM -> MUL -> MUL_MAT -> UNARY -> MUL,norm -> _ -> z -> _ -> _,vector/vector/weight_matrix/vector/vector,P2.0,0,0,4,32768,1
+F2.9,2,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,linear_attn_out -> attn_residual,weight_matrix/vector,U234,0,0,1,8192,1
+F2.10,2,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_post_norm,vector/vector,,0,0,1,8192,0
+F2.11,2,deltanet,3,parallel weight_matrix group + epilogue,MUL_MAT -> MUL_MAT -> GLU,ffn_gate -> ffn_up -> ffn_swiglu,weight_matrix/weight_matrix/vector,P2.1,0,0,2,49152,2
+F2.12,2,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,ffn_out -> l_out,weight_matrix/vector,U246,0,0,1,8192,1
+F3.0,3,full_attention,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_norm,vector/vector,,0,0,1,8192,0
+F3.1,3,full_attention,1,single op,MUL_MAT,Qcur_full,weight_matrix,P3.0,0,0,0,0,0
+F3.2,3,full_attention,10,attention core + prologue + epilogue + side input,RMS_NORM -> MUL -> ROPE -> MUL_MAT -> SOFT_MAX -> MUL_MAT -> CONT -> CONT -> UNARY -> MUL,norm -> Qcur_normed -> Qcur -> kq -> kq_soft_max -> kqv -> attn_pregate -> gate_reshaped -> gate_sigmoid -> attn_gated,vector/vector/vector/act_matrix/vector/act_matrix/memory/memory/vector/vector,A3,0,1,9,73728,6
+F3.3,3,full_attention,2,parallel weight_matrix group + epilogue,MUL_MAT -> SET_ROWS,Vcur -> cache_v_lN (reshaped) (view),weight_matrix/memory,P3.0,1,0,1,2048,1
+F3.4,3,full_attention,5,parallel weight_matrix group + epilogue,MUL_MAT -> RMS_NORM -> MUL -> ROPE -> SET_ROWS,Kcur -> norm -> Kcur_normed -> Kcur -> cache_k_lN (view),weight_matrix/vector/vector/vector/memory,P3.0,1,0,4,8192,2
+F3.5,3,full_attention,2,weight_matrix + epilogue,MUL_MAT -> ADD,attn_output -> attn_residual,weight_matrix/vector,U296,0,0,1,8192,1
+F3.6,3,full_attention,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_post_norm,vector/vector,,0,0,1,8192,0
+F3.7,3,full_attention,3,parallel weight_matrix group + epilogue,MUL_MAT -> MUL_MAT -> GLU,ffn_gate -> ffn_up -> ffn_swiglu,weight_matrix/weight_matrix/vector,P3.1,0,0,2,49152,2
+F3.8,3,full_attention,2,weight_matrix + epilogue,MUL_MAT -> ADD,ffn_out -> l_out,weight_matrix/vector,U307,0,0,1,8192,1
+F4.0,4,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_norm,vector/vector,,0,0,1,8192,0
+F4.1,4,deltanet,3,parallel weight_matrix group + epilogue + side input,GET_ROWS -> MUL_MAT -> CONCAT,conv_states -> _ -> conv_input,memory/weight_matrix/memory,P4.0,0,1,2,98304,1
+F4.2,4,deltanet,1,single op,CPY,conv_state_update (copy of conv_state_last),memory,,1,0,0,0,0
+F4.3,4,deltanet,6,recurrent + prologue,GET_ROWS -> RMS_NORM -> SCALE -> RMS_NORM -> SCALE -> GATED_DELTA_NET,_ -> _ -> q_conv_predelta -> _ -> k_conv_predelta -> _,memory/vector/vector/vector/vector/recurrent,U362,0,1,5,1081344,3
+F4.4,4,deltanet,2,conv + epilogue,SSM_CONV -> UNARY,conv_output_raw -> conv_output_silu,conv/vector,U338,0,0,1,24576,1
+F4.5,4,deltanet,4,parallel weight_matrix group + epilogue,MUL_MAT -> ADD -> UNARY -> MUL,_ -> _ -> a_softplus -> gate,weight_matrix/vector/vector/vector,P4.0,0,0,3,192,1
+F4.6,4,deltanet,2,parallel weight_matrix group + epilogue,MUL_MAT -> UNARY,_ -> beta_sigmoid,weight_matrix/vector,P4.0,0,0,1,64,1
+F4.7,4,deltanet,1,single op,CPY,cache_s_lN (view) (copy of new_state),memory,,1,0,0,0,0
+F4.8,4,deltanet,5,parallel weight_matrix group + epilogue + side input,RMS_NORM -> MUL -> MUL_MAT -> UNARY -> MUL,norm -> _ -> z -> _ -> _,vector/vector/weight_matrix/vector/vector,P4.0,0,0,4,32768,1
+F4.9,4,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,linear_attn_out -> attn_residual,weight_matrix/vector,U376,0,0,1,8192,1
+F4.10,4,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_post_norm,vector/vector,,0,0,1,8192,0
+F4.11,4,deltanet,3,parallel weight_matrix group + epilogue,MUL_MAT -> MUL_MAT -> GLU,ffn_gate -> ffn_up -> ffn_swiglu,weight_matrix/weight_matrix/vector,P4.1,0,0,2,49152,2
+F4.12,4,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,ffn_out -> l_out,weight_matrix/vector,U388,0,0,1,8192,1
+F5.0,5,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_norm,vector/vector,,0,0,1,8192,0
+F5.1,5,deltanet,3,parallel weight_matrix group + epilogue + side input,GET_ROWS -> MUL_MAT -> CONCAT,conv_states -> _ -> conv_input,memory/weight_matrix/memory,P5.0,0,1,2,98304,1
+F5.2,5,deltanet,1,single op,CPY,conv_state_update (copy of conv_state_last),memory,,1,0,0,0,0
+F5.3,5,deltanet,6,recurrent + prologue,GET_ROWS -> RMS_NORM -> SCALE -> RMS_NORM -> SCALE -> GATED_DELTA_NET,_ -> _ -> q_conv_predelta -> _ -> k_conv_predelta -> _,memory/vector/vector/vector/vector/recurrent,U443,0,1,5,1081344,3
+F5.4,5,deltanet,2,conv + epilogue,SSM_CONV -> UNARY,conv_output_raw -> conv_output_silu,conv/vector,U419,0,0,1,24576,1
+F5.5,5,deltanet,4,parallel weight_matrix group + epilogue,MUL_MAT -> ADD -> UNARY -> MUL,_ -> _ -> a_softplus -> gate,weight_matrix/vector/vector/vector,P5.0,0,0,3,192,1
+F5.6,5,deltanet,2,parallel weight_matrix group + epilogue,MUL_MAT -> UNARY,_ -> beta_sigmoid,weight_matrix/vector,P5.0,0,0,1,64,1
+F5.7,5,deltanet,1,single op,CPY,cache_s_lN (view) (copy of new_state),memory,,1,0,0,0,0
+F5.8,5,deltanet,5,parallel weight_matrix group + epilogue + side input,RMS_NORM -> MUL -> MUL_MAT -> UNARY -> MUL,norm -> _ -> z -> _ -> _,vector/vector/weight_matrix/vector/vector,P5.0,0,0,4,32768,1
+F5.9,5,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,linear_attn_out -> attn_residual,weight_matrix/vector,U457,0,0,1,8192,1
+F5.10,5,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_post_norm,vector/vector,,0,0,1,8192,0
+F5.11,5,deltanet,3,parallel weight_matrix group + epilogue,MUL_MAT -> MUL_MAT -> GLU,ffn_gate -> ffn_up -> ffn_swiglu,weight_matrix/weight_matrix/vector,P5.1,0,0,2,49152,2
+F5.12,5,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,ffn_out -> l_out,weight_matrix/vector,U469,0,0,1,8192,1
+F6.0,6,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_norm,vector/vector,,0,0,1,8192,0
+F6.1,6,deltanet,3,parallel weight_matrix group + epilogue + side input,GET_ROWS -> MUL_MAT -> CONCAT,conv_states -> _ -> conv_input,memory/weight_matrix/memory,P6.0,0,1,2,98304,1
+F6.2,6,deltanet,1,single op,CPY,conv_state_update (copy of conv_state_last),memory,,1,0,0,0,0
+F6.3,6,deltanet,6,recurrent + prologue,GET_ROWS -> RMS_NORM -> SCALE -> RMS_NORM -> SCALE -> GATED_DELTA_NET,_ -> _ -> q_conv_predelta -> _ -> k_conv_predelta -> _,memory/vector/vector/vector/vector/recurrent,U524,0,1,5,1081344,3
+F6.4,6,deltanet,2,conv + epilogue,SSM_CONV -> UNARY,conv_output_raw -> conv_output_silu,conv/vector,U500,0,0,1,24576,1
+F6.5,6,deltanet,4,parallel weight_matrix group + epilogue,MUL_MAT -> ADD -> UNARY -> MUL,_ -> _ -> a_softplus -> gate,weight_matrix/vector/vector/vector,P6.0,0,0,3,192,1
+F6.6,6,deltanet,2,parallel weight_matrix group + epilogue,MUL_MAT -> UNARY,_ -> beta_sigmoid,weight_matrix/vector,P6.0,0,0,1,64,1
+F6.7,6,deltanet,1,single op,CPY,cache_s_lN (view) (copy of new_state),memory,,1,0,0,0,0
+F6.8,6,deltanet,5,parallel weight_matrix group + epilogue + side input,RMS_NORM -> MUL -> MUL_MAT -> UNARY -> MUL,norm -> _ -> z -> _ -> _,vector/vector/weight_matrix/vector/vector,P6.0,0,0,4,32768,1
+F6.9,6,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,linear_attn_out -> attn_residual,weight_matrix/vector,U538,0,0,1,8192,1
+F6.10,6,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_post_norm,vector/vector,,0,0,1,8192,0
+F6.11,6,deltanet,3,parallel weight_matrix group + epilogue,MUL_MAT -> MUL_MAT -> GLU,ffn_gate -> ffn_up -> ffn_swiglu,weight_matrix/weight_matrix/vector,P6.1,0,0,2,49152,2
+F6.12,6,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,ffn_out -> l_out,weight_matrix/vector,U550,0,0,1,8192,1
+F7.0,7,full_attention,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_norm,vector/vector,,0,0,1,8192,0
+F7.1,7,full_attention,1,single op,MUL_MAT,Qcur_full,weight_matrix,P7.0,0,0,0,0,0
+F7.2,7,full_attention,10,attention core + prologue + epilogue + side input,RMS_NORM -> MUL -> ROPE -> MUL_MAT -> SOFT_MAX -> MUL_MAT -> CONT -> CONT -> UNARY -> MUL,norm -> Qcur_normed -> Qcur -> kq -> kq_soft_max -> kqv -> attn_pregate -> gate_reshaped -> gate_sigmoid -> attn_gated,vector/vector/vector/act_matrix/vector/act_matrix/memory/memory/vector/vector,A7,0,1,9,73728,6
+F7.3,7,full_attention,2,parallel weight_matrix group + epilogue,MUL_MAT -> SET_ROWS,Vcur -> cache_v_lN (reshaped) (view),weight_matrix/memory,P7.0,1,0,1,2048,1
+F7.4,7,full_attention,5,parallel weight_matrix group + epilogue,MUL_MAT -> RMS_NORM -> MUL -> ROPE -> SET_ROWS,Kcur -> norm -> Kcur_normed -> Kcur -> cache_k_lN (view),weight_matrix/vector/vector/vector/memory,P7.0,1,0,4,8192,2
+F7.5,7,full_attention,2,weight_matrix + epilogue,MUL_MAT -> ADD,attn_output -> attn_residual,weight_matrix/vector,U596,0,0,1,8192,1
+F7.6,7,full_attention,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_post_norm,vector/vector,,0,0,1,8192,0
+F7.7,7,full_attention,3,parallel weight_matrix group + epilogue,MUL_MAT -> MUL_MAT -> GLU,ffn_gate -> ffn_up -> ffn_swiglu,weight_matrix/weight_matrix/vector,P7.1,0,0,2,49152,2
+F7.8,7,full_attention,2,weight_matrix + epilogue,MUL_MAT -> ADD,ffn_out -> l_out,weight_matrix/vector,U607,0,0,1,8192,1
+F8.0,8,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_norm,vector/vector,,0,0,1,8192,0
+F8.1,8,deltanet,3,parallel weight_matrix group + epilogue + side input,GET_ROWS -> MUL_MAT -> CONCAT,conv_states -> _ -> conv_input,memory/weight_matrix/memory,P8.0,0,1,2,98304,1
+F8.2,8,deltanet,1,single op,CPY,conv_state_update (copy of conv_state_last),memory,,1,0,0,0,0
+F8.3,8,deltanet,6,recurrent + prologue,GET_ROWS -> RMS_NORM -> SCALE -> RMS_NORM -> SCALE -> GATED_DELTA_NET,_ -> _ -> q_conv_predelta -> _ -> k_conv_predelta -> _,memory/vector/vector/vector/vector/recurrent,U662,0,1,5,1081344,3
+F8.4,8,deltanet,2,conv + epilogue,SSM_CONV -> UNARY,conv_output_raw -> conv_output_silu,conv/vector,U638,0,0,1,24576,1
+F8.5,8,deltanet,4,parallel weight_matrix group + epilogue,MUL_MAT -> ADD -> UNARY -> MUL,_ -> _ -> a_softplus -> gate,weight_matrix/vector/vector/vector,P8.0,0,0,3,192,1
+F8.6,8,deltanet,2,parallel weight_matrix group + epilogue,MUL_MAT -> UNARY,_ -> beta_sigmoid,weight_matrix/vector,P8.0,0,0,1,64,1
+F8.7,8,deltanet,1,single op,CPY,cache_s_lN (view) (copy of new_state),memory,,1,0,0,0,0
+F8.8,8,deltanet,5,parallel weight_matrix group + epilogue + side input,RMS_NORM -> MUL -> MUL_MAT -> UNARY -> MUL,norm -> _ -> z -> _ -> _,vector/vector/weight_matrix/vector/vector,P8.0,0,0,4,32768,1
+F8.9,8,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,linear_attn_out -> attn_residual,weight_matrix/vector,U676,0,0,1,8192,1
+F8.10,8,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_post_norm,vector/vector,,0,0,1,8192,0
+F8.11,8,deltanet,3,parallel weight_matrix group + epilogue,MUL_MAT -> MUL_MAT -> GLU,ffn_gate -> ffn_up -> ffn_swiglu,weight_matrix/weight_matrix/vector,P8.1,0,0,2,49152,2
+F8.12,8,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,ffn_out -> l_out,weight_matrix/vector,U688,0,0,1,8192,1
+F9.0,9,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_norm,vector/vector,,0,0,1,8192,0
+F9.1,9,deltanet,3,parallel weight_matrix group + epilogue + side input,GET_ROWS -> MUL_MAT -> CONCAT,conv_states -> _ -> conv_input,memory/weight_matrix/memory,P9.0,0,1,2,98304,1
+F9.2,9,deltanet,1,single op,CPY,conv_state_update (copy of conv_state_last),memory,,1,0,0,0,0
+F9.3,9,deltanet,6,recurrent + prologue,GET_ROWS -> RMS_NORM -> SCALE -> RMS_NORM -> SCALE -> GATED_DELTA_NET,_ -> _ -> q_conv_predelta -> _ -> k_conv_predelta -> _,memory/vector/vector/vector/vector/recurrent,U743,0,1,5,1081344,3
+F9.4,9,deltanet,2,conv + epilogue,SSM_CONV -> UNARY,conv_output_raw -> conv_output_silu,conv/vector,U719,0,0,1,24576,1
+F9.5,9,deltanet,4,parallel weight_matrix group + epilogue,MUL_MAT -> ADD -> UNARY -> MUL,_ -> _ -> a_softplus -> gate,weight_matrix/vector/vector/vector,P9.0,0,0,3,192,1
+F9.6,9,deltanet,2,parallel weight_matrix group + epilogue,MUL_MAT -> UNARY,_ -> beta_sigmoid,weight_matrix/vector,P9.0,0,0,1,64,1
+F9.7,9,deltanet,1,single op,CPY,cache_s_lN (view) (copy of new_state),memory,,1,0,0,0,0
+F9.8,9,deltanet,5,parallel weight_matrix group + epilogue + side input,RMS_NORM -> MUL -> MUL_MAT -> UNARY -> MUL,norm -> _ -> z -> _ -> _,vector/vector/weight_matrix/vector/vector,P9.0,0,0,4,32768,1
+F9.9,9,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,linear_attn_out -> attn_residual,weight_matrix/vector,U757,0,0,1,8192,1
+F9.10,9,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_post_norm,vector/vector,,0,0,1,8192,0
+F9.11,9,deltanet,3,parallel weight_matrix group + epilogue,MUL_MAT -> MUL_MAT -> GLU,ffn_gate -> ffn_up -> ffn_swiglu,weight_matrix/weight_matrix/vector,P9.1,0,0,2,49152,2
+F9.12,9,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,ffn_out -> l_out,weight_matrix/vector,U769,0,0,1,8192,1
+F10.0,10,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_norm,vector/vector,,0,0,1,8192,0
+F10.1,10,deltanet,3,parallel weight_matrix group + epilogue + side input,GET_ROWS -> MUL_MAT -> CONCAT,conv_states -> _ -> conv_input,memory/weight_matrix/memory,P10.0,0,1,2,98304,1
+F10.2,10,deltanet,1,single op,CPY,conv_state_update (copy of conv_state_last),memory,,1,0,0,0,0
+F10.3,10,deltanet,6,recurrent + prologue,GET_ROWS -> RMS_NORM -> SCALE -> RMS_NORM -> SCALE -> GATED_DELTA_NET,_ -> _ -> q_conv_predelta -> _ -> k_conv_predelta -> _,memory/vector/vector/vector/vector/recurrent,U824,0,1,5,1081344,3
+F10.4,10,deltanet,2,conv + epilogue,SSM_CONV -> UNARY,conv_output_raw -> conv_output_silu,conv/vector,U800,0,0,1,24576,1
+F10.5,10,deltanet,4,parallel weight_matrix group + epilogue,MUL_MAT -> ADD -> UNARY -> MUL,_ -> _ -> a_softplus -> gate,weight_matrix/vector/vector/vector,P10.0,0,0,3,192,1
+F10.6,10,deltanet,2,parallel weight_matrix group + epilogue,MUL_MAT -> UNARY,_ -> beta_sigmoid,weight_matrix/vector,P10.0,0,0,1,64,1
+F10.7,10,deltanet,1,single op,CPY,cache_s_lN (view) (copy of new_state),memory,,1,0,0,0,0
+F10.8,10,deltanet,5,parallel weight_matrix group + epilogue + side input,RMS_NORM -> MUL -> MUL_MAT -> UNARY -> MUL,norm -> _ -> z -> _ -> _,vector/vector/weight_matrix/vector/vector,P10.0,0,0,4,32768,1
+F10.9,10,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,linear_attn_out -> attn_residual,weight_matrix/vector,U838,0,0,1,8192,1
+F10.10,10,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_post_norm,vector/vector,,0,0,1,8192,0
+F10.11,10,deltanet,3,parallel weight_matrix group + epilogue,MUL_MAT -> MUL_MAT -> GLU,ffn_gate -> ffn_up -> ffn_swiglu,weight_matrix/weight_matrix/vector,P10.1,0,0,2,49152,2
+F10.12,10,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,ffn_out -> l_out,weight_matrix/vector,U850,0,0,1,8192,1
+F11.0,11,full_attention,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_norm,vector/vector,,0,0,1,8192,0
+F11.1,11,full_attention,1,single op,MUL_MAT,Qcur_full,weight_matrix,P11.0,0,0,0,0,0
+F11.2,11,full_attention,10,attention core + prologue + epilogue + side input,RMS_NORM -> MUL -> ROPE -> MUL_MAT -> SOFT_MAX -> MUL_MAT -> CONT -> CONT -> UNARY -> MUL,norm -> Qcur_normed -> Qcur -> kq -> kq_soft_max -> kqv -> attn_pregate -> gate_reshaped -> gate_sigmoid -> attn_gated,vector/vector/vector/act_matrix/vector/act_matrix/memory/memory/vector/vector,A11,0,1,9,73728,6
+F11.3,11,full_attention,2,parallel weight_matrix group + epilogue,MUL_MAT -> SET_ROWS,Vcur -> cache_v_lN (reshaped) (view),weight_matrix/memory,P11.0,1,0,1,2048,1
+F11.4,11,full_attention,5,parallel weight_matrix group + epilogue,MUL_MAT -> RMS_NORM -> MUL -> ROPE -> SET_ROWS,Kcur -> norm -> Kcur_normed -> Kcur -> cache_k_lN (view),weight_matrix/vector/vector/vector/memory,P11.0,1,0,4,8192,2
+F11.5,11,full_attention,2,weight_matrix + epilogue,MUL_MAT -> ADD,attn_output -> attn_residual,weight_matrix/vector,U896,0,0,1,8192,1
+F11.6,11,full_attention,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_post_norm,vector/vector,,0,0,1,8192,0
+F11.7,11,full_attention,3,parallel weight_matrix group + epilogue,MUL_MAT -> MUL_MAT -> GLU,ffn_gate -> ffn_up -> ffn_swiglu,weight_matrix/weight_matrix/vector,P11.1,0,0,2,49152,2
+F11.8,11,full_attention,2,weight_matrix + epilogue,MUL_MAT -> ADD,ffn_out -> l_out,weight_matrix/vector,U907,0,0,1,8192,1
+F12.0,12,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_norm,vector/vector,,0,0,1,8192,0
+F12.1,12,deltanet,3,parallel weight_matrix group + epilogue + side input,GET_ROWS -> MUL_MAT -> CONCAT,conv_states -> _ -> conv_input,memory/weight_matrix/memory,P12.0,0,1,2,98304,1
+F12.2,12,deltanet,1,single op,CPY,conv_state_update (copy of conv_state_last),memory,,1,0,0,0,0
+F12.3,12,deltanet,6,recurrent + prologue,GET_ROWS -> RMS_NORM -> SCALE -> RMS_NORM -> SCALE -> GATED_DELTA_NET,_ -> _ -> q_conv_predelta -> _ -> k_conv_predelta -> _,memory/vector/vector/vector/vector/recurrent,U962,0,1,5,1081344,3
+F12.4,12,deltanet,2,conv + epilogue,SSM_CONV -> UNARY,conv_output_raw -> conv_output_silu,conv/vector,U938,0,0,1,24576,1
+F12.5,12,deltanet,4,parallel weight_matrix group + epilogue,MUL_MAT -> ADD -> UNARY -> MUL,_ -> _ -> a_softplus -> gate,weight_matrix/vector/vector/vector,P12.0,0,0,3,192,1
+F12.6,12,deltanet,2,parallel weight_matrix group + epilogue,MUL_MAT -> UNARY,_ -> beta_sigmoid,weight_matrix/vector,P12.0,0,0,1,64,1
+F12.7,12,deltanet,1,single op,CPY,cache_s_lN (view) (copy of new_state),memory,,1,0,0,0,0
+F12.8,12,deltanet,5,parallel weight_matrix group + epilogue + side input,RMS_NORM -> MUL -> MUL_MAT -> UNARY -> MUL,norm -> _ -> z -> _ -> _,vector/vector/weight_matrix/vector/vector,P12.0,0,0,4,32768,1
+F12.9,12,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,linear_attn_out -> attn_residual,weight_matrix/vector,U976,0,0,1,8192,1
+F12.10,12,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_post_norm,vector/vector,,0,0,1,8192,0
+F12.11,12,deltanet,3,parallel weight_matrix group + epilogue,MUL_MAT -> MUL_MAT -> GLU,ffn_gate -> ffn_up -> ffn_swiglu,weight_matrix/weight_matrix/vector,P12.1,0,0,2,49152,2
+F12.12,12,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,ffn_out -> l_out,weight_matrix/vector,U988,0,0,1,8192,1
+F13.0,13,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_norm,vector/vector,,0,0,1,8192,0
+F13.1,13,deltanet,3,parallel weight_matrix group + epilogue + side input,GET_ROWS -> MUL_MAT -> CONCAT,conv_states -> _ -> conv_input,memory/weight_matrix/memory,P13.0,0,1,2,98304,1
+F13.2,13,deltanet,1,single op,CPY,conv_state_update (copy of conv_state_last),memory,,1,0,0,0,0
+F13.3,13,deltanet,6,recurrent + prologue,GET_ROWS -> RMS_NORM -> SCALE -> RMS_NORM -> SCALE -> GATED_DELTA_NET,_ -> _ -> q_conv_predelta -> _ -> k_conv_predelta -> _,memory/vector/vector/vector/vector/recurrent,U1043,0,1,5,1081344,3
+F13.4,13,deltanet,2,conv + epilogue,SSM_CONV -> UNARY,conv_output_raw -> conv_output_silu,conv/vector,U1019,0,0,1,24576,1
+F13.5,13,deltanet,4,parallel weight_matrix group + epilogue,MUL_MAT -> ADD -> UNARY -> MUL,_ -> _ -> a_softplus -> gate,weight_matrix/vector/vector/vector,P13.0,0,0,3,192,1
+F13.6,13,deltanet,2,parallel weight_matrix group + epilogue,MUL_MAT -> UNARY,_ -> beta_sigmoid,weight_matrix/vector,P13.0,0,0,1,64,1
+F13.7,13,deltanet,1,single op,CPY,cache_s_lN (view) (copy of new_state),memory,,1,0,0,0,0
+F13.8,13,deltanet,5,parallel weight_matrix group + epilogue + side input,RMS_NORM -> MUL -> MUL_MAT -> UNARY -> MUL,norm -> _ -> z -> _ -> _,vector/vector/weight_matrix/vector/vector,P13.0,0,0,4,32768,1
+F13.9,13,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,linear_attn_out -> attn_residual,weight_matrix/vector,U1057,0,0,1,8192,1
+F13.10,13,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_post_norm,vector/vector,,0,0,1,8192,0
+F13.11,13,deltanet,3,parallel weight_matrix group + epilogue,MUL_MAT -> MUL_MAT -> GLU,ffn_gate -> ffn_up -> ffn_swiglu,weight_matrix/weight_matrix/vector,P13.1,0,0,2,49152,2
+F13.12,13,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,ffn_out -> l_out,weight_matrix/vector,U1069,0,0,1,8192,1
+F14.0,14,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_norm,vector/vector,,0,0,1,8192,0
+F14.1,14,deltanet,3,parallel weight_matrix group + epilogue + side input,GET_ROWS -> MUL_MAT -> CONCAT,conv_states -> _ -> conv_input,memory/weight_matrix/memory,P14.0,0,1,2,98304,1
+F14.2,14,deltanet,1,single op,CPY,conv_state_update (copy of conv_state_last),memory,,1,0,0,0,0
+F14.3,14,deltanet,6,recurrent + prologue,GET_ROWS -> RMS_NORM -> SCALE -> RMS_NORM -> SCALE -> GATED_DELTA_NET,_ -> _ -> q_conv_predelta -> _ -> k_conv_predelta -> _,memory/vector/vector/vector/vector/recurrent,U1124,0,1,5,1081344,3
+F14.4,14,deltanet,2,conv + epilogue,SSM_CONV -> UNARY,conv_output_raw -> conv_output_silu,conv/vector,U1100,0,0,1,24576,1
+F14.5,14,deltanet,4,parallel weight_matrix group + epilogue,MUL_MAT -> ADD -> UNARY -> MUL,_ -> _ -> a_softplus -> gate,weight_matrix/vector/vector/vector,P14.0,0,0,3,192,1
+F14.6,14,deltanet,2,parallel weight_matrix group + epilogue,MUL_MAT -> UNARY,_ -> beta_sigmoid,weight_matrix/vector,P14.0,0,0,1,64,1
+F14.7,14,deltanet,1,single op,CPY,cache_s_lN (view) (copy of new_state),memory,,1,0,0,0,0
+F14.8,14,deltanet,5,parallel weight_matrix group + epilogue + side input,RMS_NORM -> MUL -> MUL_MAT -> UNARY -> MUL,norm -> _ -> z -> _ -> _,vector/vector/weight_matrix/vector/vector,P14.0,0,0,4,32768,1
+F14.9,14,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,linear_attn_out -> attn_residual,weight_matrix/vector,U1138,0,0,1,8192,1
+F14.10,14,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_post_norm,vector/vector,,0,0,1,8192,0
+F14.11,14,deltanet,3,parallel weight_matrix group + epilogue,MUL_MAT -> MUL_MAT -> GLU,ffn_gate -> ffn_up -> ffn_swiglu,weight_matrix/weight_matrix/vector,P14.1,0,0,2,49152,2
+F14.12,14,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,ffn_out -> l_out,weight_matrix/vector,U1150,0,0,1,8192,1
+F15.0,15,full_attention,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_norm,vector/vector,,0,0,1,8192,0
+F15.1,15,full_attention,1,single op,MUL_MAT,Qcur_full,weight_matrix,P15.0,0,0,0,0,0
+F15.2,15,full_attention,10,attention core + prologue + epilogue + side input,RMS_NORM -> MUL -> ROPE -> MUL_MAT -> SOFT_MAX -> MUL_MAT -> CONT -> CONT -> UNARY -> MUL,norm -> Qcur_normed -> Qcur -> kq -> kq_soft_max -> kqv -> attn_pregate -> gate_reshaped -> gate_sigmoid -> attn_gated,vector/vector/vector/act_matrix/vector/act_matrix/memory/memory/vector/vector,A15,0,1,9,73728,6
+F15.3,15,full_attention,2,parallel weight_matrix group + epilogue,MUL_MAT -> SET_ROWS,Vcur -> cache_v_lN (reshaped) (view),weight_matrix/memory,P15.0,1,0,1,2048,1
+F15.4,15,full_attention,5,parallel weight_matrix group + epilogue,MUL_MAT -> RMS_NORM -> MUL -> ROPE -> SET_ROWS,Kcur -> norm -> Kcur_normed -> Kcur -> cache_k_lN (view),weight_matrix/vector/vector/vector/memory,P15.0,1,0,4,8192,2
+F15.5,15,full_attention,2,weight_matrix + epilogue,MUL_MAT -> ADD,attn_output -> attn_residual,weight_matrix/vector,U1196,0,0,1,8192,1
+F15.6,15,full_attention,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_post_norm,vector/vector,,0,0,1,8192,0
+F15.7,15,full_attention,3,parallel weight_matrix group + epilogue,MUL_MAT -> MUL_MAT -> GLU,ffn_gate -> ffn_up -> ffn_swiglu,weight_matrix/weight_matrix/vector,P15.1,0,0,2,49152,2
+F15.8,15,full_attention,2,weight_matrix + epilogue,MUL_MAT -> ADD,ffn_out -> l_out,weight_matrix/vector,U1207,0,0,1,8192,1
+F16.0,16,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_norm,vector/vector,,0,0,1,8192,0
+F16.1,16,deltanet,3,parallel weight_matrix group + epilogue + side input,GET_ROWS -> MUL_MAT -> CONCAT,conv_states -> _ -> conv_input,memory/weight_matrix/memory,P16.0,0,1,2,98304,1
+F16.2,16,deltanet,1,single op,CPY,conv_state_update (copy of conv_state_last),memory,,1,0,0,0,0
+F16.3,16,deltanet,6,recurrent + prologue,GET_ROWS -> RMS_NORM -> SCALE -> RMS_NORM -> SCALE -> GATED_DELTA_NET,_ -> _ -> q_conv_predelta -> _ -> k_conv_predelta -> _,memory/vector/vector/vector/vector/recurrent,U1262,0,1,5,1081344,3
+F16.4,16,deltanet,2,conv + epilogue,SSM_CONV -> UNARY,conv_output_raw -> conv_output_silu,conv/vector,U1238,0,0,1,24576,1
+F16.5,16,deltanet,4,parallel weight_matrix group + epilogue,MUL_MAT -> ADD -> UNARY -> MUL,_ -> _ -> a_softplus -> gate,weight_matrix/vector/vector/vector,P16.0,0,0,3,192,1
+F16.6,16,deltanet,2,parallel weight_matrix group + epilogue,MUL_MAT -> UNARY,_ -> beta_sigmoid,weight_matrix/vector,P16.0,0,0,1,64,1
+F16.7,16,deltanet,1,single op,CPY,cache_s_lN (view) (copy of new_state),memory,,1,0,0,0,0
+F16.8,16,deltanet,5,parallel weight_matrix group + epilogue + side input,RMS_NORM -> MUL -> MUL_MAT -> UNARY -> MUL,norm -> _ -> z -> _ -> _,vector/vector/weight_matrix/vector/vector,P16.0,0,0,4,32768,1
+F16.9,16,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,linear_attn_out -> attn_residual,weight_matrix/vector,U1276,0,0,1,8192,1
+F16.10,16,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_post_norm,vector/vector,,0,0,1,8192,0
+F16.11,16,deltanet,3,parallel weight_matrix group + epilogue,MUL_MAT -> MUL_MAT -> GLU,ffn_gate -> ffn_up -> ffn_swiglu,weight_matrix/weight_matrix/vector,P16.1,0,0,2,49152,2
+F16.12,16,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,ffn_out -> l_out,weight_matrix/vector,U1288,0,0,1,8192,1
+F17.0,17,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_norm,vector/vector,,0,0,1,8192,0
+F17.1,17,deltanet,3,parallel weight_matrix group + epilogue + side input,GET_ROWS -> MUL_MAT -> CONCAT,conv_states -> _ -> conv_input,memory/weight_matrix/memory,P17.0,0,1,2,98304,1
+F17.2,17,deltanet,1,single op,CPY,conv_state_update (copy of conv_state_last),memory,,1,0,0,0,0
+F17.3,17,deltanet,6,recurrent + prologue,GET_ROWS -> RMS_NORM -> SCALE -> RMS_NORM -> SCALE -> GATED_DELTA_NET,_ -> _ -> q_conv_predelta -> _ -> k_conv_predelta -> _,memory/vector/vector/vector/vector/recurrent,U1343,0,1,5,1081344,3
+F17.4,17,deltanet,2,conv + epilogue,SSM_CONV -> UNARY,conv_output_raw -> conv_output_silu,conv/vector,U1319,0,0,1,24576,1
+F17.5,17,deltanet,4,parallel weight_matrix group + epilogue,MUL_MAT -> ADD -> UNARY -> MUL,_ -> _ -> a_softplus -> gate,weight_matrix/vector/vector/vector,P17.0,0,0,3,192,1
+F17.6,17,deltanet,2,parallel weight_matrix group + epilogue,MUL_MAT -> UNARY,_ -> beta_sigmoid,weight_matrix/vector,P17.0,0,0,1,64,1
+F17.7,17,deltanet,1,single op,CPY,cache_s_lN (view) (copy of new_state),memory,,1,0,0,0,0
+F17.8,17,deltanet,5,parallel weight_matrix group + epilogue + side input,RMS_NORM -> MUL -> MUL_MAT -> UNARY -> MUL,norm -> _ -> z -> _ -> _,vector/vector/weight_matrix/vector/vector,P17.0,0,0,4,32768,1
+F17.9,17,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,linear_attn_out -> attn_residual,weight_matrix/vector,U1357,0,0,1,8192,1
+F17.10,17,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_post_norm,vector/vector,,0,0,1,8192,0
+F17.11,17,deltanet,3,parallel weight_matrix group + epilogue,MUL_MAT -> MUL_MAT -> GLU,ffn_gate -> ffn_up -> ffn_swiglu,weight_matrix/weight_matrix/vector,P17.1,0,0,2,49152,2
+F17.12,17,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,ffn_out -> l_out,weight_matrix/vector,U1369,0,0,1,8192,1
+F18.0,18,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_norm,vector/vector,,0,0,1,8192,0
+F18.1,18,deltanet,3,parallel weight_matrix group + epilogue + side input,GET_ROWS -> MUL_MAT -> CONCAT,conv_states -> _ -> conv_input,memory/weight_matrix/memory,P18.0,0,1,2,98304,1
+F18.2,18,deltanet,1,single op,CPY,conv_state_update (copy of conv_state_last),memory,,1,0,0,0,0
+F18.3,18,deltanet,6,recurrent + prologue,GET_ROWS -> RMS_NORM -> SCALE -> RMS_NORM -> SCALE -> GATED_DELTA_NET,_ -> _ -> q_conv_predelta -> _ -> k_conv_predelta -> _,memory/vector/vector/vector/vector/recurrent,U1424,0,1,5,1081344,3
+F18.4,18,deltanet,2,conv + epilogue,SSM_CONV -> UNARY,conv_output_raw -> conv_output_silu,conv/vector,U1400,0,0,1,24576,1
+F18.5,18,deltanet,4,parallel weight_matrix group + epilogue,MUL_MAT -> ADD -> UNARY -> MUL,_ -> _ -> a_softplus -> gate,weight_matrix/vector/vector/vector,P18.0,0,0,3,192,1
+F18.6,18,deltanet,2,parallel weight_matrix group + epilogue,MUL_MAT -> UNARY,_ -> beta_sigmoid,weight_matrix/vector,P18.0,0,0,1,64,1
+F18.7,18,deltanet,1,single op,CPY,cache_s_lN (view) (copy of new_state),memory,,1,0,0,0,0
+F18.8,18,deltanet,5,parallel weight_matrix group + epilogue + side input,RMS_NORM -> MUL -> MUL_MAT -> UNARY -> MUL,norm -> _ -> z -> _ -> _,vector/vector/weight_matrix/vector/vector,P18.0,0,0,4,32768,1
+F18.9,18,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,linear_attn_out -> attn_residual,weight_matrix/vector,U1438,0,0,1,8192,1
+F18.10,18,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_post_norm,vector/vector,,0,0,1,8192,0
+F18.11,18,deltanet,3,parallel weight_matrix group + epilogue,MUL_MAT -> MUL_MAT -> GLU,ffn_gate -> ffn_up -> ffn_swiglu,weight_matrix/weight_matrix/vector,P18.1,0,0,2,49152,2
+F18.12,18,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,ffn_out -> l_out,weight_matrix/vector,U1450,0,0,1,8192,1
+F19.0,19,full_attention,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_norm,vector/vector,,0,0,1,8192,0
+F19.1,19,full_attention,1,single op,MUL_MAT,Qcur_full,weight_matrix,P19.0,0,0,0,0,0
+F19.2,19,full_attention,10,attention core + prologue + epilogue + side input,RMS_NORM -> MUL -> ROPE -> MUL_MAT -> SOFT_MAX -> MUL_MAT -> CONT -> CONT -> UNARY -> MUL,norm -> Qcur_normed -> Qcur -> kq -> kq_soft_max -> kqv -> attn_pregate -> gate_reshaped -> gate_sigmoid -> attn_gated,vector/vector/vector/act_matrix/vector/act_matrix/memory/memory/vector/vector,A19,0,1,9,73728,6
+F19.3,19,full_attention,2,parallel weight_matrix group + epilogue,MUL_MAT -> SET_ROWS,Vcur -> cache_v_lN (reshaped) (view),weight_matrix/memory,P19.0,1,0,1,2048,1
+F19.4,19,full_attention,5,parallel weight_matrix group + epilogue,MUL_MAT -> RMS_NORM -> MUL -> ROPE -> SET_ROWS,Kcur -> norm -> Kcur_normed -> Kcur -> cache_k_lN (view),weight_matrix/vector/vector/vector/memory,P19.0,1,0,4,8192,2
+F19.5,19,full_attention,2,weight_matrix + epilogue,MUL_MAT -> ADD,attn_output -> attn_residual,weight_matrix/vector,U1496,0,0,1,8192,1
+F19.6,19,full_attention,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_post_norm,vector/vector,,0,0,1,8192,0
+F19.7,19,full_attention,3,parallel weight_matrix group + epilogue,MUL_MAT -> MUL_MAT -> GLU,ffn_gate -> ffn_up -> ffn_swiglu,weight_matrix/weight_matrix/vector,P19.1,0,0,2,49152,2
+F19.8,19,full_attention,2,weight_matrix + epilogue,MUL_MAT -> ADD,ffn_out -> l_out,weight_matrix/vector,U1507,0,0,1,8192,1
+F20.0,20,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_norm,vector/vector,,0,0,1,8192,0
+F20.1,20,deltanet,3,parallel weight_matrix group + epilogue + side input,GET_ROWS -> MUL_MAT -> CONCAT,conv_states -> _ -> conv_input,memory/weight_matrix/memory,P20.0,0,1,2,98304,1
+F20.2,20,deltanet,1,single op,CPY,conv_state_update (copy of conv_state_last),memory,,1,0,0,0,0
+F20.3,20,deltanet,6,recurrent + prologue,GET_ROWS -> RMS_NORM -> SCALE -> RMS_NORM -> SCALE -> GATED_DELTA_NET,_ -> _ -> q_conv_predelta -> _ -> k_conv_predelta -> _,memory/vector/vector/vector/vector/recurrent,U1562,0,1,5,1081344,3
+F20.4,20,deltanet,2,conv + epilogue,SSM_CONV -> UNARY,conv_output_raw -> conv_output_silu,conv/vector,U1538,0,0,1,24576,1
+F20.5,20,deltanet,4,parallel weight_matrix group + epilogue,MUL_MAT -> ADD -> UNARY -> MUL,_ -> _ -> a_softplus -> gate,weight_matrix/vector/vector/vector,P20.0,0,0,3,192,1
+F20.6,20,deltanet,2,parallel weight_matrix group + epilogue,MUL_MAT -> UNARY,_ -> beta_sigmoid,weight_matrix/vector,P20.0,0,0,1,64,1
+F20.7,20,deltanet,1,single op,CPY,cache_s_lN (view) (copy of new_state),memory,,1,0,0,0,0
+F20.8,20,deltanet,5,parallel weight_matrix group + epilogue + side input,RMS_NORM -> MUL -> MUL_MAT -> UNARY -> MUL,norm -> _ -> z -> _ -> _,vector/vector/weight_matrix/vector/vector,P20.0,0,0,4,32768,1
+F20.9,20,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,linear_attn_out -> attn_residual,weight_matrix/vector,U1576,0,0,1,8192,1
+F20.10,20,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_post_norm,vector/vector,,0,0,1,8192,0
+F20.11,20,deltanet,3,parallel weight_matrix group + epilogue,MUL_MAT -> MUL_MAT -> GLU,ffn_gate -> ffn_up -> ffn_swiglu,weight_matrix/weight_matrix/vector,P20.1,0,0,2,49152,2
+F20.12,20,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,ffn_out -> l_out,weight_matrix/vector,U1588,0,0,1,8192,1
+F21.0,21,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_norm,vector/vector,,0,0,1,8192,0
+F21.1,21,deltanet,3,parallel weight_matrix group + epilogue + side input,GET_ROWS -> MUL_MAT -> CONCAT,conv_states -> _ -> conv_input,memory/weight_matrix/memory,P21.0,0,1,2,98304,1
+F21.2,21,deltanet,1,single op,CPY,conv_state_update (copy of conv_state_last),memory,,1,0,0,0,0
+F21.3,21,deltanet,6,recurrent + prologue,GET_ROWS -> RMS_NORM -> SCALE -> RMS_NORM -> SCALE -> GATED_DELTA_NET,_ -> _ -> q_conv_predelta -> _ -> k_conv_predelta -> _,memory/vector/vector/vector/vector/recurrent,U1643,0,1,5,1081344,3
+F21.4,21,deltanet,2,conv + epilogue,SSM_CONV -> UNARY,conv_output_raw -> conv_output_silu,conv/vector,U1619,0,0,1,24576,1
+F21.5,21,deltanet,4,parallel weight_matrix group + epilogue,MUL_MAT -> ADD -> UNARY -> MUL,_ -> _ -> a_softplus -> gate,weight_matrix/vector/vector/vector,P21.0,0,0,3,192,1
+F21.6,21,deltanet,2,parallel weight_matrix group + epilogue,MUL_MAT -> UNARY,_ -> beta_sigmoid,weight_matrix/vector,P21.0,0,0,1,64,1
+F21.7,21,deltanet,1,single op,CPY,cache_s_lN (view) (copy of new_state),memory,,1,0,0,0,0
+F21.8,21,deltanet,5,parallel weight_matrix group + epilogue + side input,RMS_NORM -> MUL -> MUL_MAT -> UNARY -> MUL,norm -> _ -> z -> _ -> _,vector/vector/weight_matrix/vector/vector,P21.0,0,0,4,32768,1
+F21.9,21,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,linear_attn_out -> attn_residual,weight_matrix/vector,U1657,0,0,1,8192,1
+F21.10,21,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_post_norm,vector/vector,,0,0,1,8192,0
+F21.11,21,deltanet,3,parallel weight_matrix group + epilogue,MUL_MAT -> MUL_MAT -> GLU,ffn_gate -> ffn_up -> ffn_swiglu,weight_matrix/weight_matrix/vector,P21.1,0,0,2,49152,2
+F21.12,21,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,ffn_out -> l_out,weight_matrix/vector,U1669,0,0,1,8192,1
+F22.0,22,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_norm,vector/vector,,0,0,1,8192,0
+F22.1,22,deltanet,3,parallel weight_matrix group + epilogue + side input,GET_ROWS -> MUL_MAT -> CONCAT,conv_states -> _ -> conv_input,memory/weight_matrix/memory,P22.0,0,1,2,98304,1
+F22.2,22,deltanet,1,single op,CPY,conv_state_update (copy of conv_state_last),memory,,1,0,0,0,0
+F22.3,22,deltanet,6,recurrent + prologue,GET_ROWS -> RMS_NORM -> SCALE -> RMS_NORM -> SCALE -> GATED_DELTA_NET,_ -> _ -> q_conv_predelta -> _ -> k_conv_predelta -> _,memory/vector/vector/vector/vector/recurrent,U1724,0,1,5,1081344,3
+F22.4,22,deltanet,2,conv + epilogue,SSM_CONV -> UNARY,conv_output_raw -> conv_output_silu,conv/vector,U1700,0,0,1,24576,1
+F22.5,22,deltanet,4,parallel weight_matrix group + epilogue,MUL_MAT -> ADD -> UNARY -> MUL,_ -> _ -> a_softplus -> gate,weight_matrix/vector/vector/vector,P22.0,0,0,3,192,1
+F22.6,22,deltanet,2,parallel weight_matrix group + epilogue,MUL_MAT -> UNARY,_ -> beta_sigmoid,weight_matrix/vector,P22.0,0,0,1,64,1
+F22.7,22,deltanet,1,single op,CPY,cache_s_lN (view) (copy of new_state),memory,,1,0,0,0,0
+F22.8,22,deltanet,5,parallel weight_matrix group + epilogue + side input,RMS_NORM -> MUL -> MUL_MAT -> UNARY -> MUL,norm -> _ -> z -> _ -> _,vector/vector/weight_matrix/vector/vector,P22.0,0,0,4,32768,1
+F22.9,22,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,linear_attn_out -> attn_residual,weight_matrix/vector,U1738,0,0,1,8192,1
+F22.10,22,deltanet,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_post_norm,vector/vector,,0,0,1,8192,0
+F22.11,22,deltanet,3,parallel weight_matrix group + epilogue,MUL_MAT -> MUL_MAT -> GLU,ffn_gate -> ffn_up -> ffn_swiglu,weight_matrix/weight_matrix/vector,P22.1,0,0,2,49152,2
+F22.12,22,deltanet,2,weight_matrix + epilogue,MUL_MAT -> ADD,ffn_out -> l_out,weight_matrix/vector,U1750,0,0,1,8192,1
+F23.0,23,full_attention,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_norm,vector/vector,,0,0,1,8192,0
+F23.1,23,full_attention,1,single op,MUL_MAT,Qcur_full,weight_matrix,P23.0,0,0,0,0,0
+F23.2,23,full_attention,10,attention core + prologue + epilogue + side input,RMS_NORM -> MUL -> ROPE -> MUL_MAT -> SOFT_MAX -> MUL_MAT -> CONT -> CONT -> UNARY -> MUL,norm -> Qcur_normed -> Qcur -> kq -> kq_soft_max -> kqv -> attn_pregate -> gate_reshaped -> gate_sigmoid -> attn_gated,vector/vector/vector/act_matrix/vector/act_matrix/memory/memory/vector/vector,A23,0,1,9,73728,6
+F23.3,23,full_attention,2,parallel weight_matrix group + epilogue,MUL_MAT -> SET_ROWS,Vcur -> cache_v_lN (reshaped) (view),weight_matrix/memory,P23.0,1,0,1,2048,1
+F23.4,23,full_attention,5,parallel weight_matrix group + epilogue,MUL_MAT -> RMS_NORM -> MUL -> ROPE -> SET_ROWS,Kcur -> norm -> Kcur_normed -> Kcur -> cache_k_lN (view),weight_matrix/vector/vector/vector/memory,P23.0,1,0,4,8192,2
+F23.5,23,full_attention,2,weight_matrix + epilogue,MUL_MAT -> ADD,attn_output -> attn_residual,weight_matrix/vector,U1796,0,0,1,8192,1
+F23.6,23,full_attention,2,vector/memory only,RMS_NORM -> MUL,norm -> attn_post_norm,vector/vector,,0,0,1,8192,0
+F23.7,23,full_attention,3,parallel weight_matrix group + epilogue,MUL_MAT -> MUL_MAT -> GLU,ffn_gate -> ffn_up -> ffn_swiglu,weight_matrix/weight_matrix/vector,P23.1,0,0,2,49152,2
+F23.8,23,full_attention,2,weight_matrix + epilogue,MUL_MAT -> ADD,ffn_out -> l_out,weight_matrix/vector,U1807,0,0,1,8192,1
+Fpost.0,post,output_head,4,weight_matrix + prologue,RMS_NORM -> MUL -> GET_ROWS -> MUL_MAT,norm -> h_nextn -> result_norm -> result_output,vector/vector/memory/weight_matrix,U1815,0,0,3,24576,2

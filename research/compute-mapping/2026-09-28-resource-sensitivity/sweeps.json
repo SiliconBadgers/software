@@ -1,0 +1,4682 @@
+{
+  "schemaVersion": 1,
+  "study": "Qwen3.5-2B explorer one-dimensional resource sensitivity",
+  "qualification": "Uncalibrated analytical sensitivity study; not measured hardware performance or an architecture optimum.",
+  "source": {
+    "llamaCommit": "308883b335798865e73f8fee0d9a5fbfa13c8480",
+    "model": "Qwen3.5-2B",
+    "engineSha256": "cc108602cfb36d1deb0ad5bd38438f442657f7b27c86c34550971f770c8f0823",
+    "graphSha256": "96b64f3ece09db85dd00185281d3a9bb1ecc4fa6b2a7b3e8b422aae11621e131",
+    "specSha256": "063a8113f2587ab0e754a1a80d4334078c6b1be83bedacf0440d3894098240c2"
+  },
+  "plateauDefinition": {
+    "threshold": 0.02,
+    "rule": "First positive sampled value for which every available exact-doubling latency improvement is below the threshold. A lower-bound flag means the true knee may be below the sampled range. Null means the sampled range did not establish a sustained knee."
+  },
+  "baseline": {
+    "frequency": 300,
+    "precision": "w8a16",
+    "batch": 1,
+    "prompt": 512,
+    "context": 2048,
+    "matrixCount": 4,
+    "rows": 16,
+    "cols": 16,
+    "matrixEfficiency": 0.75,
+    "matrixCaps": [
+      "gemm",
+      "gemv",
+      "attention",
+      "requant"
+    ],
+    "matrixTypes": [
+      "w8a16",
+      "w4a8",
+      "a16a16",
+      "a8a8"
+    ],
+    "rateW8A16": 1,
+    "rateW4A8": 2,
+    "rateA16": 0.5,
+    "rateA8": 1,
+    "vectorCount": 2,
+    "vectorLanes": 32,
+    "vectorEfficiency": 0.7,
+    "specialCycles": 8,
+    "vectorCaps": [
+      "elementwise",
+      "reduce",
+      "exp",
+      "rope",
+      "quant",
+      "recurrent",
+      "conv"
+    ],
+    "recurrentCount": 0,
+    "recurrentLanes": 128,
+    "recurrentEfficiency": 0.7,
+    "recurrentScratch": 64,
+    "dmaCount": 1,
+    "dmaBytes": 64,
+    "rvCount": 1,
+    "rvIPC": 1,
+    "rvCycles": 4,
+    "rvSpecialCycles": 40,
+    "rvFrequency": 300,
+    "l1MiB": 8,
+    "l1Banks": 32,
+    "l1BytesPerBank": 16,
+    "l1Efficiency": 0.65,
+    "stateReserve": 0.25,
+    "hbmGiB": 16,
+    "hbmGBs": 460,
+    "hbmEfficiency": 0.7,
+    "kvBits": 16,
+    "stateBits": 32,
+    "tileN": 64,
+    "tileK": 256,
+    "weightGroup": 64,
+    "scaleBytes": 2,
+    "launchCycles": 40,
+    "overlap": true,
+    "dspPerPE": 1,
+    "dspPerVectorLane": 0.5,
+    "dspPerRecurrentLane": 1,
+    "dspBudget": 9024,
+    "shellReserve": 0.2,
+    "costMatrix": 1,
+    "costVector": 8,
+    "costRecurrent": 10,
+    "costSRAM": 128,
+    "costCapability": 40,
+    "costRiscV": 200
+  },
+  "sweeps": [
+    {
+      "parameter": "matrixCount",
+      "label": "Matrix unit count",
+      "unit": "units",
+      "kind": "compute",
+      "values": [
+        1,
+        2,
+        4,
+        8,
+        16,
+        32
+      ],
+      "rows": [
+        {
+          "value": 1,
+          "valid": true,
+          "resource": {
+            "pe": 256,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 288,
+            "dspLimit": 7219.200000000001,
+            "cost": 2632
+          },
+          "prefill": {
+            "latencyMs": 14105.285930931781,
+            "throughput": 36.298448858610115,
+            "serviceMs": {
+              "compute": 14103.457861676516,
+              "l1": 1186.3537224069478,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.8924319054316707,
+              "modeledOperationMs": {
+                "Matrix": 12588.007199999987,
+                "Vector": 1487.7163047619058,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 10.925405128205128,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 12596.810097777752
+          },
+          "decode": {
+            "latencyMs": 47.31071283424893,
+            "throughput": 21.136861824582045,
+            "serviceMs": {
+              "compute": 41.00377962301575,
+              "l1": 42.89656837158425,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.8222257676770153,
+              "modeledOperationMs": {
+                "Matrix": 1.9997866666666662,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 38.900087179487144,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 42.89656837158425
+          }
+        },
+        {
+          "value": 2,
+          "valid": true,
+          "resource": {
+            "pe": 512,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 544,
+            "dspLimit": 7219.200000000001,
+            "cost": 2888
+          },
+          "prefill": {
+            "latencyMs": 7811.295530931772,
+            "throughput": 65.54610537682807,
+            "serviceMs": {
+              "compute": 7805.052883898786,
+              "l1": 1186.3537224069478,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.805758375813137,
+              "modeledOperationMs": {
+                "Matrix": 6294.0168,
+                "Vector": 1487.7163047619058,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 10.925405128205128,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 6298.405119999987
+          },
+          "decode": {
+            "latencyMs": 46.78095693681305,
+            "throughput": 21.3762194166036,
+            "serviceMs": {
+              "compute": 23.70045517857133,
+              "l1": 42.89656837158425,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.8623106620756966,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 40.33971794871791,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 42.89656837158425
+          }
+        },
+        {
+          "value": 4,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 3400
+          },
+          "prefill": {
+            "latencyMs": 4664.300330931783,
+            "throughput": 109.76994697460191,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 1186.3537224069478,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.6747038948436083,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 1487.7163047619058,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 10.925405128205128,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 46.78095693681305,
+            "throughput": 21.3762194166036,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 42.89656837158425,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.8623106620756966,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 40.33971794871791,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 42.89656837158425
+          }
+        },
+        {
+          "value": 8,
+          "valid": true,
+          "resource": {
+            "pe": 2048,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 2080,
+            "dspLimit": 7219.200000000001,
+            "cost": 4424
+          },
+          "prefill": {
+            "latencyMs": 3090.8027309317804,
+            "throughput": 165.65275903119445,
+            "serviceMs": {
+              "compute": 3081.249150565461,
+              "l1": 1186.3537224069478,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.5090988125035187,
+              "modeledOperationMs": {
+                "Matrix": 1573.5240000000022,
+                "Vector": 1487.7163047619058,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 10.925405128205128,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 1574.6013866666635
+          },
+          "decode": {
+            "latencyMs": 46.78095693681305,
+            "throughput": 21.3762194166036,
+            "serviceMs": {
+              "compute": 10.722961845238064,
+              "l1": 42.89656837158425,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.8623106620756966,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 40.33971794871791,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 42.89656837158425
+          }
+        },
+        {
+          "value": 16,
+          "valid": true,
+          "resource": {
+            "pe": 4096,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 4128,
+            "dspLimit": 7219.200000000001,
+            "cost": 6472
+          },
+          "prefill": {
+            "latencyMs": 2304.343063239469,
+            "throughput": 222.18913848714226,
+            "serviceMs": {
+              "compute": 2293.948528343249,
+              "l1": 1186.3537224069478,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Vector",
+              "share": 0.6456140704459427,
+              "modeledOperationMs": {
+                "Matrix": 786.105439999999,
+                "Vector": 1487.7163047619058,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 11.884297435897436,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 1488.0262095238108
+          },
+          "decode": {
+            "latencyMs": 46.78095693681305,
+            "throughput": 21.3762194166036,
+            "serviceMs": {
+              "compute": 8.560046289682491,
+              "l1": 42.89656837158425,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.8623106620756966,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 40.33971794871791,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 42.89656837158425
+          }
+        },
+        {
+          "value": 32,
+          "valid": false,
+          "errors": [
+            "Estimated DSP demand exceeds the configured usable budget."
+          ]
+        }
+      ],
+      "knees": {
+        "prefill": {
+          "value": null,
+          "atLowerSampleBound": false,
+          "threshold": 0.02,
+          "comparisons": [
+            {
+              "value": 1,
+              "doubledValue": 2,
+              "latencyImprovement": 0.4462150168964518,
+              "throughputImprovement": 0.8057549960920798,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 2,
+              "doubledValue": 4,
+              "latencyImprovement": 0.40287749804603784,
+              "throughputImprovement": 0.6746982348307136,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 4,
+              "doubledValue": 8,
+              "latencyImprovement": 0.3373491174153587,
+              "throughputImprovement": 0.5090902710331313,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 8,
+              "doubledValue": 16,
+              "latencyImprovement": 0.25445158949216357,
+              "throughputImprovement": 0.3412945234754666,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Vector"
+            }
+          ]
+        },
+        "decode": {
+          "value": 1,
+          "atLowerSampleBound": true,
+          "threshold": 0.02,
+          "comparisons": [
+            {
+              "value": 1,
+              "doubledValue": 2,
+              "latencyImprovement": 0.011197377204859728,
+              "throughputImprovement": 0.01132417830082912,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 2,
+              "doubledValue": 4,
+              "latencyImprovement": 0,
+              "throughputImprovement": 0,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 4,
+              "doubledValue": 8,
+              "latencyImprovement": 0,
+              "throughputImprovement": 0,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 8,
+              "doubledValue": 16,
+              "latencyImprovement": 0,
+              "throughputImprovement": 0,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "parameter": "vectorCount",
+      "label": "Vector unit count",
+      "unit": "units",
+      "kind": "compute",
+      "values": [
+        1,
+        2,
+        4,
+        8,
+        16,
+        32
+      ],
+      "rows": [
+        {
+          "value": 1,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 32,
+            "rl": 0,
+            "dsp": 1040,
+            "dspLimit": 7219.200000000001,
+            "cost": 3144
+          },
+          "prefill": {
+            "latencyMs": 6152.297634961082,
+            "throughput": 83.22094124486206,
+            "serviceMs": {
+              "compute": 6143.876604533705,
+              "l1": 1186.3537224069478,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.5115197259177974,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 2976.1230857142837,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 10.515928205128205,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 49.769146543040044,
+            "throughput": 20.092769706934924,
+            "serviceMs": {
+              "compute": 18.037560218253848,
+              "l1": 42.89656837158425,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.8101464508946056,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 6.043401190476198,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 40.32029743589742,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 42.89656837158425
+          }
+        },
+        {
+          "value": 2,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 3400
+          },
+          "prefill": {
+            "latencyMs": 4664.300330931783,
+            "throughput": 109.76994697460191,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 1186.3537224069478,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.6747038948436083,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 1487.7163047619058,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 10.925405128205128,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 46.78095693681305,
+            "throughput": 21.3762194166036,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 42.89656837158425,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.8623106620756966,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 40.33971794871791,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 42.89656837158425
+          }
+        },
+        {
+          "value": 4,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 128,
+            "rl": 0,
+            "dsp": 1088,
+            "dspLimit": 7219.200000000001,
+            "cost": 3912
+          },
+          "prefill": {
+            "latencyMs": 3970.662377131087,
+            "throughput": 128.94574037542174,
+            "serviceMs": {
+              "compute": 3911.837290248002,
+              "l1": 1186.3537224069478,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.7925684183387597,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 105.43274285714251,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 699.5710132322668,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 45.91545618065013,
+            "throughput": 21.779158548824867,
+            "serviceMs": {
+              "compute": 13.55440932539677,
+              "l1": 42.89656837158425,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.9197081114478886,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 0.2811907738095235,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 42.228817490174016,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 42.89656837158425
+          }
+        },
+        {
+          "value": 8,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 256,
+            "rl": 0,
+            "dsp": 1152,
+            "dspLimit": 7219.200000000001,
+            "cost": 4936
+          },
+          "prefill": {
+            "latencyMs": 3917.9628723691717,
+            "throughput": 130.68015616247948,
+            "serviceMs": {
+              "compute": 3539.8307378670465,
+              "l1": 1186.3537224069478,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.8032290510443295,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 52.73323809523803,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 699.5710132322668,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 45.795485702170275,
+            "throughput": 21.836213431679127,
+            "serviceMs": {
+              "compute": 12.807217509920626,
+              "l1": 42.89656837158425,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.9226113060481653,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 0.13860491071428585,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 42.2514328747894,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 42.89656837158425
+          }
+        },
+        {
+          "value": 16,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 512,
+            "rl": 0,
+            "dsp": 1280,
+            "dspLimit": 7219.200000000001,
+            "cost": 6984
+          },
+          "prefill": {
+            "latencyMs": 3895.5080943472053,
+            "throughput": 131.43343245595258,
+            "serviceMs": {
+              "compute": 3353.8274616765866,
+              "l1": 1186.3537224069478,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.8078590837910636,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 10.453485714285726,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 719.3959875912427,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 45.74452989859888,
+            "throughput": 21.86053725367127,
+            "serviceMs": {
+              "compute": 12.433621602182551,
+              "l1": 42.89656837158425,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.9241724194893158,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 0.06324910714285718,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 42.27583287478947,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 42.89656837158425
+          }
+        },
+        {
+          "value": 32,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 1024,
+            "rl": 0,
+            "dsp": 1536,
+            "dspLimit": 7219.200000000001,
+            "cost": 11080
+          },
+          "prefill": {
+            "latencyMs": 3892.0784855559978,
+            "throughput": 131.54924853136893,
+            "serviceMs": {
+              "compute": 3260.825823581351,
+              "l1": 1186.3537224069478,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.8085709503749747,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 1.3151999999999997,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 725.1046645143196,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 45.72165561975272,
+            "throughput": 21.87147395353678,
+            "serviceMs": {
+              "compute": 12.246823648313496,
+              "l1": 42.89656837158425,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.9249470769967718,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 0.02609598214285717,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 42.290111720943294,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 42.89656837158425
+          }
+        }
+      ],
+      "knees": {
+        "prefill": {
+          "value": 4,
+          "atLowerSampleBound": false,
+          "threshold": 0.02,
+          "comparisons": [
+            {
+              "value": 1,
+              "doubledValue": 2,
+              "latencyImprovement": 0.2418604222873739,
+              "throughputImprovement": 0.31901833039384114,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 2,
+              "doubledValue": 4,
+              "latencyImprovement": 0.1487121121255347,
+              "throughputImprovement": 0.17469074122133482,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 4,
+              "doubledValue": 8,
+              "latencyImprovement": 0.013272220036998485,
+              "throughputImprovement": 0.01345074123432105,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 8,
+              "doubledValue": 16,
+              "latencyImprovement": 0.005731238083016363,
+              "throughputImprovement": 0.005764274512624017,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 16,
+              "doubledValue": 32,
+              "latencyImprovement": 0.0008804008894717179,
+              "throughputImprovement": 0.0008811766782029457,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            }
+          ]
+        },
+        "decode": {
+          "value": 2,
+          "atLowerSampleBound": false,
+          "threshold": 0.02,
+          "comparisons": [
+            {
+              "value": 1,
+              "doubledValue": 2,
+              "latencyImprovement": 0.060041005598575586,
+              "throughputImprovement": 0.06387619668112257,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 2,
+              "doubledValue": 4,
+              "latencyImprovement": 0.018501134068974828,
+              "throughputImprovement": 0.0188498781925999,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 4,
+              "doubledValue": 8,
+              "latencyImprovement": 0.002612856071991187,
+              "throughputImprovement": 0.002619700973586895,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 8,
+              "doubledValue": 16,
+              "latencyImprovement": 0.0011126818023677633,
+              "throughputImprovement": 0.001113921242263386,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 16,
+              "doubledValue": 32,
+              "latencyImprovement": 0.0005000440248673502,
+              "throughputImprovement": 0.0005002941939896844,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "parameter": "recurrentCount",
+      "label": "Dedicated recurrence unit count",
+      "unit": "units",
+      "kind": "compute-mapping",
+      "values": [
+        0,
+        1,
+        2,
+        4,
+        8,
+        16
+      ],
+      "rows": [
+        {
+          "value": 0,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 3400
+          },
+          "prefill": {
+            "latencyMs": 4664.300330931783,
+            "throughput": 109.76994697460191,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 1186.3537224069478,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.6747038948436083,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 1487.7163047619058,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 10.925405128205128,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 46.78095693681305,
+            "throughput": 21.3762194166036,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 42.89656837158425,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.8623106620756966,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 40.33971794871791,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 42.89656837158425
+          }
+        },
+        {
+          "value": 1,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 128,
+            "dsp": 1184,
+            "dspLimit": 7219.200000000001,
+            "cost": 4688
+          },
+          "prefill": {
+            "latencyMs": 4033.0043309317894,
+            "throughput": 126.95250438317952,
+            "serviceMs": {
+              "compute": 4024.5543950098945,
+              "l1": 509.00135317617844,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.7803169403671119,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 225.12190476190486,
+                "Recurrent": 631.2983999999999,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 10.925405128205128,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 50818695101.10949,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 45.547956936812994,
+            "throughput": 21.954881563343516,
+            "serviceMs": {
+              "compute": 13.815792956349158,
+              "l1": 41.76229144850734,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.8856537298627845,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 0.5673910714285714,
+                "Recurrent": 1.2353999999999998,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 40.33971794871791,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4169547178.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 41.76229144850734
+          }
+        },
+        {
+          "value": 2,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 256,
+            "dsp": 1312,
+            "dspLimit": 7219.200000000001,
+            "cost": 5976
+          },
+          "prefill": {
+            "latencyMs": 3717.356330931791,
+            "throughput": 137.7322899447905,
+            "serviceMs": {
+              "compute": 3708.9063950098985,
+              "l1": 509.00135317617844,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.8465751786596079,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 225.12190476190486,
+                "Recurrent": 315.6504,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 10.925405128205128,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 50818695101.10949,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 45.03485647826912,
+            "throughput": 22.205022469262996,
+            "serviceMs": {
+              "compute": 13.199292956349154,
+              "l1": 41.76229144850734,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.9117830210025841,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 0.5673910714285714,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 41.062017490174014,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4169547178.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 41.76229144850734
+          }
+        },
+        {
+          "value": 4,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 512,
+            "dsp": 1568,
+            "dspLimit": 7219.200000000001,
+            "cost": 8552
+          },
+          "prefill": {
+            "latencyMs": 3559.532330931788,
+            "throughput": 143.83912053580715,
+            "serviceMs": {
+              "compute": 3551.0823950098984,
+              "l1": 509.00135317617844,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.8841109750999794,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 225.12190476190486,
+                "Recurrent": 157.8264,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 10.925405128205128,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 50818695101.10949,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 45.03485647826912,
+            "throughput": 22.205022469262996,
+            "serviceMs": {
+              "compute": 12.891042956349157,
+              "l1": 41.76229144850734,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.9117830210025841,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 0.5673910714285714,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 41.062017490174014,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4169547178.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 41.76229144850734
+          }
+        },
+        {
+          "value": 8,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 1024,
+            "dsp": 2080,
+            "dspLimit": 7219.200000000001,
+            "cost": 13704
+          },
+          "prefill": {
+            "latencyMs": 3480.620330931788,
+            "throughput": 147.10021528344456,
+            "serviceMs": {
+              "compute": 3472.170395009898,
+              "l1": 509.00135317617844,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.9041553805891619,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 225.12190476190486,
+                "Recurrent": 78.91439999999999,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 10.925405128205128,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 50818695101.10949,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 45.03485647826912,
+            "throughput": 22.205022469262996,
+            "serviceMs": {
+              "compute": 12.736917956349156,
+              "l1": 41.76229144850734,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.9117830210025841,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 0.5673910714285714,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 41.062017490174014,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4169547178.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 41.76229144850734
+          }
+        },
+        {
+          "value": 16,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 2048,
+            "dsp": 3104,
+            "dspLimit": 7219.200000000001,
+            "cost": 24008
+          },
+          "prefill": {
+            "latencyMs": 3441.164330931787,
+            "throughput": 148.7868496711293,
+            "serviceMs": {
+              "compute": 3432.7143950098985,
+              "l1": 509.00135317617844,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.9145223236542921,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 225.12190476190486,
+                "Recurrent": 39.45839999999999,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 10.925405128205128,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 50818695101.10949,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 45.03485647826912,
+            "throughput": 22.205022469262996,
+            "serviceMs": {
+              "compute": 12.659855456349158,
+              "l1": 41.76229144850734,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.9117830210025841,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 0.5673910714285714,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 41.062017490174014,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4169547178.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 41.76229144850734
+          }
+        }
+      ],
+      "knees": {
+        "prefill": {
+          "value": 8,
+          "atLowerSampleBound": false,
+          "threshold": 0.02,
+          "comparisons": [
+            {
+              "value": 1,
+              "doubledValue": 2,
+              "latencyImprovement": 0.07826621895222977,
+              "throughputImprovement": 0.084911956750963,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 2,
+              "doubledValue": 4,
+              "latencyImprovement": 0.042455978375482546,
+              "throughputImprovement": 0.0443384089051635,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 4,
+              "doubledValue": 8,
+              "latencyImprovement": 0.022169204452581224,
+              "throughputImprovement": 0.022671820680560874,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 8,
+              "doubledValue": 16,
+              "latencyImprovement": 0.011335910340280744,
+              "throughputImprovement": 0.011465886602781585,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            }
+          ]
+        },
+        "decode": {
+          "value": 1,
+          "atLowerSampleBound": true,
+          "threshold": 0.02,
+          "comparisons": [
+            {
+              "value": 1,
+              "doubledValue": 2,
+              "latencyImprovement": 0.011265059797428015,
+              "throughputImprovement": 0.011393407210955862,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 2,
+              "doubledValue": 4,
+              "latencyImprovement": 0,
+              "throughputImprovement": 0,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 4,
+              "doubledValue": 8,
+              "latencyImprovement": 0,
+              "throughputImprovement": 0,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 8,
+              "doubledValue": 16,
+              "latencyImprovement": 0,
+              "throughputImprovement": 0,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "parameter": "dmaCount",
+      "label": "DMA engine count",
+      "unit": "engines",
+      "kind": "movement",
+      "values": [
+        1,
+        2,
+        4,
+        8,
+        16
+      ],
+      "rows": [
+        {
+          "value": 1,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 3400
+          },
+          "prefill": {
+            "latencyMs": 4664.300330931783,
+            "throughput": 109.76994697460191,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 1186.3537224069478,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.6747038948436083,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 1487.7163047619058,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 10.925405128205128,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 46.78095693681305,
+            "throughput": 21.3762194166036,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 42.89656837158425,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.8623106620756966,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 40.33971794871791,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 42.89656837158425
+          }
+        },
+        {
+          "value": 2,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 3440
+          },
+          "prefill": {
+            "latencyMs": 4654.989553744286,
+            "throughput": 109.98950568818522,
+            "serviceMs": {
+              "compute": 4646.539617822398,
+              "l1": 1186.3537224069478,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.6760534183086765,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 1487.7163047619058,
+                "Recurrent": 0,
+                "DMA": 9.326243854166668,
+                "RISC-V": 0,
+                "Shared L1": 10.925405128205128,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 45.10116631181304,
+            "throughput": 22.172375611893585,
+            "serviceMs": {
+              "compute": 13.369002331349156,
+              "l1": 42.89656837158425,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.894427378436819,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 1.6952572916666657,
+                "RISC-V": 0,
+                "Shared L1": 40.33971794871791,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 42.89656837158425
+          }
+        },
+        {
+          "value": 4,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 3520
+          },
+          "prefill": {
+            "latencyMs": 4651.9896502787415,
+            "throughput": 110.06043402726006,
+            "serviceMs": {
+              "compute": 4641.884229228646,
+              "l1": 1186.3537224069478,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.676489381228834,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 1487.7163047619058,
+                "Recurrent": 0,
+                "DMA": 1.4732019270833328,
+                "RISC-V": 0,
+                "Shared L1": 15.77854358974359,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 44.26133662831945,
+            "throughput": 22.593081822119586,
+            "serviceMs": {
+              "compute": 12.529107018849162,
+              "l1": 42.89656837158425,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.9114488332915804,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 0.8532019270833326,
+                "RISC-V": 0,
+                "Shared L1": 40.34194362980766,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 42.89656837158425
+          }
+        },
+        {
+          "value": 8,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 3680
+          },
+          "prefill": {
+            "latencyMs": 4651.652295987875,
+            "throughput": 110.06841599953812,
+            "serviceMs": {
+              "compute": 4639.556534931769,
+              "l1": 1186.3537224069478,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.6765384426334622,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 1487.7163047619058,
+                "Recurrent": 0,
+                "DMA": 0,
+                "RISC-V": 0,
+                "Shared L1": 16.914391225961538,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 44.067613106684824,
+            "throughput": 22.692402186137585,
+            "serviceMs": {
+              "compute": 12.10915936259916,
+              "l1": 42.89656837158425,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.9304207590276015,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 0,
+                "RISC-V": 0,
+                "Shared L1": 41.001422035256375,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 42.89656837158425
+          }
+        },
+        {
+          "value": 16,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 4000
+          },
+          "prefill": {
+            "latencyMs": 4651.652295987875,
+            "throughput": 110.06841599953812,
+            "serviceMs": {
+              "compute": 4638.392687783332,
+              "l1": 1186.3537224069478,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.6765384426334622,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 1487.7163047619058,
+                "Recurrent": 0,
+                "DMA": 0,
+                "RISC-V": 0,
+                "Shared L1": 16.914391225961538,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 44.067613106684824,
+            "throughput": 22.692402186137585,
+            "serviceMs": {
+              "compute": 11.899185534474165,
+              "l1": 42.89656837158425,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.9304207590276015,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 0,
+                "RISC-V": 0,
+                "Shared L1": 41.001422035256375,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 42.89656837158425
+          }
+        }
+      ],
+      "knees": {
+        "prefill": {
+          "value": 1,
+          "atLowerSampleBound": true,
+          "threshold": 0.02,
+          "comparisons": [
+            {
+              "value": 1,
+              "doubledValue": 2,
+              "latencyImprovement": 0.0019961787464137337,
+              "throughputImprovement": 0.0020001714461437368,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 2,
+              "doubledValue": 4,
+              "latencyImprovement": 0.0006444490220459838,
+              "throughputImprovement": 0.0006448646044097876,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 4,
+              "doubledValue": 8,
+              "latencyImprovement": 0.00007251828061277575,
+              "throughputImprovement": 0.00007252353989520758,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 8,
+              "doubledValue": 16,
+              "latencyImprovement": 0,
+              "throughputImprovement": 0,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            }
+          ]
+        },
+        "decode": {
+          "value": 2,
+          "atLowerSampleBound": false,
+          "threshold": 0.02,
+          "comparisons": [
+            {
+              "value": 1,
+              "doubledValue": 2,
+              "latencyImprovement": 0.0359075729739539,
+              "throughputImprovement": 0.037244948686837705,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 2,
+              "doubledValue": 4,
+              "latencyImprovement": 0.018621019192437596,
+              "throughputImprovement": 0.018974340755815455,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 4,
+              "doubledValue": 8,
+              "latencyImprovement": 0.00437681137516021,
+              "throughputImprovement": 0.004396052065847858,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 8,
+              "doubledValue": 16,
+              "latencyImprovement": 0,
+              "throughputImprovement": 0,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "parameter": "l1Banks",
+      "label": "Shared-L1 bank count",
+      "unit": "banks",
+      "kind": "memory-bandwidth",
+      "values": [
+        1,
+        2,
+        4,
+        8,
+        16,
+        32,
+        64,
+        128,
+        256,
+        512,
+        1024
+      ],
+      "rows": [
+        {
+          "value": 1,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 3400
+          },
+          "prefill": {
+            "latencyMs": 37963.44022324939,
+            "throughput": 13.48665971758912,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 37963.31911702233,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.9999947347839627,
+              "modeledOperationMs": {
+                "Matrix": 0,
+                "Vector": 0.1998857142857142,
+                "Recurrent": 0,
+                "DMA": 0,
+                "RISC-V": 0,
+                "Shared L1": 37963.24033753509,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 37963.31911702233
+          },
+          "decode": {
+            "latencyMs": 1372.7980710408808,
+            "throughput": 0.7284392519882997,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 1372.690187890696,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.9999979707763696,
+              "modeledOperationMs": {
+                "Matrix": 0,
+                "Vector": 0.0027857142857142863,
+                "Recurrent": 0,
+                "DMA": 0,
+                "RISC-V": 0,
+                "Shared L1": 1372.7952853265954,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 1372.690187890696
+          }
+        },
+        {
+          "value": 2,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 3400
+          },
+          "prefill": {
+            "latencyMs": 18986.36644056245,
+            "throughput": 26.966718545269607,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 18981.659558511165,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.9988979881924481,
+              "modeledOperationMs": {
+                "Matrix": 0,
+                "Vector": 20.923199999999994,
+                "Recurrent": 0,
+                "DMA": 0,
+                "RISC-V": 0,
+                "Shared L1": 18965.443240562447,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 18981.659558511165
+          },
+          "decode": {
+            "latencyMs": 686.5132040186099,
+            "throughput": 1.456636222211528,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 686.345093945348,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.9996365172398363,
+              "modeledOperationMs": {
+                "Matrix": 0,
+                "Vector": 0.2495357142857144,
+                "Recurrent": 0,
+                "DMA": 0,
+                "RISC-V": 0,
+                "Shared L1": 686.2636683043244,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 686.345093945348
+          }
+        },
+        {
+          "value": 4,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 3400
+          },
+          "prefill": {
+            "latencyMs": 9543.26533881602,
+            "throughput": 53.650399713555586,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 9490.829779255582,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.985128618558852,
+              "modeledOperationMs": {
+                "Matrix": 58.38325333333333,
+                "Vector": 83.53828571428565,
+                "Recurrent": 0,
+                "DMA": 0,
+                "RISC-V": 0,
+                "Shared L1": 9401.343799768401,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 9490.829779255582
+          },
+          "decode": {
+            "latencyMs": 343.493529573408,
+            "throughput": 2.9112629901410996,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 343.172546972674,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.9988529831766195,
+              "modeledOperationMs": {
+                "Matrix": 0,
+                "Vector": 0.3939928571428575,
+                "Recurrent": 0,
+                "DMA": 0,
+                "RISC-V": 0,
+                "Shared L1": 343.099536716265,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 343.172546972674
+          }
+        },
+        {
+          "value": 8,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 3400
+          },
+          "prefill": {
+            "latencyMs": 6182.441696095256,
+            "throughput": 82.81517645744594,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 4745.414889627791,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.5085946806398415,
+              "modeledOperationMs": {
+                "Matrix": 3144.356960000007,
+                "Vector": 210.83175238095282,
+                "Recurrent": 0,
+                "DMA": 5.858807708333336,
+                "RISC-V": 0,
+                "Shared L1": 2821.394176005989,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 4745.414889627791
+          },
+          "decode": {
+            "latencyMs": 172.7794154208613,
+            "throughput": 5.787726492557981,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 171.586273486337,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.9778212737793069,
+              "modeledOperationMs": {
+                "Matrix": 0,
+                "Vector": 0.46041964285714326,
+                "Recurrent": 0,
+                "DMA": 3.371607708333333,
+                "RISC-V": 0,
+                "Shared L1": 168.94738806967064,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 171.586273486337
+          }
+        },
+        {
+          "value": 16,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 3400
+          },
+          "prefill": {
+            "latencyMs": 4775.59533322048,
+            "throughput": 107.21176403670005,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 2372.7074448138956,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.6589799554640602,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 210.83175238095282,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 1399.104959797865,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 88.3632413677107,
+            "throughput": 11.31692301597048,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 85.7931367431685,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.9558221714082701,
+              "modeledOperationMs": {
+                "Matrix": 0,
+                "Vector": 0.5286482142857151,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 84.45954523675832,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 85.7931367431685
+          }
+        },
+        {
+          "value": 32,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 3400
+          },
+          "prefill": {
+            "latencyMs": 4664.300330931783,
+            "throughput": 109.76994697460191,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 1186.3537224069478,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.6747038948436083,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 1487.7163047619058,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 10.925405128205128,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 46.78095693681305,
+            "throughput": 21.3762194166036,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 42.89656837158425,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.8623106620756966,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 40.33971794871791,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 42.89656837158425
+          }
+        },
+        {
+          "value": 64,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 3400
+          },
+          "prefill": {
+            "latencyMs": 4659.013528001378,
+            "throughput": 109.89450812340472,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 593.1768612034739,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.6754695132533803,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 1488.0968761904778,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 5.2580307692307695,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 26.63109722985341,
+            "throughput": 37.550086328362084,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 21.448284185792126,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.757423369023028,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 3.054633928571434,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 20.171015384615398,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 21.448284185792126
+          }
+        },
+        {
+          "value": 128,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 3400
+          },
+          "prefill": {
+            "latencyMs": 4656.384579283429,
+            "throughput": 109.95655347668719,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 296.58843060173695,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.6758508766654107,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 1488.0968761904778,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 2.6290820512820514,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 16.690175178571426,
+            "throughput": 59.91548856143245,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 10.724142092896063,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.5832932586091616,
+              "modeledOperationMs": {
+                "Matrix": 0.5252266666666674,
+                "Vector": 3.054633928571434,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 9.735266666666673,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 10.724142092896063
+          }
+        },
+        {
+          "value": 256,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 3400
+          },
+          "prefill": {
+            "latencyMs": 4655.963061676592,
+            "throughput": 109.96650815688196,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 148.29421530086847,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.6763862003901779,
+              "modeledOperationMs": {
+                "Matrix": 3149.2291644444495,
+                "Vector": 1488.0968761904778,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 0,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 15.156659623015893,
+            "throughput": 65.97759828831062,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 5.3620710464480315,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.575785034093237,
+              "modeledOperationMs": {
+                "Matrix": 8.726977777777794,
+                "Vector": 3.054633928571434,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 0,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 8.700444444444452
+          }
+        },
+        {
+          "value": 512,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 3400
+          },
+          "prefill": {
+            "latencyMs": 4655.963061676592,
+            "throughput": 109.96650815688196,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 74.14710765043424,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.6763862003901779,
+              "modeledOperationMs": {
+                "Matrix": 3149.2291644444495,
+                "Vector": 1488.0968761904778,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 0,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 15.156659623015893,
+            "throughput": 65.97759828831062,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 2.6810355232240157,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.575785034093237,
+              "modeledOperationMs": {
+                "Matrix": 8.726977777777794,
+                "Vector": 3.054633928571434,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 0,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 8.700444444444452
+          }
+        },
+        {
+          "value": 1024,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 3400
+          },
+          "prefill": {
+            "latencyMs": 4655.963061676592,
+            "throughput": 109.96650815688196,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 37.07355382521712,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.6763862003901779,
+              "modeledOperationMs": {
+                "Matrix": 3149.2291644444495,
+                "Vector": 1488.0968761904778,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 0,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 15.156659623015893,
+            "throughput": 65.97759828831062,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 1.3405177616120079,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.575785034093237,
+              "modeledOperationMs": {
+                "Matrix": 8.726977777777794,
+                "Vector": 3.054633928571434,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 0,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 8.700444444444452
+          }
+        }
+      ],
+      "knees": {
+        "prefill": {
+          "value": 32,
+          "atLowerSampleBound": false,
+          "threshold": 0.02,
+          "comparisons": [
+            {
+              "value": 1,
+              "doubledValue": 2,
+              "latencyImprovement": 0.4998776104349228,
+              "throughputImprovement": 0.9995105615440105,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 2,
+              "doubledValue": 4,
+              "latencyImprovement": 0.4973622062603933,
+              "throughputImprovement": 0.989504196570729,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 4,
+              "doubledValue": 8,
+              "latencyImprovement": 0.3521670542944081,
+              "throughputImprovement": 0.5436078183872586,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 8,
+              "doubledValue": 16,
+              "latencyImprovement": 0.22755513630857538,
+              "throughputImprovement": 0.2945907818211332,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 16,
+              "doubledValue": 32,
+              "latencyImprovement": 0.02330494828874958,
+              "throughputImprovement": 0.023861028319860127,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 32,
+              "doubledValue": 64,
+              "latencyImprovement": 0.0011334610885462386,
+              "throughputImprovement": 0.0011347472804339807,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 64,
+              "doubledValue": 128,
+              "latencyImprovement": 0.0005642715356263427,
+              "throughputImprovement": 0.0005645901177590976,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 128,
+              "doubledValue": 256,
+              "latencyImprovement": 0.00009052465483902035,
+              "throughputImprovement": 0.0000905328502941603,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 256,
+              "doubledValue": 512,
+              "latencyImprovement": 0,
+              "throughputImprovement": 0,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 512,
+              "doubledValue": 1024,
+              "latencyImprovement": 0,
+              "throughputImprovement": 0,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            }
+          ]
+        },
+        "decode": {
+          "value": 256,
+          "atLowerSampleBound": false,
+          "threshold": 0.02,
+          "comparisons": [
+            {
+              "value": 1,
+              "doubledValue": 2,
+              "latencyImprovement": 0.49991683518459273,
+              "throughputImprovement": 0.9996673960602617,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 2,
+              "doubledValue": 4,
+              "latencyImprovement": 0.49965488272808717,
+              "throughputImprovement": 0.998620483102565,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 4,
+              "doubledValue": 8,
+              "latencyImprovement": 0.4969936824270321,
+              "throughputImprovement": 0.9880466011342619,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 8,
+              "doubledValue": 16,
+              "latencyImprovement": 0.48857772696780544,
+              "throughputImprovement": 0.9553313430622701,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 16,
+              "doubledValue": 32,
+              "latencyImprovement": 0.47058351173265656,
+              "throughputImprovement": 0.888872035838488,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 32,
+              "doubledValue": 64,
+              "latencyImprovement": 0.43072782230974915,
+              "throughputImprovement": 0.7566289715007191,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 64,
+              "doubledValue": 128,
+              "latencyImprovement": 0.3732824812091568,
+              "throughputImprovement": 0.5956152014536774,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 128,
+              "doubledValue": 256,
+              "latencyImprovement": 0.0918813337276663,
+              "throughputImprovement": 0.10117767329331843,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 256,
+              "doubledValue": 512,
+              "latencyImprovement": 0,
+              "throughputImprovement": 0,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 512,
+              "doubledValue": 1024,
+              "latencyImprovement": 0,
+              "throughputImprovement": 0,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "parameter": "hbmGBs",
+      "label": "Peak HBM bandwidth",
+      "unit": "GB/s",
+      "kind": "memory-bandwidth",
+      "values": [
+        25,
+        50,
+        100,
+        200,
+        400,
+        800,
+        1600
+      ],
+      "rows": [
+        {
+          "value": 25,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 3400
+          },
+          "prefill": {
+            "latencyMs": 4685.022979945703,
+            "throughput": 109.28441593384325,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 1186.3537224069478,
+              "hbm": 754.4316512633991,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.6717195654046669,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 1487.7163047619058,
+                "Recurrent": 0,
+                "DMA": 6.73446104166667,
+                "RISC-V": 0,
+                "Shared L1": 0.4094769230769231,
+                "HBM": 43.14113721904761,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 118.93552746282097,
+            "throughput": 8.407916636285135,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 42.89656837158425,
+              "hbm": 114.43888012679872,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "HBM",
+              "share": 0.945934914166618,
+              "modeledOperationMs": {
+                "Matrix": 0,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 0.019420512820512825,
+                "HBM": 112.50526796190499,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 114.43888012679872
+          }
+        },
+        {
+          "value": 50,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 3400
+          },
+          "prefill": {
+            "latencyMs": 4668.768874345703,
+            "throughput": 109.66488463658494,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 1186.3537224069478,
+              "hbm": 377.21582563169954,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.6740581263922686,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 1487.7163047619058,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 0.4094769230769231,
+                "HBM": 14.984471619047618,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 63.325289432051385,
+            "throughput": 15.791479343698999,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 42.89656837158425,
+              "hbm": 57.21944006339936,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "HBM",
+              "share": 0.875722790361803,
+              "modeledOperationMs": {
+                "Matrix": 0,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 1.4590512820512826,
+                "HBM": 55.455399161904836,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 57.21944006339936
+          }
+        },
+        {
+          "value": 100,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 3400
+          },
+          "prefill": {
+            "latencyMs": 4664.300330931783,
+            "throughput": 109.76994697460191,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 1186.3537224069478,
+              "hbm": 188.60791281584977,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.6747038948436083,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 1487.7163047619058,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 10.925405128205128,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 46.78095693681305,
+            "throughput": 21.3762194166036,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 42.89656837158425,
+              "hbm": 28.60972003169968,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.8623106620756966,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 40.33971794871791,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 42.89656837158425
+          }
+        },
+        {
+          "value": 200,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 3400
+          },
+          "prefill": {
+            "latencyMs": 4664.300330931783,
+            "throughput": 109.76994697460191,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 1186.3537224069478,
+              "hbm": 94.30395640792489,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.6747038948436083,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 1487.7163047619058,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 10.925405128205128,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 46.78095693681305,
+            "throughput": 21.3762194166036,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 42.89656837158425,
+              "hbm": 14.30486001584984,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.8623106620756966,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 40.33971794871791,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 42.89656837158425
+          }
+        },
+        {
+          "value": 400,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 3400
+          },
+          "prefill": {
+            "latencyMs": 4664.300330931783,
+            "throughput": 109.76994697460191,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 1186.3537224069478,
+              "hbm": 47.15197820396244,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.6747038948436083,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 1487.7163047619058,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 10.925405128205128,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 46.78095693681305,
+            "throughput": 21.3762194166036,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 42.89656837158425,
+              "hbm": 7.15243000792492,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.8623106620756966,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 40.33971794871791,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 42.89656837158425
+          }
+        },
+        {
+          "value": 800,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 3400
+          },
+          "prefill": {
+            "latencyMs": 4664.300330931783,
+            "throughput": 109.76994697460191,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 1186.3537224069478,
+              "hbm": 23.57598910198122,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.6747038948436083,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 1487.7163047619058,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 10.925405128205128,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 46.78095693681305,
+            "throughput": 21.3762194166036,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 42.89656837158425,
+              "hbm": 3.57621500396246,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.8623106620756966,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 40.33971794871791,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 42.89656837158425
+          }
+        },
+        {
+          "value": 1600,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 3400
+          },
+          "prefill": {
+            "latencyMs": 4664.300330931783,
+            "throughput": 109.76994697460191,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 1186.3537224069478,
+              "hbm": 11.78799455099061,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.6747038948436083,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 1487.7163047619058,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 10.925405128205128,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 46.78095693681305,
+            "throughput": 21.3762194166036,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 42.89656837158425,
+              "hbm": 1.78810750198123,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.8623106620756966,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 40.33971794871791,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 42.89656837158425
+          }
+        }
+      ],
+      "knees": {
+        "prefill": {
+          "value": 25,
+          "atLowerSampleBound": true,
+          "threshold": 0.02,
+          "comparisons": [
+            {
+              "value": 25,
+              "doubledValue": 50,
+              "latencyImprovement": 0.003469375853560569,
+              "throughputImprovement": 0.0034814543271386137,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 50,
+              "doubledValue": 100,
+              "latencyImprovement": 0.0009571138632443707,
+              "throughputImprovement": 0.0009580308078116963,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 100,
+              "doubledValue": 200,
+              "latencyImprovement": 0,
+              "throughputImprovement": 0,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 200,
+              "doubledValue": 400,
+              "latencyImprovement": 0,
+              "throughputImprovement": 0,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 400,
+              "doubledValue": 800,
+              "latencyImprovement": 0,
+              "throughputImprovement": 0,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 800,
+              "doubledValue": 1600,
+              "latencyImprovement": 0,
+              "throughputImprovement": 0,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            }
+          ]
+        },
+        "decode": {
+          "value": 100,
+          "atLowerSampleBound": false,
+          "threshold": 0.02,
+          "comparisons": [
+            {
+              "value": 25,
+              "doubledValue": 50,
+              "latencyImprovement": 0.4675662454866839,
+              "throughputImprovement": 0.8781679251610823,
+              "dominantBefore": "HBM",
+              "dominantAfter": "HBM"
+            },
+            {
+              "value": 50,
+              "doubledValue": 100,
+              "latencyImprovement": 0.2612594848538443,
+              "throughputImprovement": 0.3536552815194597,
+              "dominantBefore": "HBM",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 100,
+              "doubledValue": 200,
+              "latencyImprovement": 0,
+              "throughputImprovement": 0,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 200,
+              "doubledValue": 400,
+              "latencyImprovement": 0,
+              "throughputImprovement": 0,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 400,
+              "doubledValue": 800,
+              "latencyImprovement": 0,
+              "throughputImprovement": 0,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 800,
+              "doubledValue": 1600,
+              "latencyImprovement": 0,
+              "throughputImprovement": 0,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "parameter": "l1MiB",
+      "label": "Shared-L1 capacity",
+      "unit": "MiB",
+      "kind": "memory-capacity",
+      "values": [
+        0.015625,
+        0.03125,
+        0.0625,
+        0.125,
+        0.25,
+        0.5,
+        1,
+        2,
+        4,
+        8,
+        16,
+        32
+      ],
+      "rows": [
+        {
+          "value": 0.015625,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 2378
+          },
+          "prefill": {
+            "latencyMs": 23139.439929832904,
+            "throughput": 22.126723963612257,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 22384.292435267216,
+              "hbm": 2270.4487721151595,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.9355186133308716,
+              "modeledOperationMs": {
+                "Matrix": 0,
+                "Vector": 1473.4261523809523,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 21647.376756410278,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 731084504621.0803,
+            "l1Bytes": 2234847756737.08,
+            "spillBytes": 5731440416,
+            "stateResident": 0.00020275750202757503,
+            "lowerBoundMs": 22384.292435267216
+          },
+          "decode": {
+            "latencyMs": 66.15438385989022,
+            "throughput": 15.11615620391721,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 63.627529669076296,
+              "hbm": 6.6416363545359784,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.9030927564577882,
+              "modeledOperationMs": {
+                "Matrix": 0,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 59.74354487179487,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2138606906.1605835,
+            "l1Bytes": 6352572562.160585,
+            "spillBytes": 132015392,
+            "stateResident": 0.00020275750202757503,
+            "lowerBoundMs": 63.627529669076296
+          }
+        },
+        {
+          "value": 0.03125,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 2380
+          },
+          "prefill": {
+            "latencyMs": 12337.14918807465,
+            "throughput": 41.50067346959782,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 11581.90692001369,
+              "hbm": 1144.943443658886,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.8790571554632697,
+              "modeledOperationMs": {
+                "Matrix": 0,
+                "Vector": 1473.4528952380963,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 10845.05927179489,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 368671788858.16064,
+            "l1Bytes": 1156337586894.1611,
+            "spillBytes": 5716031264,
+            "stateResident": 0.00040551500405515005,
+            "lowerBoundMs": 11581.90692001369
+          },
+          "decode": {
+            "latencyMs": 51.167471039377254,
+            "throughput": 19.54366670243335,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 48.60214018751165,
+              "hbm": 6.6284595910595305,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.8747086995337015,
+              "modeledOperationMs": {
+                "Matrix": 0,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 44.75663205128201,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2134363988.3211675,
+            "l1Bytes": 4852437676.321167,
+            "spillBytes": 127780128,
+            "stateResident": 0.00040551500405515005,
+            "lowerBoundMs": 48.60214018751165
+          }
+        },
+        {
+          "value": 0.0625,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 2384
+          },
+          "prefill": {
+            "latencyMs": 6937.19727012589,
+            "throughput": 73.80502241227295,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 6181.779617711543,
+              "hbm": 582.1262925351595,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.7849145904059521,
+              "modeledOperationMs": {
+                "Matrix": 0,
+                "Vector": 1473.4528952380963,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 5445.107353846152,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 187444666196.3211,
+            "l1Bytes": 617188877032.3213,
+            "spillBytes": 5687567648,
+            "stateResident": 0.0008110300081103001,
+            "lowerBoundMs": 6181.779617711543
+          },
+          "decode": {
+            "latencyMs": 48.67043385989006,
+            "throughput": 20.54635475160851,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 46.04280737822854,
+              "hbm": 6.609178660379933,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.8676560187107045,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 42.229194871794874,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2128155528.6423361,
+            "l1Bytes": 4596913888.642335,
+            "spillBytes": 121586976,
+            "stateResident": 0.0008110300081103001,
+            "lowerBoundMs": 46.04280737822854
+          }
+        },
+        {
+          "value": 0.125,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 2392
+          },
+          "prefill": {
+            "latencyMs": 4678.14168038231,
+            "throughput": 109.44516754314246,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 3481.3119361843073,
+              "hbm": 300.5924424616213,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.6727076294411891,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 1473.4528952380963,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 39.03016410256417,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 96790766472.6423,
+            "l1Bytes": 347574183708.6423,
+            "spillBytes": 5633008928,
+            "stateResident": 0.0016220600162206002,
+            "lowerBoundMs": 3481.3119361843073
+          },
+          "decode": {
+            "latencyMs": 47.42259796245409,
+            "throughput": 21.086993183961162,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 44.68897252889292,
+              "hbm": 6.576312401505199,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.864173637361773,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 40.981358974358955,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2117572593.2846718,
+            "l1Bytes": 4461747017.284672,
+            "spillBytes": 111034656,
+            "stateResident": 0.0016220600162206002,
+            "lowerBoundMs": 44.68897252889292
+          }
+        },
+        {
+          "value": 0.25,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 2408
+          },
+          "prefill": {
+            "latencyMs": 4677.5610855105215,
+            "throughput": 109.45875225146717,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 2130.3054332260144,
+              "hbm": 159.5273281033686,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.6727911282117508,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 1473.4528952380963,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 38.44956923076929,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 51367799649.28469,
+            "l1Bytes": 212689694453.2846,
+            "spillBytes": 5529199760,
+            "stateResident": 0.0032441200324412004,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 46.79868001373612,
+            "throughput": 21.368124051928067,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 43.94480908022171,
+              "hbm": 6.539028827855109,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.8623628062542676,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 40.35744102564099,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2105567282.5693429,
+            "l1Bytes": 4387449738.569344,
+            "spillBytes": 99090576,
+            "stateResident": 0.0032441200324412004,
+            "lowerBoundMs": 43.94480908022171
+          }
+        },
+        {
+          "value": 0.5,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 2440
+          },
+          "prefill": {
+            "latencyMs": 4676.753700895134,
+            "throughput": 109.47764897304788,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 1453.8120199376,
+              "hbm": 88.60446544897339,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.6729072774128908,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 1473.4528952380963,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 37.64218461538468,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 28530637874.569336,
+            "l1Bytes": 145148592070.56937,
+            "spillBytes": 5332198544,
+            "stateResident": 0.006488240064882401,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 46.78095693681305,
+            "throughput": 21.3762194166036,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 43.784074811084515,
+              "hbm": 6.494686475585987,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.8623106620756966,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 40.33971794871791,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2091289045.1386864,
+            "l1Bytes": 4371402029.138685,
+            "spillBytes": 84934800,
+            "stateResident": 0.006488240064882401,
+            "lowerBoundMs": 43.784074811084515
+          }
+        },
+        {
+          "value": 1,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 2504
+          },
+          "prefill": {
+            "latencyMs": 4675.161252543493,
+            "throughput": 109.51493913101918,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 1222.5994702838502,
+              "hbm": 52.2401533078843,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.6731364823593812,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 1473.5707238095251,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 35.93190769230763,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 16821329365.138689,
+            "l1Bytes": 122064331113.13872,
+            "spillBytes": 4938196112,
+            "stateResident": 0.012976480129764802,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 46.78095693681305,
+            "throughput": 21.3762194166036,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 43.498052426656294,
+              "hbm": 6.406001771047749,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.8623106620756966,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 40.33971794871791,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2062732570.2773728,
+            "l1Bytes": 4342845554.277373,
+            "spillBytes": 56623248,
+            "stateResident": 0.012976480129764802,
+            "lowerBoundMs": 43.498052426656294
+          }
+        },
+        {
+          "value": 2,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 2632
+          },
+          "prefill": {
+            "latencyMs": 4672.0262371588715,
+            "throughput": 109.58842566589583,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 1215.2073541494133,
+              "hbm": 49.9481381685633,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.6735881692979866,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 1473.5707238095251,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 32.79689230769233,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 16083300490.277374,
+            "l1Bytes": 121326302238.27734,
+            "spillBytes": 4200412160,
+            "stateResident": 0.025952960259529603,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 46.78095693681305,
+            "throughput": 21.3762194166036,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 43.11505236933833,
+              "hbm": 6.287247964455736,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.8623106620756966,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 40.33971794871791,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2024493844.5547452,
+            "l1Bytes": 4304606828.554746,
+            "spillBytes": 18874368,
+            "stateResident": 0.025952960259529603,
+            "lowerBoundMs": 43.11505236933833
+          }
+        },
+        {
+          "value": 4,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 2888
+          },
+          "prefill": {
+            "latencyMs": 4667.757174887827,
+            "throughput": 109.6886536331668,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 1201.6856478420991,
+              "hbm": 45.75556935576007,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.6742042231611229,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 1482.0893333333345,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 20.009220512820526,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 14733293332.55474,
+            "l1Bytes": 119976295080.5547,
+            "spillBytes": 2850894848,
+            "stateResident": 0.05190592051905921,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 46.78095693681305,
+            "throughput": 21.3762194166036,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 42.9161936008562,
+              "hbm": 6.2255893947499725,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.8623106620756966,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 40.33971794871791,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2004639785.109489,
+            "l1Bytes": 4284752769.1094904,
+            "spillBytes": 0,
+            "stateResident": 0.05190592051905921,
+            "lowerBoundMs": 42.9161936008562
+          }
+        },
+        {
+          "value": 8,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 3400
+          },
+          "prefill": {
+            "latencyMs": 4664.300330931783,
+            "throughput": 109.76994697460191,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 1186.3537224069478,
+              "hbm": 41.00172017735871,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.6747038948436083,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 1487.7163047619058,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 10.925405128205128,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 13202553897.109493,
+            "l1Bytes": 118445555645.10951,
+            "spillBytes": 1321135104,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 46.78095693681305,
+            "throughput": 21.3762194166036,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 42.89656837158425,
+              "hbm": 6.219504354717331,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.8623106620756966,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 40.33971794871791,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 2002680402.218978,
+            "l1Bytes": 4282793386.218978,
+            "spillBytes": 0,
+            "stateResident": 0.10381184103811841,
+            "lowerBoundMs": 42.89656837158425
+          }
+        },
+        {
+          "value": 16,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 4424
+          },
+          "prefill": {
+            "latencyMs": 4664.300330931783,
+            "throughput": 109.76994697460191,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 1176.1886202545995,
+              "hbm": 37.849907137326056,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.6747038948436083,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 1487.7163047619058,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 10.925405128205128,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 12187670098.218983,
+            "l1Bytes": 117430671846.219,
+            "spillBytes": 308210688,
+            "stateResident": 0.20762368207623683,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 46.78095693681305,
+            "throughput": 21.3762194166036,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 42.85731791304038,
+              "hbm": 6.207334274652045,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.8623106620756966,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 40.33971794871791,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 1998761636.4379559,
+            "l1Bytes": 4278874620.437956,
+            "spillBytes": 0,
+            "stateResident": 0.20762368207623683,
+            "lowerBoundMs": 42.85731791304038
+          }
+        },
+        {
+          "value": 32,
+          "valid": true,
+          "resource": {
+            "pe": 1024,
+            "vl": 64,
+            "rl": 0,
+            "dsp": 1056,
+            "dspLimit": 7219.200000000001,
+            "cost": 6472
+          },
+          "prefill": {
+            "latencyMs": 4664.300330931783,
+            "throughput": 109.76994697460191,
+            "serviceMs": {
+              "compute": 4655.850395009898,
+              "l1": 1173.0623236422082,
+              "hbm": 36.88056100757135,
+              "launch": 0.11266666666666472
+            },
+            "dominant": {
+              "label": "Matrix",
+              "share": 0.6747038948436083,
+              "modeledOperationMs": {
+                "Matrix": 3147.0216000000055,
+                "Vector": 1487.7163047619058,
+                "Recurrent": 0,
+                "DMA": 18.63702104166665,
+                "RISC-V": 0,
+                "Shared L1": 10.925405128205128,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 11875540644.43796,
+            "l1Bytes": 117118542392.43791,
+            "spillBytes": 0,
+            "stateResident": 0.41524736415247365,
+            "lowerBoundMs": 3149.2026311111044
+          },
+          "decode": {
+            "latencyMs": 46.78095693681305,
+            "throughput": 21.3762194166036,
+            "serviceMs": {
+              "compute": 15.048792956349144,
+              "l1": 42.77881699595261,
+              "hbm": 6.182994114521475,
+              "launch": 0.10786666666666493
+            },
+            "dominant": {
+              "label": "Shared L1",
+              "share": 0.8623106620756966,
+              "modeledOperationMs": {
+                "Matrix": 0.030399999999999986,
+                "Vector": 3.0357910714285734,
+                "Recurrent": 0,
+                "DMA": 3.375047916666666,
+                "RISC-V": 0,
+                "Shared L1": 40.33971794871791,
+                "HBM": 0,
+                "Other": 0
+              }
+            },
+            "hbmBytes": 1990924104.875912,
+            "l1Bytes": 4271037088.8759117,
+            "spillBytes": 0,
+            "stateResident": 0.41524736415247365,
+            "lowerBoundMs": 42.77881699595261
+          }
+        }
+      ],
+      "knees": {
+        "prefill": {
+          "value": 0.125,
+          "atLowerSampleBound": false,
+          "threshold": 0.02,
+          "comparisons": [
+            {
+              "value": 0.015625,
+              "doubledValue": 0.03125,
+              "latencyImprovement": 0.46683458089368973,
+              "throughputImprovement": 0.8755905093698609,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 0.03125,
+              "doubledValue": 0.0625,
+              "latencyImprovement": 0.4376985181607813,
+              "throughputImprovement": 0.7784054147058685,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 0.0625,
+              "doubledValue": 0.125,
+              "latencyImprovement": 0.3256438445929597,
+              "throughputImprovement": 0.482895932634294,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 0.125,
+              "doubledValue": 0.25,
+              "latencyImprovement": 0.00012410801370629754,
+              "throughputImprovement": 0.00012412341841734829,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 0.25,
+              "doubledValue": 0.5,
+              "latencyImprovement": 0.00017260803239715916,
+              "throughputImprovement": 0.0001726378310734787,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 0.5,
+              "doubledValue": 1,
+              "latencyImprovement": 0.0003405029329075424,
+              "throughputImprovement": 0.00034061891464694455,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 1,
+              "doubledValue": 2,
+              "latencyImprovement": 0.0006705683965266278,
+              "throughputImprovement": 0.0006710183602324264,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 2,
+              "doubledValue": 4,
+              "latencyImprovement": 0.000913749635455891,
+              "throughputImprovement": 0.0009145853374747292,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 4,
+              "doubledValue": 8,
+              "latencyImprovement": 0.0007405792174969916,
+              "throughputImprovement": 0.000741128081551479,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 8,
+              "doubledValue": 16,
+              "latencyImprovement": 0,
+              "throughputImprovement": 0,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            },
+            {
+              "value": 16,
+              "doubledValue": 32,
+              "latencyImprovement": 0,
+              "throughputImprovement": 0,
+              "dominantBefore": "Matrix",
+              "dominantAfter": "Matrix"
+            }
+          ]
+        },
+        "decode": {
+          "value": 0.125,
+          "atLowerSampleBound": false,
+          "threshold": 0.02,
+          "comparisons": [
+            {
+              "value": 0.015625,
+              "doubledValue": 0.03125,
+              "latencyImprovement": 0.2265445152093634,
+              "throughputImprovement": 0.2928992290625305,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 0.03125,
+              "doubledValue": 0.0625,
+              "latencyImprovement": 0.04880126237948196,
+              "throughputImprovement": 0.051305011717699814,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 0.0625,
+              "doubledValue": 0.125,
+              "latencyImprovement": 0.025638479020511203,
+              "throughputImprovement": 0.026313107063934346,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 0.125,
+              "doubledValue": 0.25,
+              "latencyImprovement": 0.01315655353196695,
+              "throughputImprovement": 0.013331956126430285,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 0.25,
+              "doubledValue": 0.5,
+              "latencyImprovement": 0.00037870890627400106,
+              "throughputImprovement": 0.00037885238104478513,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 0.5,
+              "doubledValue": 1,
+              "latencyImprovement": 0,
+              "throughputImprovement": 0,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 1,
+              "doubledValue": 2,
+              "latencyImprovement": 0,
+              "throughputImprovement": 0,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 2,
+              "doubledValue": 4,
+              "latencyImprovement": 0,
+              "throughputImprovement": 0,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 4,
+              "doubledValue": 8,
+              "latencyImprovement": 0,
+              "throughputImprovement": 0,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 8,
+              "doubledValue": 16,
+              "latencyImprovement": 0,
+              "throughputImprovement": 0,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            },
+            {
+              "value": 16,
+              "doubledValue": 32,
+              "latencyImprovement": 0,
+              "throughputImprovement": 0,
+              "dominantBefore": "Shared L1",
+              "dominantAfter": "Shared L1"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

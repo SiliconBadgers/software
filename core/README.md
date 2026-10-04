@@ -84,4 +84,4 @@ compiler/resource-compiler search lists. Override with `SB_CC`, `SB_CXX`, `SB_RC
   recorded Apple M5 Pro results; the build (e.g. OpenMP found or not) also differs. Read `run-manifest.json`.
 - **Graphviz** is optional. Without `dot` the graph DOT/JSON/CSV files are written and the layer SVGs are skipped.
 - **Graph vs profiled run.** The `fa-on` graph matches the profiled configuration; the `fa-off` graph keeps
-  attention as separate operations. Prompt lengths for graphs stay <= 512 so prefill is one graph.
+  attention as separate operations. The capture sets the micro-batch size to the full prompt, so each prefill is one graph. The configured graph lengths are 128, 512 and 8192 tokens.

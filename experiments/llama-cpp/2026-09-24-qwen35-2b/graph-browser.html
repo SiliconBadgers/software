@@ -1,0 +1,8 @@
+<!doctype html><meta charset="utf-8"><title>QwenProfiling</title>
+<style>body{font:17px system-ui;color:#182b43;background:#f6f8fc;max-width:900px;margin:60px auto;padding:0 24px}h1{font-size:42px}p{line-height:1.6;color:#52657d}.cards{display:flex;gap:22px;margin:32px 0}.card{background:white;border:1px solid #dbe3ee;padding:26px;border-radius:12px;flex:1}a{color:#155ab6}h2{font-size:23px}.badge{color:#147463;font-weight:600}</style>
+<h1>QwenProfiling</h1><p>Qwen3.5-2B computational graphs for accelerator modeling.</p>
+<p class="badge">llama.cpp built · BF16 model verified · Four inference graphs captured</p>
+<div class="cards"><div class="card"><h2>128-token prompt</h2><p>Prefill + one decode step<br>512-token context capacity</p><a href="graphs/pp128/index.html">Explore graph and operations</a></div><div class="card"><h2>512-token prompt</h2><p>Prefill + one decode step<br>2,048-token context capacity</p><a href="graphs/pp512/index.html">Explore graph and operations</a></div></div>
+<p>Each graph contains 1,441 scheduled nodes and 1,816 tensors, including dependencies. Browse recurrent and attention layers, inspect operation counts, or use the JSON and DOT exports.</p>
+<p>Text inference only, one sequence, BF16 weights, CPU graph capture. Accelerator performance estimates will follow once processing units, precision, clock, and memory are specified.</p>
+<p><a href="README.md">Setup and reproduction notes</a> · <a href="manifest.json">Pinned versions and model checksum</a></p>

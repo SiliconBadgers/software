@@ -1,0 +1,2 @@
+step,sched_pos,op,category,name,shape_ggml,dtype,out_bytes,gemm,macs,inputs,consumers,state,parallel_group,fusion_group
+0,0,GET_ROWS,memory,model.input_embed,2048x512,f32,4194304,,0,W:token_embd.weight[2048x248320 bf16]; I:inp_tokens[512x1 i32],>deltanet,,,0
