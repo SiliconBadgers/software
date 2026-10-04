@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Build the public software workspace from an explicit component registry."""
 import argparse
+import csv
 import hashlib
 import json
 from pathlib import Path
@@ -71,7 +72,7 @@ def build(output, ref, preview=False):
         manifest.append({"source": str(source.relative_to(ROOT)), "published": target,
                          "sha256": hashlib.sha256(source.read_bytes()).hexdigest()})
 
-    for filename in ("index.html", "app.js", "style.css", "registry.json"):
+    for filename in ("index.html", "app.js", "style.css", "registry.json", "graph.js"):
         copy(WEB / filename, filename)
     for component in registry["components"]:
         copy(safe_path(WEB, component["module"]), component["module"])
@@ -83,6 +84,23 @@ def build(output, ref, preview=False):
             for suffix in (".json", ".layer0.svg", ".layer3.svg"):
                 filename = phase + suffix
                 copy(graphs / capture / filename, f"assets/graphs/{capture}/{filename}")
+            folder = ROOT / "research/compute-mapping/2026-10-02-op-dependency-map/out" / f"{capture}-{phase}"
+            data = {}
+            for name in ("nodes", "edges", "fusion_groups", "parallel_groups"):
+                source = folder / f"{name}.csv"
+                with source.open(newline="") as stream:
+                    data[name] = list(csv.DictReader(stream))
+                manifest.append({"source": str(source.relative_to(ROOT)),
+                                 "published": f"assets/dependencies/{capture}-{phase}.json",
+                                 "sha256": hashlib.sha256(source.read_bytes()).hexdigest()})
+            source = folder / "summary.json"
+            data["summary"] = json.loads(source.read_text())
+            manifest.append({"source": str(source.relative_to(ROOT)),
+                             "published": f"assets/dependencies/{capture}-{phase}.json",
+                             "sha256": hashlib.sha256(source.read_bytes()).hexdigest()})
+            dest = output / "assets/dependencies" / f"{capture}-{phase}.json"
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_text(json.dumps(data, separators=(",", ":")) + "\n")
     statuses = []
     try:
         statuses = json.loads(subprocess.check_output([
