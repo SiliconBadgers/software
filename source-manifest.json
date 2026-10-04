@@ -2,27 +2,32 @@
   {
     "source": "web/index.html",
     "published": "index.html",
-    "sha256": "a8d52e76fac04bf314a06439a92898bfc3ecb4be12dbb0a72e552b11ae9723db"
+    "sha256": "2dd0abb4fad82d8d85262fe811e0c886deb86efa35e4b9bbb639327fdf180d5f"
   },
   {
     "source": "web/app.js",
     "published": "app.js",
-    "sha256": "10b12a1e5a4275380536f73480e5954edb38d97dd1ee207c54c9fc3df887dfb0"
+    "sha256": "90187e72ccca2eb100c046b336b7619f31dccb0843d78322a5b9d7d79c479c0a"
   },
   {
     "source": "web/style.css",
     "published": "style.css",
-    "sha256": "9d3248fe86c132349ca5079130f1412d0a1e6446687829384b078548db35952d"
+    "sha256": "cb1972c2edb17b61b65219016895f5411d1e09cc865f62ec983d7c67c7ec6b5f"
   },
   {
     "source": "web/registry.json",
     "published": "registry.json",
-    "sha256": "c35a7df57bc6fe77e47f83dfcf19bc017f1290c5da2ccbca98ab9531f4746257"
+    "sha256": "c3aef5663b9077481245bdd5bbe02176327cce2a09074295240bd6a49167b909"
+  },
+  {
+    "source": "web/graph.js",
+    "published": "graph.js",
+    "sha256": "af6737d7a9798fc1dcc143024a5f46ef5f4665cf7febbc5dc0352345b2d731ad"
   },
   {
     "source": "web/components/qwen/adapter.js",
     "published": "components/qwen/adapter.js",
-    "sha256": "6aa3d7eb98d4c46e62ec4b522fdc6453ab74ef1fdd209ac7a811d0a5ee20cd45"
+    "sha256": "e12ada6c6728affc41329a8df965a993e20f6ffb05ed15672d6bd89d1c4c9b46"
   },
   {
     "source": "experiments/llama-cpp/2026-09-24-qwen35-2b/explorer/engine.js",
@@ -33,6 +38,11 @@
     "source": "experiments/llama-cpp/2026-09-24-qwen35-2b/explorer/graph-data.js",
     "published": "assets/zeb/graph-data.js",
     "sha256": "293e9c1c31698bbb75c2c10a702ab66b59eca850ebbf2d899b8a9f4b26d4bf4b"
+  },
+  {
+    "source": "experiments/llama-cpp/2026-09-24-qwen35-2b/explorer/scheduler.js",
+    "published": "assets/eric/scheduler.js",
+    "sha256": "8cb88885846c9cafd9de3b1238faac5b6d04b0a14260d61a28e66bb04bdcf494"
   },
   {
     "source": "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/prefill.json",
@@ -50,6 +60,31 @@
     "sha256": "652090464557ea3186e9dce1137ad5db2980dc2e36e5e3e983e6b81b0a91f736"
   },
   {
+    "source": "research/compute-mapping/2026-10-02-op-dependency-map/out/pp128-prefill/nodes.csv",
+    "published": "assets/dependencies/pp128-prefill.json",
+    "sha256": "f212a15a2534cbeae720e22d05f50452d4e651db792765cb4e4d2e7d75d50d70"
+  },
+  {
+    "source": "research/compute-mapping/2026-10-02-op-dependency-map/out/pp128-prefill/edges.csv",
+    "published": "assets/dependencies/pp128-prefill.json",
+    "sha256": "4b50a23a4db080fc4830d7cc07523848d2fa6653c9f5a85f4422e93adf729c5f"
+  },
+  {
+    "source": "research/compute-mapping/2026-10-02-op-dependency-map/out/pp128-prefill/fusion_groups.csv",
+    "published": "assets/dependencies/pp128-prefill.json",
+    "sha256": "48a32d474280a04b8ec0f7eacf91d7fe656e4af8b9cf73d27ceb8740e5da0a32"
+  },
+  {
+    "source": "research/compute-mapping/2026-10-02-op-dependency-map/out/pp128-prefill/parallel_groups.csv",
+    "published": "assets/dependencies/pp128-prefill.json",
+    "sha256": "8fc22fbc0631d4b1cb7d0cd9d5136b7fd5d7293b7ba8315229d1d8dc93d20b1e"
+  },
+  {
+    "source": "research/compute-mapping/2026-10-02-op-dependency-map/out/pp128-prefill/summary.json",
+    "published": "assets/dependencies/pp128-prefill.json",
+    "sha256": "58abc329779b78790c54ebe92d3599bbc4ddc45c0c991c3cb1b35a1f2d5067d0"
+  },
+  {
     "source": "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/decode.json",
     "published": "assets/graphs/pp128/decode.json",
     "sha256": "39cb60765c882a09d47cb6b8a5d1cc74785dbb98bfee2edfa509228d3071bf80"
@@ -63,6 +98,31 @@
     "source": "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/decode.layer3.svg",
     "published": "assets/graphs/pp128/decode.layer3.svg",
     "sha256": "515649ac936c313378aa0a96c583e17e86374203f1c47a4c80fa6f954599b963"
+  },
+  {
+    "source": "research/compute-mapping/2026-10-02-op-dependency-map/out/pp128-decode/nodes.csv",
+    "published": "assets/dependencies/pp128-decode.json",
+    "sha256": "b22b62efdc5bc38ba94c00074258a63c87438b12f0a5470c28859f118f9ad243"
+  },
+  {
+    "source": "research/compute-mapping/2026-10-02-op-dependency-map/out/pp128-decode/edges.csv",
+    "published": "assets/dependencies/pp128-decode.json",
+    "sha256": "5f54bc03a83bb53bca329559cc72e365f8bdb257cd73701610ec5a77aa14717f"
+  },
+  {
+    "source": "research/compute-mapping/2026-10-02-op-dependency-map/out/pp128-decode/fusion_groups.csv",
+    "published": "assets/dependencies/pp128-decode.json",
+    "sha256": "fd45f16ffa8a4e105b8f92a2e8388e885151f0a0099a58bc0718071cb651857b"
+  },
+  {
+    "source": "research/compute-mapping/2026-10-02-op-dependency-map/out/pp128-decode/parallel_groups.csv",
+    "published": "assets/dependencies/pp128-decode.json",
+    "sha256": "656660a95b86dfd0590fc1d877fd8a2cb5cb3cdd0c635d750e300f2628ab4b70"
+  },
+  {
+    "source": "research/compute-mapping/2026-10-02-op-dependency-map/out/pp128-decode/summary.json",
+    "published": "assets/dependencies/pp128-decode.json",
+    "sha256": "0614df7a9276fc22839a8af4923dc290f9ddea49edce05149fef0e3237b4640f"
   },
   {
     "source": "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp512/prefill.json",
@@ -80,6 +140,31 @@
     "sha256": "53914d77bd513a88c9e1c3f3c472a57de649d06db602da4bc1e0952069e3bf61"
   },
   {
+    "source": "research/compute-mapping/2026-10-02-op-dependency-map/out/pp512-prefill/nodes.csv",
+    "published": "assets/dependencies/pp512-prefill.json",
+    "sha256": "e6945810a12531ac05af7de96f48e464ed434ada2d0a4e51c23b35b52cc999a9"
+  },
+  {
+    "source": "research/compute-mapping/2026-10-02-op-dependency-map/out/pp512-prefill/edges.csv",
+    "published": "assets/dependencies/pp512-prefill.json",
+    "sha256": "fd8ab04d0346b06e84e0456a88df96cd80cf8457277bf498c50fd9c309b9ae25"
+  },
+  {
+    "source": "research/compute-mapping/2026-10-02-op-dependency-map/out/pp512-prefill/fusion_groups.csv",
+    "published": "assets/dependencies/pp512-prefill.json",
+    "sha256": "5925ccbb0b54cc17e6994523fe9a75121583e0a8c8eba72446eef9c93436df0f"
+  },
+  {
+    "source": "research/compute-mapping/2026-10-02-op-dependency-map/out/pp512-prefill/parallel_groups.csv",
+    "published": "assets/dependencies/pp512-prefill.json",
+    "sha256": "9255556a4601b0b5a245768844d70e026c16717cbc338d6463c4e8f96af1b6c0"
+  },
+  {
+    "source": "research/compute-mapping/2026-10-02-op-dependency-map/out/pp512-prefill/summary.json",
+    "published": "assets/dependencies/pp512-prefill.json",
+    "sha256": "fa931a0c8fb897627490b5136018daeaa06ad5e936134c9d151fa3c9398fd706"
+  },
+  {
     "source": "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp512/decode.json",
     "published": "assets/graphs/pp512/decode.json",
     "sha256": "b690ad7db7987e378d402f9ccae30f60fe097f6e9e2a44112660d0ec2aa683b8"
@@ -93,5 +178,30 @@
     "source": "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp512/decode.layer3.svg",
     "published": "assets/graphs/pp512/decode.layer3.svg",
     "sha256": "073c33088c6dcab7e5502c412d0508af1d6d7ea61385ce641eb2d057d9df9f8c"
+  },
+  {
+    "source": "research/compute-mapping/2026-10-02-op-dependency-map/out/pp512-decode/nodes.csv",
+    "published": "assets/dependencies/pp512-decode.json",
+    "sha256": "86c0c40bc9e15593d5f4af2da4afed9c445e2ee3e3a94446f7c166252b9257a4"
+  },
+  {
+    "source": "research/compute-mapping/2026-10-02-op-dependency-map/out/pp512-decode/edges.csv",
+    "published": "assets/dependencies/pp512-decode.json",
+    "sha256": "7f2940e6043dc1aafcc5c62579d02c53eab03e06badd9fdbd1e98e4976fe640c"
+  },
+  {
+    "source": "research/compute-mapping/2026-10-02-op-dependency-map/out/pp512-decode/fusion_groups.csv",
+    "published": "assets/dependencies/pp512-decode.json",
+    "sha256": "b660b81cd24d7a6c58bd752d25810f04a8322d83d685e45025f5136880316316"
+  },
+  {
+    "source": "research/compute-mapping/2026-10-02-op-dependency-map/out/pp512-decode/parallel_groups.csv",
+    "published": "assets/dependencies/pp512-decode.json",
+    "sha256": "656660a95b86dfd0590fc1d877fd8a2cb5cb3cdd0c635d750e300f2628ab4b70"
+  },
+  {
+    "source": "research/compute-mapping/2026-10-02-op-dependency-map/out/pp512-decode/summary.json",
+    "published": "assets/dependencies/pp512-decode.json",
+    "sha256": "2e3d32efae4eab815f272bde1591fffe2d8772750ae131d33c4cf07d5658f146"
   }
 ]
