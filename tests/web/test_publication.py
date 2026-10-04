@@ -1,7 +1,11 @@
 import importlib.util
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
+import os
 from pathlib import Path
+import subprocess
 import tempfile
+import threading
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -57,6 +61,39 @@ class PublicationTests(unittest.TestCase):
         self.assertNotEqual(a, b)
         self.assertNotIn("/", a)
         self.assertLessEqual(len(a), 64)
+
+    def test_checkout_authentication_is_forwarded_once(self):
+        requests = []
+
+        class Handler(BaseHTTPRequestHandler):
+            def do_GET(self):
+                requests.append(self.headers.get_all("Authorization"))
+                self.send_response(401)
+                self.end_headers()
+
+            def log_message(self, *_):
+                pass
+
+        server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            with tempfile.TemporaryDirectory() as temp:
+                url = f"http://127.0.0.1:{server.server_port}/"
+                header = "Authorization: Basic test-value"
+                subprocess.run(["git", "init", temp], check=True, capture_output=True)
+                subprocess.run(["git", "config", f"http.{url}.extraheader", header],
+                               cwd=temp, check=True)
+                env = {**os.environ, **publisher.authentication_environment(header, url),
+                       "GIT_TERMINAL_PROMPT": "0"}
+                # The server deliberately denies access; the request headers are the assertion.
+                subprocess.run(["git", "ls-remote", url + "repository"], cwd=temp,
+                               env=env, capture_output=True, timeout=10)
+                self.assertEqual(requests, [["Basic test-value"]])
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join()
 
 
 if __name__ == "__main__":
