@@ -33,6 +33,7 @@ let capturedGraph,
   dependencies,
   evaluationVersion = 0,
   selectionVersion = 0,
+  navigationVersion = 0,
   expandedCaptures = [];
 const captureCache = new Map();
 const colors = {
@@ -60,10 +61,16 @@ function download(filename, text, type = "application/json") {
 }
 
 function changeView() {
-  const view = location.hash.slice(1) || "model";
-  const selected = ["model", "graph", "execution", "work", "sources"].includes(
-    view,
-  )
+  const previous = document.body.dataset.view;
+  const [view, section] = (location.hash.slice(1) || "model").split("/");
+  const selected = [
+    "model",
+    "graph",
+    "execution",
+    "work",
+    "previews",
+    "sources",
+  ].includes(view)
     ? view
     : "model";
   $$("[data-panel]").forEach(
@@ -76,17 +83,25 @@ function changeView() {
     else link.removeAttribute("aria-current");
   });
   document.body.dataset.view = selected;
+  if (selected !== previous) window.scrollTo(0, 0);
   if (study && selected === "graph") renderGraph();
   if (study && selected === "execution") renderExecution();
+  if (build && selected === "previews") refreshPreviews();
+  if (selected === "work" && section === "recurrence")
+    $("#saved-study-panel").scrollIntoView({ block: "start" });
 }
 
 async function selectStudy() {
   const selection = ++selectionVersion;
   ++evaluationVersion;
-  component = registry.components.find((item) => item.id === $("#study").value);
-  const module = await import(`./${component.module}`);
+  clearTimeout(evaluationTimer);
+  const selectedComponent = registry.components.find(
+    (item) => item.id === $("#study").value,
+  );
+  const module = await import(`./${selectedComponent.module}`);
   const selectedStudy = await module.createStudy();
   if (selection !== selectionVersion) return;
+  component = selectedComponent;
   study = selectedStudy;
   for (const method of ["defaults", "validate", "evaluate", "layerMap"]) {
     if (typeof study[method] !== "function")
@@ -103,6 +118,11 @@ async function selectStudy() {
     }
   } catch {
     /* Missing or invalid saved settings use this study's defaults. */
+  }
+  try {
+    localStorage.setItem("sb-software-engine-v1", component.id);
+  } catch {
+    /* Engine selection remains usable when browser storage is unavailable. */
   }
   $("#study-credit").innerHTML =
     `${escape(component.contributors.join(", "))} · ${(component.pullRequests || [component.pullRequest]).map((n) => `<a href="${repo}/pull/${n}">PR #${n}</a>`).join(" / ")}`;
@@ -593,7 +613,7 @@ function renderOverview() {
 
 function renderWork(statuses = build.work) {
   $("#work-list").innerHTML = registry.work
-    .map((item) => {
+    .map((item, index) => {
       const status = statuses?.find(
         (status) => status.number === item.pullRequest,
       );
@@ -610,9 +630,48 @@ function renderWork(statuses = build.work) {
           registry.components.some(
             (component) => component.id === item.component,
           ));
-      return `<article class="panel"><div class="card-top"><span class="tag ${label === "Merged" ? "good" : ""}">${label}</span><span class="muted">${escape(item.contributor)}</span></div><h2>${escape(item.title)}</h2><p>${escape(item.description)}</p><p class="muted">${registered ? "Available in this workspace." : "Source and results are accessible through the PR; a workspace component is not registered."}</p>${registered ? `<a href="#${item.view}" data-work-component="${item.component || ""}">Open in workspace →</a> · ` : ""}<a href="${repo}/pull/${item.pullRequest}">PR #${item.pullRequest} ↗</a></article>`;
+      return `<article class="panel study-card"><div class="card-top"><span class="tag ${label === "Merged" ? "good" : ""}">${label}</span><span class="muted">${escape(item.contributor)}</span></div><h2>${escape(item.title)}</h2><p>${escape(item.description)}</p><div class="card-actions">${registered ? `<button data-work-item="${index}">${escape(item.actionLabel || "Open study")} →</button>` : ""}${item.source ? `<a href="${repo}/tree/${build.sha}/${item.source}">Browse source ↗</a>` : ""}<a href="${repo}/pull/${item.pullRequest}">PR #${item.pullRequest} ↗</a></div></article>`;
     })
     .join("");
+}
+
+async function refreshPreviews() {
+  if ($("#refresh-previews").disabled) return;
+  $("#refresh-previews").disabled = true;
+  const root = new URL(
+    build.preview && location.pathname.includes("/previews/") ? "../../" : "./",
+    location.href,
+  );
+  try {
+    const response = await fetch(new URL("editions.json", root), {
+      cache: "no-store",
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!response.ok) throw Error("Published editions could not be loaded.");
+    const catalog = await response.json();
+    if (catalog.schemaVersion !== 1 || !Array.isArray(catalog.editions))
+      throw Error("The edition list is unavailable.");
+    const editions = catalog.editions.filter(
+      (edition) =>
+        typeof edition.ref === "string" &&
+        /^[a-f0-9]{40}$/.test(edition.sha) &&
+        /^(\.\/|previews\/[a-z0-9-]+\/)$/.test(edition.path),
+    );
+    const previews = editions.filter((edition) => edition.preview);
+    $("#preview-status").textContent =
+      `${previews.length} published branch ${previews.length === 1 ? "preview" : "previews"}. Preview URLs remain available after branches are merged or deleted.`;
+    $("#preview-list").innerHTML = editions
+      .map((edition) => {
+        const current = edition.sha === build.sha && edition.ref === build.ref;
+        return `<article class="panel edition-card"><div class="card-top"><span class="tag ${edition.preview ? "" : "good"}">${edition.preview ? "Branch preview" : "Main"}</span>${current ? '<span class="muted">You are here</span>' : ""}</div><h2>${escape(edition.preview ? edition.ref : "Shared workspace")}</h2><p class="muted">${edition.preview ? "Published branch snapshot" : "Latest published main revision"} · <a href="${repo}/commit/${edition.sha}">${edition.sha.slice(0, 8)}</a></p><div class="card-actions"><a class="button-link" href="${new URL(edition.path, root).href}">${edition.preview ? "Open preview" : "Open main"} →</a><a href="${repo}/tree/${edition.sha}">Browse source ↗</a></div></article>`;
+      })
+      .join("");
+  } catch (error) {
+    $("#preview-status").textContent =
+      `${error.message} Use Refresh to try again. Preview URLs are also listed in each publication run’s summary.`;
+  } finally {
+    $("#refresh-previews").disabled = false;
+  }
 }
 
 async function refreshWork() {
@@ -677,6 +736,13 @@ async function start() {
         `<option value="${component.id}">${escape(component.title)}</option>`,
     )
     .join("");
+  try {
+    const savedEngine = localStorage.getItem("sb-software-engine-v1");
+    if (registry.components.some((item) => item.id === savedEngine))
+      $("#study").value = savedEngine;
+  } catch {
+    /* A fresh or storage-restricted browser opens the default engine. */
+  }
   $("#study").addEventListener("change", () =>
     selectStudy().catch((error) => notice(error.message, true)),
   );
@@ -814,15 +880,35 @@ async function start() {
       }),
   );
   $("#work-list").addEventListener("click", async (event) => {
-    const link = event.target.closest("[data-work-component]");
-    if (
-      link?.dataset.workComponent &&
-      link.dataset.workComponent !== component.id
-    ) {
-      $("#study").value = link.dataset.workComponent;
-      await selectStudy();
+    const button = event.target.closest("[data-work-item]");
+    if (!button) return;
+    const item = registry.work[Number(button.dataset.workItem)];
+    const navigation = ++navigationVersion;
+    button.disabled = true;
+    try {
+      if (
+        item.component &&
+        (item.component !== component?.id ||
+          item.component !== $("#study").value)
+      ) {
+        $("#study").value = item.component;
+        await selectStudy();
+      }
+      if (navigation !== navigationVersion) return;
+      if (item.capture) {
+        $("#capture").value = item.capture;
+        $("#graph-grouping").value = "fusion";
+        $("#graph-style").value = "dependencies";
+      }
+      if (location.hash === `#${item.view}`) changeView();
+      else location.hash = item.view;
+    } catch (error) {
+      notice(error.message, true);
+    } finally {
+      button.disabled = false;
     }
   });
+  $("#refresh-previews").onclick = refreshPreviews;
   renderSources();
   refreshWork();
   await selectStudy();

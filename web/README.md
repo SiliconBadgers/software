@@ -55,7 +55,8 @@ timeline exports, invalid inputs and mobile layout. CI runs them before publicat
 2. Open **Actions → Publish software workspace → Run workflow**.
 3. Keep the workflow itself on **main** and enter the source branch in
    **preview_ref**. Run the workflow.
-4. Open the edition linked in the workflow's summary. Its URL is
+4. Open **Previews** in the workspace and refresh the list, or use the link
+   in the workflow's summary. Its URL is
    `/software/previews/<branch-slug>-<branch-hash>/`.
 5. Open a PR when the work is ready for review. Merging it updates the main
    workspace automatically.
@@ -73,6 +74,19 @@ only that branch's edition. Builds record the source commit and label previews.
 Publication jobs serialize updates and keep generated output history on
 `gh-pages`; they do not rewrite contributor commits. The job deploys the assembled
 site through GitHub Pages. Preview files are public.
+
+Every publication rebuilds `editions.json` from the saved editions' own branch
+names and source commits. The Previews tab reads this directory from the main
+site, including when opened inside a branch preview. A listed preview is a
+published snapshot; its source branch may have since been merged or deleted.
+Local builds list only their own edition.
+
+Study cards open their associated engine or saved experiment. The dependency-map
+card selects Adrian's original 512-token BF16 map; the expanded captures remain
+available in the Graphs selector. Each browser remembers its selected engine and
+that engine's last valid configuration. Browser storage is optional and no account
+is required. Studies, Previews and Sources use the full content width; model
+controls are available in Model, Graphs and Timeline.
 
 ## Add a study component
 

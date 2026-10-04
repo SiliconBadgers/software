@@ -62,6 +62,40 @@ class PublicationTests(unittest.TestCase):
         self.assertNotIn("/", a)
         self.assertLessEqual(len(a), 64)
 
+    def test_edition_directory_tracks_main_and_replaced_previews(self):
+        with tempfile.TemporaryDirectory() as temp:
+            site = Path(temp) / "site"
+            build = Path(temp) / "build"
+            site.mkdir(); build.mkdir()
+
+            def deploy(ref, sha):
+                (build / "build-info.json").write_text(json.dumps({"ref": ref, "sha": sha}))
+                publisher.overlay(site, build, ref)
+
+            deploy("main", "a" * 40)
+            deploy("feature/a-b", "b" * 40)
+            deploy("feature/a/b", "c" * 40)
+            deploy("feature/a-b", "d" * 40)
+            deploy("main", "e" * 40)
+            index = json.loads((site / "editions.json").read_text())
+            self.assertEqual(index["schemaVersion"], 1)
+            editions = {edition["ref"]: edition for edition in index["editions"]}
+            self.assertEqual(len(editions), 3)
+            self.assertEqual(editions["main"], {
+                "ref": "main", "sha": "e" * 40, "preview": False, "path": "./"})
+            self.assertEqual(editions["feature/a-b"]["sha"], "d" * 40)
+            self.assertEqual(editions["feature/a/b"]["sha"], "c" * 40)
+            self.assertNotEqual(editions["feature/a-b"]["path"], editions["feature/a/b"]["path"])
+            for edition in editions.values():
+                self.assertTrue((site / edition["path"] / "build-info.json").is_file())
+
+    def test_invalid_edition_revision_is_not_published(self):
+        with tempfile.TemporaryDirectory() as temp:
+            site = Path(temp)
+            (site / "build-info.json").write_text(json.dumps({"ref": "main", "sha": "not-a-commit"}))
+            with self.assertRaises(ValueError):
+                publisher.write_editions(site)
+
     def test_checkout_authentication_is_forwarded_once(self):
         requests = []
 

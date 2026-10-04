@@ -168,6 +168,10 @@ def build(output, ref, preview=False):
     info = {"schemaVersion": 1, "sha": git("rev-parse", "HEAD"), "ref": ref,
             "preview": preview, "work": statuses}
     (output / "build-info.json").write_text(json.dumps(info, indent=2) + "\n")
+    # Local builds expose their own edition; publication indexes all retained previews.
+    (output / "editions.json").write_text(json.dumps({"schemaVersion": 1, "editions": [
+        {"ref": ref, "sha": info["sha"], "preview": preview, "path": "./"}
+    ]}, indent=2) + "\n")
     (output / "source-manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
     (output / ".nojekyll").touch()
     print(f"Built {len(manifest)} source assets in {output}")

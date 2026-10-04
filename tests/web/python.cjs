@@ -167,11 +167,67 @@ const close = (a, b, label) =>
       () => document.querySelector("#metrics").children.length === 0,
     );
     assert(await page.locator("#export-timeline").isDisabled());
-    await page.locator("#study").selectOption("qwen-baseline");
+    await page.locator("nav [data-view=work]").click();
+    await page.getByRole("button", { name: "Open JS model" }).click();
     await page.waitForFunction(
       () =>
         document.querySelector("#control-frequency") &&
         document.querySelector("#metrics").children.length > 0,
+    );
+    assert.equal(await page.locator("#study").inputValue(), "qwen-baseline");
+    await page.locator("nav [data-view=work]").click();
+    await page.getByRole("button", { name: "Open Python model" }).click();
+    await page.waitForFunction(
+      () =>
+        document.querySelector("#control-clock_mhz") &&
+        !document.querySelector("#notice").textContent.includes("Calculating"),
+    );
+    await page.locator("#control-clock_mhz").fill("225");
+    await page.waitForFunction(
+      () =>
+        JSON.parse(localStorage.getItem("sb-software-qwen-python-v1"))[
+          "clock_mhz"
+        ] === 225,
+    );
+    await page.reload();
+    await page.waitForFunction(
+      () => window.SB_WORKSPACE_READY,
+      {},
+      { timeout: 120000 },
+    );
+    assert.equal(
+      await page.locator("#study").inputValue(),
+      "qwen-python",
+      "Reload keeps the selected engine",
+    );
+    assert.equal(
+      await page.locator("#control-clock_mhz").inputValue(),
+      "225",
+      "Reload keeps its valid configuration",
+    );
+    await page.locator("nav [data-view=graph]").click();
+    await page.locator("#capture").selectOption("raghav:pp512-fa-on");
+    await page.locator("nav [data-view=work]").click();
+    await page.getByRole("button", { name: "Explore dependencies" }).click();
+    await page.waitForFunction(
+      () =>
+        document.querySelector("#capture").value === "pp512" &&
+        document.querySelector("#graph-caption").textContent.includes("Adrian"),
+    );
+    assert.equal(await page.locator("#study").inputValue(), "qwen-baseline");
+    assert(
+      await page.locator("#grouping-control").isVisible(),
+      "Adrian's card opens his grouped BF16 dependency map",
+    );
+    await page.locator("nav [data-view=work]").click();
+    await page
+      .getByRole("button", { name: "Compare recurrence designs" })
+      .click();
+    await page.waitForFunction(() => location.hash === "#work/recurrence");
+    assert.equal(await page.locator("body").getAttribute("data-view"), "work");
+    assert(
+      (await page.locator("#saved-study-panel").boundingBox()).y < 50,
+      "Eric's card goes directly to the saved experiment",
     );
     await page.setViewportSize({ width: 390, height: 844 });
     assert.equal(
@@ -180,7 +236,7 @@ const close = (a, b, label) =>
     );
     assert.deepEqual(errors, []);
     console.log(
-      "PASS Python/native parity across four configurations, captured workloads, sweeps, graphs, export and engine switching",
+      "PASS Python/native parity, captured workloads, sweeps, graphs, export, study navigation and remembered engine",
     );
   } finally {
     await browser.close();
