@@ -2,6 +2,10 @@
 
 Use llama.cpp profiling and numerical evidence to guide compute-unit boundaries, shared resources and host/device work. Software also owns operation mapping, backend/runtime and host integration.
 
+Open the [software workspace](https://siliconbadgers.com/software/) for
+model comparisons, captured graphs, execution estimates and source links.
+[Workspace development](web/README.md) describes components and branch previews.
+
 ## Start here
 
 1. Read [the current assignment and artifact locations](docs/START-HERE.md).

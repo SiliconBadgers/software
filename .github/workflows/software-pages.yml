@@ -1,0 +1,109 @@
+name: Publish software workspace
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      preview_ref:
+        description: 'Branch to preview. Leave blank to publish main.'
+        required: false
+        default: ''
+permissions:
+  contents: read
+concurrency:
+  group: software-workspace-publication
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      ref: ${{ steps.reference.outputs.ref }}
+    steps:
+      - name: Choose source
+        id: reference
+        env:
+          PREVIEW_REF: ${{ inputs.preview_ref }}
+        run: |
+          python3 - <<'PY'
+          import os, subprocess
+          ref = os.environ.get('PREVIEW_REF') or 'main'
+          subprocess.run(['git', 'check-ref-format', '--branch', ref], check=True)
+          if ref == 'gh-pages': raise SystemExit('gh-pages contains published output, not source')
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as out: out.write('ref=' + ref + '\n')
+          PY
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.reference.outputs.ref }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check and build source
+        env:
+          SOURCE_REF: ${{ steps.reference.outputs.ref }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node experiments/llama-cpp/2026-09-24-qwen35-2b/scripts/test_model.cjs
+          python3 -m unittest discover -s tests/web -v
+          if [ "$SOURCE_REF" = main ]; then
+            python3 web/build.py --ref "$SOURCE_REF"
+          else
+            python3 web/build.py --ref "$SOURCE_REF" --preview
+          fi
+      - name: Check the rendered workspace
+        run: |
+          npm install --prefix build/browser-tests --no-save --ignore-scripts playwright@1.62.1
+          build/browser-tests/node_modules/.bin/playwright install --with-deps chromium
+          python3 -m http.server 8767 --directory build/site > /tmp/software-web-server.log 2>&1 &
+          NODE_PATH="$PWD/build/browser-tests/node_modules" node tests/web/smoke.cjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: workspace-build
+          path: build/site
+          include-hidden-files: true
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      # Publication code always comes from main, even when building a preview.
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/download-artifact@v4
+        with:
+          name: workspace-build
+          path: build/site
+      - name: Retain main and branch previews
+        env:
+          SOURCE_REF: ${{ needs.build.outputs.ref }}
+        run: |
+          python3 web/publish.py --build build/site --ref "$SOURCE_REF"
+          python3 - <<'PY'
+          import hashlib, os, re
+          ref = os.environ['SOURCE_REF']
+          slug = re.sub(r'[^a-zA-Z0-9-]+', '-', ref).strip('-').lower()[:55] or 'branch'
+          path = '' if ref == 'main' else 'previews/' + slug + '-' + hashlib.sha256(ref.encode()).hexdigest()[:8] + '/'
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as out:
+            out.write('[Open this edition](https://siliconbadgers.com/software/' + path + ')\n')
+          PY
+      - name: Read assembled publication
+        run: |
+          git clone --depth 1 --branch gh-pages "$(git remote get-url origin)" build/publication
+          python3 -c "import shutil; shutil.rmtree('build/publication/.git')"
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/publication
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
