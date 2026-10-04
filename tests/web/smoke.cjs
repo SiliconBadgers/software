@@ -1,0 +1,57 @@
+/* Functional browser checks for the deployed static application. */
+const assert = require('node:assert/strict');
+const {chromium} = require('playwright');
+
+(async () => {
+  const browser = await chromium.launch({headless: true});
+  const page = await browser.newPage({viewport: {width: 1440, height: 1000}});
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  try {
+    await page.goto(process.env.SB_WORKSPACE_URL || 'http://127.0.0.1:8767/');
+    await page.waitForFunction(() => window.SB_WORKSPACE_READY);
+    const before = await page.locator('#metrics').innerText();
+    await page.locator('#control-hbmGBs').fill('10');
+    await page.waitForFunction(previous => document.querySelector('#metrics').innerText !== previous, before);
+    assert.notEqual(await page.locator('#metrics').innerText(), before, 'Hardware controls change results');
+    await page.locator('#reset').click();
+    await page.locator('#run-sweep').click();
+    await page.waitForFunction(() => document.querySelectorAll('#comparison-table tbody tr').length === 4);
+    assert.equal(await page.locator('#comparison-chart [data-design]').count(), 4);
+    await page.locator('#sweep-values').fill('1,broken');
+    await page.locator('#run-sweep').click();
+    assert.match(await page.locator('#notice').innerText(), /comma-separated/);
+    await page.locator('[data-view=graph]').click();
+    await page.waitForFunction(() => document.querySelectorAll('#tensor-table tbody tr').length > 0);
+    await page.waitForFunction(() => document.querySelector('#capture-image').naturalWidth > 0);
+    await page.locator('#graph-layer').selectOption('3');
+    await page.locator('#tensor-search').fill('soft');
+    assert.match(await page.locator('#tensor-table').innerText(), /SOFT_MAX/);
+    await page.locator('[data-tensor]').first().click();
+    assert.match(await page.locator('#tensor-detail').innerText(), /Direct inputs/);
+    await page.locator('[data-view=execution]').click();
+    await page.locator('#execution-layer').selectOption('3');
+    assert(await page.locator('#execution-detail tbody tr').count() > 20);
+    const [download] = await Promise.all([page.waitForEvent('download'), page.locator('#export-timeline').click()]);
+    const fs = require('node:fs');
+    const timeline = JSON.parse(fs.readFileSync(await download.path(), 'utf8'));
+    assert.equal(timeline.model, 'serial');
+    assert(timeline.rows.every((row, index) => index === 0 || Math.abs(timeline.rows[index - 1].end - row.start) < 1e-10));
+    assert(Math.abs(timeline.rows.at(-1).end - timeline.rows.reduce((sum, row) => sum + row.seconds, 0)) < 1e-10);
+    await page.locator('[data-view=work]').click();
+    assert.equal(await page.locator('#work-list article').count(), 5);
+    await page.locator('[data-view=sources]').click();
+    assert.match(await page.locator('#build-info').innerText(), /PR #6/);
+    await page.locator('[data-view=model]').click();
+    await page.locator('#control-frequency').fill('0');
+    await page.waitForFunction(() => document.querySelector('#metrics').children.length === 0);
+    assert(await page.locator('#export-timeline').isDisabled());
+    await page.locator('#reset').click();
+    await page.setViewportSize({width: 390, height: 844});
+    await page.reload(); await page.waitForFunction(() => window.SB_WORKSPACE_READY);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390, 'No mobile page overflow');
+    assert.equal(await page.locator('#configuration-panel').getAttribute('open'), null);
+    assert.deepEqual(errors, [], 'No client exceptions');
+    console.log('PASS workspace navigation, controls, comparison, graphs, timeline export, invalid input and mobile layout');
+  } finally { await browser.close(); }
+})().catch(error => { console.error(error); process.exitCode = 1; });
