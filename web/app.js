@@ -2,7 +2,7 @@ const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
 const escape = value => String(value).replace(/[&<>"']/g, char => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[char]));
 const number = (value, digits = 2) => Number.isFinite(value) ? value.toLocaleString(undefined, {maximumFractionDigits: digits}) : 'Unavailable';
-const milliseconds = value => `${number(value * 1000)} ms`;
+const milliseconds = value => value >= 1 ? `${number(value)} s` : value < 0.001 ? `${number(value * 1e6)} µs` : `${number(value * 1000)} ms`;
 const repo = 'https://github.com/SiliconBadgers/software';
 let registry, build, study, component, config, result, sweep = [], evaluationTimer;
 let capturedGraph;
