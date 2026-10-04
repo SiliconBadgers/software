@@ -3,29 +3,86 @@
   "components": [
     {
       "id": "qwen-baseline",
-      "title": "Qwen3.5-2B accelerator model",
-      "contributors": ["Zeb Taylor"],
+      "title": "Qwen3.5-2B \u00b7 JS model",
+      "contributors": ["Zeb Taylor", "Eric Wang"],
       "module": "components/qwen/adapter.js",
       "source": "experiments/llama-cpp/2026-09-24-qwen35-2b",
       "pullRequest": 6,
       "description": "Captured graphs and a configurable matrix, vector, recurrence and memory model.",
       "assets": [
-        {"source": "experiments/llama-cpp/2026-09-24-qwen35-2b/explorer/engine.js", "target": "assets/zeb/engine.js"},
-        {"source": "experiments/llama-cpp/2026-09-24-qwen35-2b/explorer/graph-data.js", "target": "assets/zeb/graph-data.js"}
-      ]
+        {
+          "source": "experiments/llama-cpp/2026-09-24-qwen35-2b/explorer/engine.js",
+          "target": "assets/zeb/engine.js"
+        },
+        {
+          "source": "experiments/llama-cpp/2026-09-24-qwen35-2b/explorer/graph-data.js",
+          "target": "assets/zeb/graph-data.js"
+        },
+        {
+          "source": "experiments/llama-cpp/2026-09-24-qwen35-2b/explorer/scheduler.js",
+          "target": "assets/eric/scheduler.js"
+        }
+      ],
+      "pullRequests": [6, 9]
     }
   ],
   "work": [
-    {"title": "Qwen captures and original explorer", "contributor": "Zeb Taylor", "pullRequest": 6, "description": "The merged computational graphs and model behind the active study."},
-    {"title": "Dependency maps and grouping", "contributor": "Adrian Luo", "pullRequest": 10, "description": "State ordering, shared-input projections and proposed fusion groups."},
-    {"title": "Resource scheduling and recurrence studies", "contributor": "Eric Wang", "pullRequest": 9, "description": "Compute and memory scheduling, resource sweeps and shared-matrix recurrence costs."},
-    {"title": "Expanded profiling and Python engine", "contributor": "Raghav Iyer", "pullRequest": 7, "description": "Additional captures, activation residency, hardware modeling and sensitivity analysis."},
-    {"title": "Device integration probes", "contributor": "Abhinav Nandwani", "pullRequest": 8, "description": "RISC-V mailbox firmware and llama.cpp checks. Tensor computation remains on the host."}
+    {
+      "title": "Qwen captures and original explorer",
+      "contributor": "Zeb Taylor",
+      "pullRequest": 6,
+      "description": "The merged computational graphs and model behind the active study.",
+      "view": "model"
+    },
+    {
+      "title": "Dependency maps and grouping",
+      "contributor": "Adrian Luo",
+      "pullRequest": 10,
+      "description": "State ordering, shared-input projections and proposed fusion groups.",
+      "view": "graph"
+    },
+    {
+      "title": "Resource scheduling and recurrence studies",
+      "contributor": "Eric Wang",
+      "pullRequest": 9,
+      "description": "Compute and memory scheduling, resource sweeps and shared-matrix recurrence costs.",
+      "view": "model"
+    },
+    {
+      "title": "Expanded profiling and Python engine",
+      "contributor": "Raghav Iyer",
+      "pullRequest": 7,
+      "description": "Additional captures, activation residency, hardware modeling and sensitivity analysis.",
+      "view": "model",
+      "component": "qwen-python"
+    },
+    {
+      "title": "Device integration probes",
+      "contributor": "Abhinav Nandwani",
+      "pullRequest": 8,
+      "description": "RISC-V mailbox firmware and llama.cpp checks. Tensor computation remains on the host."
+    }
   ],
   "sources": [
-    {"title": "CPU and Metal profiling baseline", "path": "experiments/llama-cpp/2026-09-22", "description": "Measured results, profiler methodology and saved-output checks."},
-    {"title": "Graph capture and model equations", "path": "experiments/llama-cpp/2026-09-24-qwen35-2b", "description": "Zeb's imported capture package, original explorer and reproduction instructions."},
-    {"title": "Integration probes", "path": "integration", "description": "Firmware, numerical comparisons and host-side graph observations."},
-    {"title": "Research", "path": "research/compute-mapping", "description": "Operation mapping and compute-boundary studies."}
+    {
+      "title": "CPU and Metal profiling baseline",
+      "path": "experiments/llama-cpp/2026-09-22",
+      "description": "Measured results, profiler methodology and saved-output checks."
+    },
+    {
+      "title": "Graph capture and model equations",
+      "path": "experiments/llama-cpp/2026-09-24-qwen35-2b",
+      "description": "Zeb's imported capture package, original explorer and reproduction instructions."
+    },
+    {
+      "title": "Integration probes",
+      "path": "integration",
+      "description": "Firmware, numerical comparisons and host-side graph observations."
+    },
+    {
+      "title": "Research",
+      "path": "research/compute-mapping",
+      "description": "Operation mapping and compute-boundary studies."
+    }
   ]
 }

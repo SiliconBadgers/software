@@ -2,10 +2,13 @@
 
 The [software workspace](https://siliconbadgers.com/software/) brings
 model controls, captured graphs, execution estimates, studies and source links
-into one application. The current component uses the preserved engine and graph
-data imported by Zeb Taylor in [PR #6](https://github.com/SiliconBadgers/software/pull/6).
-The interface is independent of the dated explorer. PRs #7, #9 and #10 remain
-separate contributions until reviewed and integrated.
+into one application. The interface uses Zeb Taylor's preserved capture and model
+([PR #6](https://github.com/SiliconBadgers/software/pull/6)), Eric Wang's resource
+scheduler ([PR #9](https://github.com/SiliconBadgers/software/pull/9)) and Adrian
+Luo's dependency tables ([PR #10](https://github.com/SiliconBadgers/software/pull/10)).
+Raghav Iyer's expanded profiling package and Python engine are preserved in
+[PR #7](https://github.com/SiliconBadgers/software/pull/7). The Studies and Sources
+tabs link each contribution to its original source.
 
 ## Build locally
 
@@ -98,11 +101,24 @@ engine. Preserve original contributors, source revisions and assumptions when
 adding adapters. Source links use the exact build commit, while PR status can
 refresh through GitHub's read-only public API.
 
-## Current execution model
+## Execution and graph views
 
-The first component sums operation durations in captured serial order. It can
-overlap compute and memory within an operation. Timeline bars show whole-operation
-durations, including transfer and launch costs, rather than measured unit
-utilization. Dependency-aware schedulers, additional captures and fusion studies
-remain under review in their original PRs. Resource costs are relative estimates;
-the workspace does not establish numerical quality or physical feasibility.
+The JS component offers a serial baseline and Eric's dependency/resource
+scheduler. Both use the same operation cost equations. The resource schedule
+preserves data dependencies and in-place state ordering, reserves launch, compute,
+SRAM and external-memory intervals, and checks for resource overcommit. It assumes
+compute/memory overlap within an operation. A compute pool processes one operation
+at a time, using the configured units together. The timeline exports actual modeled
+starts, ends, dependencies and reserved intervals.
+
+Adrian's committed CSV tables supply the dependency graph. The default view groups
+operations into structural fusion candidates; selecting a node shows its operations,
+shapes and incoming dependencies. Grouping this visualization does not implement
+fusion or change the timing estimate. The original captured SVG and JSON remain
+available. Each derived graph records the hashes of its source tables in the
+publication manifest.
+
+Captured topology, hardware timing assumptions and CPU measurements are distinct.
+Changing the JS prompt/context settings extrapolates costs from the original
+captures; it does not create a new captured graph. Resource costs remain relative
+estimates, and these calculations do not validate numerical quality or an FPGA fit.
