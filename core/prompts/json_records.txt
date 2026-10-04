@@ -1,0 +1,14 @@
+[
+  {"id": 1001, "sensor": "temp-north", "unit": "celsius", "reading": 21.4, "status": "ok", "tags": ["indoor", "lab"]},
+  {"id": 1002, "sensor": "temp-south", "unit": "celsius", "reading": 22.1, "status": "ok", "tags": ["indoor", "lab"]},
+  {"id": 1003, "sensor": "humidity-a", "unit": "percent", "reading": 48.0, "status": "ok", "tags": ["indoor", "lab"]},
+  {"id": 1004, "sensor": "humidity-b", "unit": "percent", "reading": 51.3, "status": "warning", "tags": ["indoor", "storage"]},
+  {"id": 1005, "sensor": "pressure-1", "unit": "hectopascal", "reading": 1012.6, "status": "ok", "tags": ["outdoor", "roof"]},
+  {"id": 1006, "sensor": "pressure-2", "unit": "hectopascal", "reading": 1012.9, "status": "ok", "tags": ["outdoor", "roof"]},
+  {"id": 1007, "sensor": "temp-roof", "unit": "celsius", "reading": 14.8, "status": "ok", "tags": ["outdoor", "roof"]},
+  {"id": 1008, "sensor": "temp-cold", "unit": "celsius", "reading": 3.2, "status": "warning", "tags": ["indoor", "storage"]},
+  {"id": 1009, "sensor": "light-1", "unit": "lux", "reading": 310.0, "status": "ok", "tags": ["indoor", "lab"]},
+  {"id": 1010, "sensor": "light-2", "unit": "lux", "reading": 295.5, "status": "ok", "tags": ["indoor", "lab"]},
+  {"id": 1011, "sensor": "co2-a", "unit": "ppm", "reading": 640, "status": "ok", "tags": ["indoor", "lab"]},
+  {"id": 1012, "sensor": "co2-b", "unit": "ppm", "reading": 905, "status": "warning", "tags": ["indoor", "storage"]}
+]

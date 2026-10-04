@@ -1,0 +1,9 @@
+{
+  "name": "accel-efficient",
+  "description": "The explorer's saved 'recommended-efficient' design: one matrix unit and no dedicated recurrence unit (recurrence falls back to the vector units). Placeholder values, not a proposal.",
+  "status": "assumption",
+  "config": {
+    "matrix": {"count": 1},
+    "recurrent": {"count": 0}
+  }
+}

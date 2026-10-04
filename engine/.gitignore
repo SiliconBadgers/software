@@ -1,0 +1,4 @@
+# sweep/analysis outputs are regenerated from the captured runs, never committed
+/out/
+__pycache__/
+*.pyc

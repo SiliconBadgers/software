@@ -1,0 +1,6 @@
+{
+  "name": "accel-balanced",
+  "description": "Hardware parameters of the 2026-09-24 explorer's saved 'recommended-balanced' design (4 matrix units 32x32, 4 vector units x32 lanes, 2 recurrence units x128 lanes, 8 MiB shared L1, 460 GB/s HBM at 70%). Parameters that did not exist in that model take the engine defaults. All values are placeholders/assumptions, not a proposal from the Compute team.",
+  "status": "assumption",
+  "config": {}
+}

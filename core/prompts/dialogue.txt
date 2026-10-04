@@ -1,0 +1,15 @@
+Customer: Hi, my order was supposed to arrive on Tuesday but the tracking page still says it is waiting at the depot.
+
+Agent: Thanks for reaching out, and I am sorry about the delay. Could you share the order number so I can look it up?
+
+Customer: Sure, it is 48213-77.
+
+Agent: Thank you. I can see the parcel was scanned at the regional depot on Monday evening, but it missed the delivery van because of a sorting error. It is now scheduled for tomorrow between ten and two.
+
+Customer: Tomorrow is a problem, I will be at work. Can it be held at a pickup point instead?
+
+Agent: Yes, I can redirect it. There is a pickup locker at the supermarket on Fairfield Road, open until ten in the evening. Would you like me to send the collection code to the email address on your account?
+
+Customer: That would be perfect, thank you.
+
+Agent: Done. You will receive the code within a few minutes, and the parcel should be in the locker by mid-morning. Is there anything else I can help with today?

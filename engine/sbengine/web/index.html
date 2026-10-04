@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Accelerator model playground</title>
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f9f9f7; --surface:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e; --muted:#898781; --grid:#e1e0d9; --axis:#c3c2b7;
+  --border:rgba(11,11,11,.10); --good:#006300; --crit:#d03b3b; --warn:#a86a00; --accent:#2a78d6; --wash:rgba(11,11,11,.05);
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#4a3aa7; --s8:#e34948;
+  --on-s1:#fff; --on-s2:#fff; --on-s3:#0b0b0b; --on-s4:#0b0b0b; --on-s5:#0b0b0b; --on-s6:#fff; --on-s7:#fff; --on-s8:#fff;
+  --div-neg:#2a78d6; --div-pos:#e34948; --font:system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:where(:not([data-theme="light"])){
+    color-scheme:dark;
+    --bg:#0d0d0d; --surface:#1a1a19; --ink:#fff; --ink2:#c3c2b7; --muted:#898781; --grid:#2c2c2a; --axis:#383835;
+    --border:rgba(255,255,255,.10); --good:#0ca30c; --crit:#e66767; --warn:#fab219; --accent:#3987e5; --wash:rgba(255,255,255,.06);
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767;
+    --on-s1:#fff; --on-s2:#fff; --on-s3:#fff; --on-s4:#fff; --on-s5:#fff; --on-s6:#fff; --on-s7:#0b0b0b; --on-s8:#0b0b0b;
+    --div-neg:#3987e5; --div-pos:#e66767;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0d0d0d; --surface:#1a1a19; --ink:#fff; --ink2:#c3c2b7; --muted:#898781; --grid:#2c2c2a; --axis:#383835;
+  --border:rgba(255,255,255,.10); --good:#0ca30c; --crit:#e66767; --warn:#fab219; --accent:#3987e5; --wash:rgba(255,255,255,.06);
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767;
+  --on-s1:#fff; --on-s2:#fff; --on-s3:#fff; --on-s4:#fff; --on-s5:#fff; --on-s6:#fff; --on-s7:#0b0b0b; --on-s8:#0b0b0b;
+  --div-neg:#3987e5; --div-pos:#e66767;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 var(--font)}
+button,select,input{font:inherit;color:var(--ink)}
+button{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:5px 11px;cursor:pointer}
+button:hover{background:var(--wash)} button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button:disabled{opacity:.5;cursor:default}
+select,input[type=number],input[type=text]{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 7px}
+header{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 16px;padding:14px 20px 4px}
+header h1{font-size:18px;margin:0;font-weight:650}
+header .sub{color:var(--ink2);font-size:12.5px}
+.spacer{flex:1}
+.filters{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:8px 20px 12px;border-bottom:1px solid var(--border)}
+.filters label{display:flex;gap:6px;align-items:center;color:var(--ink2)}
+.layout{display:grid;grid-template-columns:minmax(300px,360px) minmax(0,1fr);gap:0;align-items:start}
+aside{position:sticky;top:0;height:100vh;overflow:auto;padding:12px 14px 40px 20px;border-right:1px solid var(--border)}
+main{padding:14px 22px 60px;min-width:0}
+@media (max-width:900px){.layout{grid-template-columns:1fr}aside{position:static;height:auto;border-right:0;border-bottom:1px solid var(--border)}}
+details.grp{border:1px solid var(--border);border-radius:8px;background:var(--surface);margin:0 0 8px}
+details.grp>summary{padding:8px 10px;cursor:pointer;font-weight:600;list-style-position:inside}
+details.grp .rows{padding:2px 10px 8px}
+.ctl{padding:6px 0;border-top:1px solid var(--grid)}
+.ctl:first-child{border-top:0}
+.ctl .top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.ctl label.name{color:var(--ink);font-size:13px}
+.ctl .unit{color:var(--muted);font-size:12px;margin-left:3px}
+.ctl .help{color:var(--muted);font-size:11.5px;margin:1px 0 0}
+.ctl.changed label.name::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:6px}
+.ctl .in{display:flex;gap:8px;align-items:center}
+.ctl input[type=range]{flex:1;min-width:0;accent-color:var(--accent)}
+.ctl input[type=number]{width:74px}
+.caps{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:3px}
+.caps label{display:flex;gap:4px;align-items:center;font-size:12.5px;color:var(--ink2)}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:14px}
+.tabs button{border:0;border-bottom:2px solid transparent;border-radius:0;background:none;padding:8px 14px;color:var(--ink2)}
+.tabs button[aria-selected=true]{border-bottom-color:var(--accent);color:var(--ink);font-weight:600}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-bottom:14px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.card .label{color:var(--ink2);font-size:12.5px}
+.card .value{font-size:26px;font-weight:650;margin:2px 0}
+.card .value small{font-size:13px;font-weight:500;color:var(--ink2);margin-left:4px}
+.card .note{color:var(--muted);font-size:12px}
+.delta{font-size:12.5px;font-weight:600}
+.delta.good{color:var(--good)} .delta.bad{color:var(--crit)} .delta.flat{color:var(--muted)}
+.meter{height:6px;border-radius:3px;background:var(--wash);margin-top:6px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--s1)}
+.meter i.over{background:var(--crit)}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:14px}
+.panel h2{font-size:14px;margin:0 0 2px;font-weight:650}
+.panel .sub{color:var(--ink2);font-size:12.5px;margin:0 0 8px}
+.panel .head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.panel .head button{font-size:12px;padding:2px 8px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;margin:6px 0 0;color:var(--ink2);font-size:12.5px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:2px;display:inline-block}
+.legend i.line{width:14px;height:3px;border-radius:2px}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{text-align:left;padding:4px 8px;border-bottom:1px solid var(--grid);vertical-align:top}
+th{color:var(--ink2);font-weight:600;white-space:nowrap} td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.notice{border:1px solid var(--border);border-left:4px solid var(--crit);background:var(--surface);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:13px}
+.notice.warn{border-left-color:var(--warn)} .notice b{margin-right:4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chips button{border-radius:999px;font-size:12.5px;padding:3px 11px}
+.hint{color:var(--ink2);font-size:13px;margin:6px 0 0}
+.busy .panel svg,.busy .cards{opacity:.55;transition:opacity .15s}
+svg text{font-family:var(--font)}
+.ax{stroke:var(--axis);stroke-width:1} .gr{stroke:var(--grid);stroke-width:1}
+.tick{fill:var(--muted);font-size:11px} .lab{fill:var(--ink2);font-size:12px} .val{fill:var(--ink);font-size:12px;font-weight:600}
+.seg:hover,.mk:hover{opacity:.82}
+#tip{position:fixed;z-index:50;pointer-events:none;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:12.5px;box-shadow:0 4px 18px rgba(0,0,0,.18);max-width:320px}
+#tip[hidden]{display:none} #tip .t{color:var(--ink2);margin-bottom:3px} #tip .r{display:flex;align-items:center;gap:8px}
+#tip .r b{font-weight:650;color:var(--ink)} #tip .r span{color:var(--ink2)} #tip .k{width:12px;height:3px;border-radius:2px;flex:none}
+.spin{display:inline-block;width:12px;height:12px;border:2px solid var(--grid);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:6px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){.spin{animation:none}}
+.about p{max-width:78ch;color:var(--ink2)} .about code{background:var(--wash);padding:1px 5px;border-radius:4px}
+.form{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:end;margin-bottom:8px}
+.form label{display:flex;flex-direction:column;gap:3px;font-size:12.5px;color:var(--ink2)}
+.form input[type=text]{width:190px}
+.muted{color:var(--muted)}
+.bar{display:inline-block;height:10px;border-radius:2px;vertical-align:middle;margin-right:6px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Accelerator model playground</h1>
+  <span class="sub" id="runinfo">loading…</span>
+  <span class="spacer"></span>
+  <button id="theme" title="Switch light / dark">Theme</button>
+</header>
+<div class="filters" role="group" aria-label="Scope">
+  <label>Workload <select id="graph"></select></label>
+  <label>Start from <select id="preset"></select></label>
+  <button id="reset" title="Discard every change and return to the preset">Reset</button>
+  <button id="pin" title="Remember the current result; cards then show the change against it">Pin as baseline</button>
+  <button id="unpin" hidden>Clear baseline</button>
+  <button id="copy" title="Copy a link that restores this exact design">Copy link</button>
+  <span id="changedcount" class="muted"></span>
+</div>
+<div class="layout">
+  <aside id="controls" aria-label="Design parameters"></aside>
+  <main id="main">
+    <div class="tabs" role="tablist" id="tabs">
+      <button role="tab" data-tab="explore" aria-selected="true">Explore</button>
+      <button role="tab" data-tab="sweep" aria-selected="false">Sweep</button>
+      <button role="tab" data-tab="ablation" aria-selected="false">Equations</button>
+      <button role="tab" data-tab="sens" aria-selected="false">Sensitivity</button>
+      <button role="tab" data-tab="about" aria-selected="false">About</button>
+    </div>
+    <section id="tab-explore"></section>
+    <section id="tab-sweep" hidden></section>
+    <section id="tab-ablation" hidden></section>
+    <section id="tab-sens" hidden></section>
+    <section id="tab-about" hidden class="about"></section>
+  </main>
+</div>
+<div id="tip" hidden role="status"></div>
+<script>
+"use strict";
+/* ---------- helpers ---------- */
+const $ = (s, el = document) => el.querySelector(s);
+function el(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v === false || v == null) continue;
+    if (k === "class") e.className = v; else if (k === "text") e.textContent = v; else if (k.startsWith("on")) e.addEventListener(k.slice(2), v); else e.setAttribute(k, v === true ? "" : v);
+  }
+  for (const kid of kids.flat()) if (kid != null) e.append(kid.nodeType ? kid : document.createTextNode(kid));
+  return e;
+}
+const SVGNS = "http://www.w3.org/2000/svg";
+function sv(tag, attrs, text) {
+  const e = document.createElementNS(SVGNS, tag);
+  for (const [k, v] of Object.entries(attrs || {})) e.setAttribute(k, v);
+  if (text != null) e.textContent = text;
+  return e;
+}
+const getp = (o, p) => p.split(".").reduce((a, k) => a[k], o);
+const setp = (o, p, v) => { const ks = p.split("."), last = ks.pop(); ks.reduce((a, k) => a[k], o)[last] = v; };
+const clone = (o) => JSON.parse(JSON.stringify(o));
+const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+const nf = (n, d = 1) => n == null || !isFinite(n) ? "–" : n.toLocaleString("en-US", { maximumFractionDigits: d, minimumFractionDigits: 0 });
+function fmtT(s) { if (s == null || !isFinite(s)) return "–"; const ms = s * 1e3; return ms >= 1000 ? nf(ms / 1e3, 2) + " s" : ms >= 100 ? nf(ms, 0) + " ms" : ms >= 10 ? nf(ms, 1) + " ms" : nf(ms, 2) + " ms"; }
+function fmtB(b) { if (b == null) return "–"; const a = Math.abs(b); return a >= 2 ** 30 ? nf(b / 2 ** 30, 2) + " GB" : a >= 2 ** 20 ? nf(b / 2 ** 20, 1) + " MB" : a >= 1024 ? nf(b / 1024, 1) + " KB" : nf(b, 0) + " B"; }
+const ENT = { matrix: 1, vector: 2, l1: 3, hbm: 4, recurrent: 5, dma: 6, scalar: 7, host: 8 };
+const ENT_LABEL = { matrix: "Matrix units", vector: "Vector units", l1: "L1 bandwidth", hbm: "HBM bandwidth", recurrent: "Recurrence units", dma: "DMA engines", scalar: "Scalar fallback", host: "Host CPU" };
+const entColor = (k) => `var(--s${ENT[k] || 1})`;
+
+const tip = $("#tip");
+function showTip(evt, title, rows) {
+  tip.replaceChildren(el("div", { class: "t", text: title }), ...rows.map((r) => el("div", { class: "r" }, r.color ? el("i", { class: "k", style: `background:${r.color}` }) : null, el("b", { text: r.value }), el("span", { text: r.label }))));
+  tip.hidden = false;
+  const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
+  tip.style.left = Math.min(evt.clientX + pad, innerWidth - w - 8) + "px";
+  tip.style.top = Math.min(evt.clientY + pad, innerHeight - h - 8) + "px";
+}
+const hideTip = () => { tip.hidden = true; };
+async function api(path, body) {
+  const r = await fetch(path, body === undefined ? {} : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error || r.statusText);
+  return j;
+}
+
+/* ---------- state ---------- */
+let meta, state = { graph: "pp512-fa-on", preset: "accel-balanced", cfg: null, baseline: null, result: null, phase: "decode" };
+let seq = 0, timer = null;
+const presetCfg = () => meta.profiles.find((p) => p.name === state.preset).config;
+
+/* ---------- controls ---------- */
+const refresh = {};
+function optLabel(o) { return typeof o === "number" ? String(o) : String(o).replace(/_/g, " "); }
+function controlRow(c) {
+  const row = el("div", { class: "ctl", "data-path": c.path });
+  const nameLabel = el("label", { class: "name", for: "c-" + c.path, text: c.label }, c.unit ? el("span", { class: "unit", text: c.unit }) : null);
+  const valueOut = el("span", { class: "muted" });
+  row.append(el("div", { class: "top" }, nameLabel, valueOut));
+  const commit = (v) => { setp(state.cfg, c.path, v); markChanged(); schedule(); };
+  if (c.kind === "num" || c.kind === "int") {
+    const range = el("input", { type: "range", min: c.min, max: c.max, step: c.step, id: "c-" + c.path, "aria-label": c.label });
+    const box = el("input", { type: "number", min: c.min, max: c.max, step: c.step, "aria-label": c.label + " value" });
+    const apply = (v) => { if (!isFinite(v)) return; v = c.kind === "int" ? Math.round(v) : v; range.value = v; box.value = v; valueOut.textContent = ""; commit(v); };
+    range.addEventListener("input", () => apply(parseFloat(range.value)));
+    box.addEventListener("change", () => apply(parseFloat(box.value)));
+    row.append(el("div", { class: "in" }, range, box));
+    refresh[c.path] = () => { const v = getp(state.cfg, c.path); range.value = v; box.value = v; };
+  } else if (c.kind === "select") {
+    const sel = el("select", { id: "c-" + c.path, "aria-label": c.label }, c.options.map((o, i) => el("option", { value: i, text: optLabel(o) })));
+    sel.addEventListener("change", () => commit(c.options[+sel.value]));
+    row.append(el("div", { class: "in" }, sel));
+    refresh[c.path] = () => { const i = c.options.findIndex((o) => o === getp(state.cfg, c.path)); if (i >= 0) sel.value = i; else if (![...sel.options].some((o) => o.dataset.extra)) sel.append(el("option", { value: -1, "data-extra": 1, text: String(getp(state.cfg, c.path)) })), sel.value = -1; };
+  } else if (c.kind === "bool") {
+    const cb = el("input", { type: "checkbox", id: "c-" + c.path, "aria-label": c.label });
+    cb.addEventListener("change", () => commit(cb.checked));
+    row.querySelector(".top").prepend(cb);
+    refresh[c.path] = () => { cb.checked = !!getp(state.cfg, c.path); };
+  } else if (c.kind === "caps") {
+    const wrap = el("div", { class: "caps" }), boxes = {};
+    for (const o of c.options) {
+      const cb = el("input", { type: "checkbox", value: o, "aria-label": c.label + ": " + o });
+      cb.addEventListener("change", () => commit(c.options.filter((x) => boxes[x].checked)));
+      boxes[o] = cb;
+      wrap.append(el("label", {}, cb, o));
+    }
+    row.append(wrap);
+    refresh[c.path] = () => { const cur = getp(state.cfg, c.path); for (const o of c.options) boxes[o].checked = cur.includes(o); };
+  }
+  if (c.help) row.append(el("p", { class: "help", text: c.help }));
+  return row;
+}
+function buildControls() {
+  const host = $("#controls");
+  host.replaceChildren();
+  for (const g of [...new Set(meta.controls.map((c) => c.group))]) {
+    const d = el("details", { class: "grp" }, el("summary", { text: g }));
+    if (["Compute units", "Memory"].includes(g)) d.open = true;
+    const rows = el("div", { class: "rows" });
+    for (const c of meta.controls.filter((c) => c.group === g)) rows.append(controlRow(c));
+    d.append(rows);
+    host.append(d);
+  }
+}
+function syncControls() { for (const c of meta.controls) refresh[c.path](); markChanged(); }
+function markChanged() {
+  let n = 0;
+  for (const c of meta.controls) {
+    const diff = !same(getp(state.cfg, c.path), getp(presetCfg(), c.path));
+    n += diff;
+    const row = $(`.ctl[data-path="${c.path}"]`);
+    if (row) row.classList.toggle("changed", diff);
+  }
+  $("#changedcount").textContent = n ? `${n} change${n > 1 ? "s" : ""} from “${state.preset}”` : "matches the preset";
+}
+
+/* ---------- evaluate & render ---------- */
+function schedule() { clearTimeout(timer); timer = setTimeout(evaluate, 140); }
+async function evaluate() {
+  const id = ++seq;
+  $("#tab-explore").classList.add("busy");
+  try {
+    const r = await api("/api/eval", { graph: state.graph, config: state.cfg, top_nodes: 8 });
+    if (id !== seq) return;
+    state.result = r; state.error = null;
+  } catch (e) {
+    if (id !== seq) return;
+    state.error = e.message;
+  }
+  $("#tab-explore").classList.remove("busy");
+  renderExplore();
+}
+function deltaEl(now, base, lowerIsBetter = true) {
+  if (base == null || now == null || !isFinite(now) || !isFinite(base) || base === 0) return null;
+  const pct = 100 * (now / base - 1);
+  if (Math.abs(pct) < 0.05) return el("span", { class: "delta flat", text: "= pinned baseline" });
+  const good = lowerIsBetter ? pct < 0 : pct > 0;
+  return el("span", { class: "delta " + (good ? "good" : "bad"), text: `${pct < 0 ? "▼" : "▲"} ${pct > 0 ? "+" : ""}${nf(pct, 1)} % vs pinned` });
+}
+function card(label, value, unit, note, extra) {
+  return el("div", { class: "card" }, el("div", { class: "label", text: label }), el("div", { class: "value" }, value, el("small", { text: unit })), note ? el("div", { class: "note", text: note }) : null, extra);
+}
+function meter(frac, over) { return el("div", { class: "meter" }, el("i", { class: over ? "over" : "", style: `width:${Math.min(100, Math.max(0, frac * 100))}%` })); }
+
+const LEVERS = {
+  l1: [{ label: "2× L1 banks", path: "l1.banks", f: (v) => v * 2 }, { label: "2× bytes per bank", path: "l1.bytes_per_bank_cycle", f: (v) => v * 2 }, { label: "Weights straight to the array", set: { "memory.weight_path": "direct" } }],
+  hbm: [{ label: "2× HBM bandwidth", path: "hbm.gbs", f: (v) => v * 2 }, { label: "HBM efficiency +15 pts", path: "hbm.efficiency", f: (v) => Math.min(1, v + 0.15) }],
+  matrix: [{ label: "2× matrix units", path: "matrix.count", f: (v) => Math.max(1, v * 2) }, { label: "Matrix efficiency +15 pts", path: "matrix.efficiency", f: (v) => Math.min(1, v + 0.15) }, { label: "2× clock", path: "clock_mhz", f: (v) => Math.min(1000, v * 2) }],
+  vector: [{ label: "2× vector units", path: "vector.count", f: (v) => Math.max(1, v * 2) }, { label: "2× lanes", path: "vector.lanes", f: (v) => v * 2 }],
+  recurrent: [{ label: "2× recurrence units", path: "recurrent.count", f: (v) => Math.max(1, v * 2) }, { label: "Chunked lowering", set: { "recurrent.lowering": "chunked" } }],
+  dma: [{ label: "2× DMA engines", path: "dma.count", f: (v) => Math.max(1, v * 2) }, { label: "2× DMA bytes per cycle", path: "dma.bytes_per_cycle", f: (v) => v * 2 }],
+  scalar: [{ label: "Add a matrix unit", path: "matrix.count", f: (v) => v + 1 }],
+  host: [{ label: "Add a matrix unit", path: "matrix.count", f: (v) => v + 1 }],
+};
+function applyLever(l) {
+  const sets = l.set || {};
+  if (l.path) {
+    const c = meta.controls.find((c) => c.path === l.path);
+    let v = l.f(getp(state.cfg, l.path));
+    if (c && c.kind === "select") v = c.options.find((o) => o >= v) ?? c.options[c.options.length - 1];
+    else if (c && c.max != null) v = Math.min(c.max, v);
+    sets[l.path] = v;
+  }
+  for (const [p, v] of Object.entries(sets)) setp(state.cfg, p, v);
+  syncControls(); schedule();
+}
+
+/* table-or-chart toggle */
+function chartPanel(title, sub, draw, table) {
+  const box = el("div"), head = el("div", { class: "head" }, el("div", {}, el("h2", { text: title }), sub ? el("p", { class: "sub", text: sub }) : null));
+  let showTable = false;
+  const btn = el("button", { "aria-pressed": "false", text: "Table view", onclick: () => { showTable = !showTable; btn.textContent = showTable ? "Chart view" : "Table view"; btn.setAttribute("aria-pressed", showTable); paint(); } });
+  head.append(btn);
+  const panel = el("div", { class: "panel" }, head, box);
+  const paint = () => { box.replaceChildren(); if (showTable) box.append(table()); else draw(box); };
+  panel._paint = paint;
+  requestAnimationFrame(paint);
+  return panel;
+}
+function dataTable(cols, rows) {
+  return el("table", {}, el("thead", {}, el("tr", {}, cols.map((c, i) => el("th", { class: i ? "n" : "", text: c })))), el("tbody", {}, rows.map((r) => el("tr", {}, r.map((v, i) => el("td", { class: i ? "n" : "", text: String(v) }))))));
+}
+function legend(items) {
+  return el("div", { class: "legend" }, items.map((i) => el("span", {}, el("i", { class: i.line ? "line" : "", style: `background:${i.color}` }), i.label)));
+}
+
+function renderExplore() {
+  const host = $("#tab-explore");
+  host.replaceChildren();
+  if (state.error) host.append(el("div", { class: "notice" }, el("b", { text: "Cannot evaluate:" }), state.error));
+  const r = state.result;
+  if (!r) { host.append(el("p", { class: "muted", text: "Evaluating…" })); return; }
+  const P = r.phases.prefill, D = r.phases.decode, S = r.summary, base = state.baseline;
+  if (!r.valid) host.append(el("div", { class: "notice" }, el("b", { text: "⚠ Outside the model’s feasibility checks." }), r.errors.join(" "), el("div", { class: "muted", text: "Timings shown are conditional; a design like this is excluded from sweep frontiers." })));
+  host.append(el("div", { class: "cards" },
+    card("Prefill", nf(P.seconds * 1e3, P.seconds > 0.1 ? 0 : 1), "ms", `${nf(P.tokens_per_s, 0)} tokens/s · ${r.prompt_tokens} tokens`, deltaEl(P.seconds, base && base.prefill_s)),
+    card("Decode", nf(D.seconds * 1e3, 2), "ms / token", `${nf(D.per_sequence_tps, 1)} tokens/s per sequence`, deltaEl(D.seconds, base && base.decode_s)),
+    card("Resource cost", nf(r.resources.cost, 0), "proxy units", `DSP ${nf(r.resources.dsp, 0)} of ${nf(r.resources.dsp_limit, 0)} budget · a placeholder, not area`,
+      el("div", {}, meter(r.resources.dsp / r.resources.dsp_limit, r.resources.dsp > r.resources.dsp_limit), deltaEl(r.resources.cost, base && base.cost))),
+    card("HBM footprint", nf(Math.max(P.footprint.hbm_required, D.footprint.hbm_required) / 2 ** 30, 2), "GiB", `weights ${nf(D.footprint.weights / 2 ** 30, 2)} · KV ${nf(D.footprint.kv / 2 ** 30, 2)} · state ${nf(D.footprint.state / 2 ** 30, 3)}`,
+      meter(Math.max(P.footprint.hbm_required, D.footprint.hbm_required) / 2 ** 30 / state.cfg.hbm.gib, Math.max(P.footprint.hbm_required, D.footprint.hbm_required) / 2 ** 30 > state.cfg.hbm.gib))));
+
+  /* what limits it */
+  const rowsBound = [["Prefill", P], ["Decode", D]].map(([label, p]) => ({ label, total: p.seconds, segs: Object.entries(p.time_by_bound).sort((a, b) => b[1] - a[1]).map(([k, v]) => ({ key: k, v })) }));
+  const bounded = el("div");
+  const limitPanel = chartPanel("What limits it", "Share of each phase’s time, by the resource that binds each op (compute unit, L1 or HBM bandwidth).",
+    (box) => { box.append(stackBar(rowsBound), legend(Object.keys(ENT).filter((k) => rowsBound.some((r) => r.segs.some((s) => s.key === k))).map((k) => ({ color: entColor(k), label: ENT_LABEL[k] })))); },
+    () => dataTable(["Phase", ...Object.keys(ENT).map((k) => ENT_LABEL[k] + " (ms)")], rowsBound.map((r) => [r.label, ...Object.keys(ENT).map((k) => nf(1e3 * (r.segs.find((s) => s.key === k)?.v || 0), 2))])));
+  host.append(limitPanel);
+  for (const [name, p] of [["prefill", P], ["decode", D]]) {
+    const top = Object.entries(p.time_by_bound).sort((a, b) => b[1] - a[1])[0];
+    if (!top || !p.seconds) continue;
+    const key = top[0], share = 100 * top[1] / Object.values(p.time_by_bound).reduce((a, b) => a + b, 0);
+    const chips = el("div", { class: "chips" }, (LEVERS[key] || []).map((l) => el("button", { text: l.label, title: "Apply this change and re-run", onclick: () => applyLever(l) })));
+    limitPanel.append(el("p", { class: "hint" }, `${name[0].toUpperCase() + name.slice(1)} is ${nf(share, 0)} % ${ENT_LABEL[key] ? ENT_LABEL[key].toLowerCase() : key}-bound. Things that would move it:`), chips);
+  }
+
+  /* resources busy */
+  const items = [];
+  for (const [ph, p] of [["prefill", P], ["decode", D]]) {
+    for (const [k, v] of Object.entries(p.pool_busy)) items.push({ phase: ph, key: k.toLowerCase(), label: `${k}`, v });
+    items.push({ phase: ph, key: "l1", label: "L1 service", v: p.l1_service_s }, { phase: ph, key: "hbm", label: "HBM service", v: p.hbm_service_s });
+  }
+  const busy = chartPanel("How busy each resource is", "Total busy or service time against the phase time (a bar as long as the phase means that resource never idles).",
+    (box) => {
+      for (const [ph, p] of [["Prefill", P], ["Decode", D]]) {
+        box.append(el("div", { class: "lab", style: "margin:8px 0 2px;font-size:12.5px;color:var(--ink2)", text: `${ph}: ${fmtT(p.seconds)} in total (lower bound ${fmtT(p.bounds.lower_bound)}, serial sum ${fmtT(p.bounds.serial)})` }));
+        const list = items.filter((i) => i.phase === ph.toLowerCase() && i.v > 0).sort((a, b) => b.v - a.v);
+        box.append(hBars(list.map((i) => ({ label: i.label, value: i.v, color: entColor(i.key), text: `${fmtT(i.v)} · ${nf(100 * i.v / p.seconds, 0)} %` })), { max: p.seconds, ref: p.seconds }));
+      }
+    },
+    () => dataTable(["Phase / resource", "Busy or service time (ms)", "Share of phase time"], items.map((i) => [`${i.phase} · ${i.label}`, nf(i.v * 1e3, 3), nf(100 * i.v / (i.phase === "prefill" ? P : D).seconds, 1) + " %"])));
+  host.append(busy);
+
+  /* ops */
+  const opPanel = el("div");
+  const drawOps = () => {
+    const p = state.phase === "prefill" ? P : D;
+    const list = Object.entries(p.by_op).sort((a, b) => b[1].serial_s - a[1].serial_s).slice(0, 9);
+    const total = Object.values(p.by_op).reduce((a, o) => a + o.serial_s, 0);
+    const panel = chartPanel("Where the time goes, by operation", "Sum of op durations (before overlap between ops). Top nine.",
+      (box) => box.append(hBars(list.map(([k, o]) => ({ label: `${k} ×${o.count}`, value: o.serial_s, color: "var(--s1)", text: `${fmtT(o.serial_s)} · ${nf(100 * o.serial_s / total, 0)} %` })), {})),
+      () => dataTable(["Op", "Count", "Time (ms)", "HBM traffic", "L1 traffic", "MACs"], list.map(([k, o]) => [k, o.count, nf(o.serial_s * 1e3, 3), fmtB(o.hbm_bytes), fmtB(o.l1_bytes), nf(o.macs, 0)])));
+    const sel = el("select", { "aria-label": "Phase" }, el("option", { value: "decode", text: "Decode" }), el("option", { value: "prefill", text: "Prefill" }));
+    sel.value = state.phase; sel.addEventListener("change", () => { state.phase = sel.value; renderExplore(); });
+    panel.querySelector(".head").insertBefore(sel, panel.querySelector(".head button"));
+    return panel;
+  };
+  host.append(drawOps());
+
+  /* traffic & slowest nodes */
+  const tr = (p) => p.bytes;
+  host.append(el("div", { class: "grid2" },
+    el("div", { class: "panel" }, el("h2", { text: "Memory traffic" }), el("p", { class: "sub", text: "Bytes per phase (one prefill, one decode step)." }),
+      dataTable(["", "Prefill", "Decode"], [["Weights from HBM", fmtB(tr(P).weights_hbm), fmtB(tr(D).weights_hbm)], ["KV cache / state", fmtB(tr(P).kv_state_hbm), fmtB(tr(D).kv_state_hbm)], ["Activations via HBM", fmtB(tr(P).act_hbm), fmtB(tr(D).act_hbm)], ["L1 port traffic", fmtB(tr(P).l1), fmtB(tr(D).l1)], ["Spilled activations (peak)", fmtB(P.footprint.peak_spilled_activations), fmtB(D.footprint.peak_spilled_activations)], ["Ops fused (edges)", P.fused_edges, D.fused_edges]])),
+    el("div", { class: "panel" }, el("h2", { text: `Slowest nodes (${state.phase})` }), el("p", { class: "sub", text: "Individual scheduled ops; the tag says what bound each one." }),
+      dataTable(["Node", "Op", "Unit", "Time", "Bound"], (state.phase === "prefill" ? P : D).top_nodes.map((n) => [n.name.slice(0, 26), n.op, n.pool || "–", fmtT(n.duration_s), n.dominant])))));
+  if (S.errors) host.append(el("p", { class: "muted", text: S.errors }));
+}
+
+/* ---------- charts ---------- */
+function measure(svg, text, cls) { const t = sv("text", { class: cls || "val", x: -999, y: -999 }, text); svg.append(t); const w = t.getBBox().width; t.remove(); return w; }
+function stackBar(rows) {
+  const W = 760, rowH = 40, l = 66, rt = 84, H = rows.length * rowH + 8, inner = W - l - rt;
+  const svg = sv("svg", { viewBox: `0 0 ${W} ${H}`, width: "100%", role: "img", "aria-label": "Share of time by limiting resource for prefill and decode" });
+  rows.forEach((r, i) => {
+    const y = 6 + i * rowH, total = r.segs.reduce((a, s) => a + s.v, 0) || 1;
+    svg.append(sv("text", { class: "lab", x: 0, y: y + 21 }, r.label));
+    let x = l;
+    r.segs.forEach((s, j) => {
+      const w = Math.max(0, s.v / total * inner);
+      if (w <= 0.5) return;
+      const g = sv("g", { class: "seg", tabindex: 0 });
+      const rect = sv("rect", { x, y, width: Math.max(0, w - (j < r.segs.length - 1 ? 2 : 0)), height: 26, rx: 3, style: `fill:${entColor(s.key)}` });
+      g.append(rect);
+      const pct = nf(100 * s.v / total, 0) + " %";
+      if (w > 46) { const t = sv("text", { x: x + w / 2 - (j < r.segs.length - 1 ? 1 : 0), y: y + 17, "text-anchor": "middle", style: `fill:var(--on-s${ENT[s.key] || 1});font-size:12px;font-weight:600;pointer-events:none` }, pct); g.append(t); }
+      const tipRows = [{ color: entColor(s.key), value: `${pct} · ${fmtT(s.v)}`, label: `${ENT_LABEL[s.key] || s.key}-bound` }];
+      g.addEventListener("pointermove", (e) => showTip(e, r.label, tipRows)); g.addEventListener("pointerleave", hideTip);
+      g.addEventListener("focus", () => { const b = g.getBoundingClientRect(); showTip({ clientX: b.left, clientY: b.bottom }, r.label, tipRows); }); g.addEventListener("blur", hideTip);
+      svg.append(g);
+      x += w;
+    });
+    svg.append(sv("text", { class: "val", x: W - rt + 10, y: y + 18 }, fmtT(r.total)));
+  });
+  return svg;
+}
+function hBars(items, o) {
+  const W = 760, lw = 170, rw = 150, rowH = 24, H = items.length * rowH + 6, inner = W - lw - rw;
+  const max = o.max || Math.max(...items.map((i) => i.value), 1e-12);
+  const svg = sv("svg", { viewBox: `0 0 ${W} ${H}`, width: "100%", role: "img", "aria-label": "Horizontal bar chart" });
+  svg.append(sv("line", { class: "ax", x1: lw, x2: lw, y1: 0, y2: H }));
+  items.forEach((it, i) => {
+    const y = 3 + i * rowH, w = Math.max(1.5, Math.min(1, it.value / max) * inner);
+    const g = sv("g", { class: "seg", tabindex: 0 });
+    g.append(sv("text", { class: "lab", x: lw - 8, y: y + 14, "text-anchor": "end" }, it.label.length > 26 ? it.label.slice(0, 25) + "…" : it.label));
+    g.append(sv("path", { d: `M${lw},${y + 2} h${Math.max(0, w - 4)} a4,4 0 0 1 4,4 v8 a4,4 0 0 1 -4,4 h-${Math.max(0, w - 4)} z`, style: `fill:${it.color}` }));
+    g.append(sv("text", { class: "val", x: lw + w + 8, y: y + 14 }, it.text));
+    const rows = [{ color: it.color, value: it.text, label: it.label }];
+    g.addEventListener("pointermove", (e) => showTip(e, it.label, rows)); g.addEventListener("pointerleave", hideTip);
+    g.addEventListener("focus", () => { const b = g.getBoundingClientRect(); showTip({ clientX: b.left, clientY: b.bottom }, it.label, rows); }); g.addEventListener("blur", hideTip);
+    svg.append(g);
+  });
+  if (o.ref) { const x = lw + Math.min(1, o.ref / max) * inner; svg.append(sv("line", { x1: x, x2: x, y1: 0, y2: H, style: "stroke:var(--muted);stroke-width:1;stroke-dasharray:2 3" })); }
+  return svg;
+}
+/* line chart with crosshair; series: [{name,color,points:[{x,y,label}]}], xs are category labels */
+function lineChart(series, o) {
+  const W = 760, H = 300, m = { l: 60, r: 28, t: 14, b: 44 };
+  const cats = series[0].points.map((p) => p.x), all = series.flatMap((s) => s.points.map((p) => p.y)).filter((v) => v != null && isFinite(v));
+  const svg = sv("svg", { viewBox: `0 0 ${W} ${H}`, width: "100%", role: "img", "aria-label": o.aria || "Line chart" });
+  if (!all.length) { svg.append(sv("text", { class: "lab", x: W / 2, y: H / 2, "text-anchor": "middle" }, "No valid points")); return svg; }
+  const lo = 0, hi = Math.max(...all) * 1.08 || 1;
+  const X = (i) => m.l + (cats.length === 1 ? (W - m.l - m.r) / 2 : i / (cats.length - 1) * (W - m.l - m.r));
+  const Y = (v) => H - m.b - (v - lo) / (hi - lo) * (H - m.t - m.b);
+  const ticks = niceTicks(lo, hi, 5);
+  for (const t of ticks) { svg.append(sv("line", { class: "gr", x1: m.l, x2: W - m.r, y1: Y(t), y2: Y(t) }), sv("text", { class: "tick", x: m.l - 8, y: Y(t) + 4, "text-anchor": "end" }, nf(t, t < 10 ? 1 : 0))); }
+  svg.append(sv("line", { class: "ax", x1: m.l, x2: W - m.r, y1: H - m.b, y2: H - m.b }));
+  cats.forEach((c, i) => svg.append(sv("text", { class: "tick", x: X(i), y: H - m.b + 16, "text-anchor": "middle" }, String(c))));
+  svg.append(sv("text", { class: "lab", x: (m.l + W - m.r) / 2, y: H - 6, "text-anchor": "middle" }, o.xLabel), sv("text", { class: "lab", transform: `translate(14 ${(m.t + H - m.b) / 2}) rotate(-90)`, "text-anchor": "middle" }, o.yLabel));
+  series.forEach((s, si) => {
+    const pts = s.points.map((p, i) => ({ i, p })).filter((d) => d.p.y != null && isFinite(d.p.y));
+    svg.append(sv("polyline", { points: pts.map((d) => `${X(d.i)},${Y(d.p.y)}`).join(" "), fill: "none", style: `stroke:${s.color}`, "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }));
+    for (const d of pts) svg.append(sv("circle", { cx: X(d.i), cy: Y(d.p.y), r: 4.5, style: `fill:${s.color};stroke:var(--surface);stroke-width:2` }));
+  });
+  const cross = sv("line", { y1: m.t, y2: H - m.b, style: "stroke:var(--muted);stroke-width:1", visibility: "hidden" });
+  svg.append(cross);
+  const hit = sv("rect", { x: m.l, y: m.t, width: W - m.l - m.r, height: H - m.t - m.b, fill: "transparent", tabindex: 0 });
+  const at = (clientX, clientY, rect) => {
+    const px = (clientX - rect.left) / rect.width * W;
+    let best = 0; cats.forEach((_, i) => { if (Math.abs(X(i) - px) < Math.abs(X(best) - px)) best = i; });
+    cross.setAttribute("x1", X(best)); cross.setAttribute("x2", X(best)); cross.setAttribute("visibility", "visible");
+    showTip({ clientX, clientY }, `${o.xLabel}: ${cats[best]}`, series.map((s) => ({ color: s.color, value: s.points[best].y == null ? "invalid" : s.points[best].label, label: s.name })));
+  };
+  hit.addEventListener("pointermove", (e) => at(e.clientX, e.clientY, svg.getBoundingClientRect()));
+  hit.addEventListener("pointerleave", () => { hideTip(); cross.setAttribute("visibility", "hidden"); });
+  svg.append(hit);
+  return svg;
+}
+function niceTicks(lo, hi, n) {
+  const span = hi - lo, raw = span / n, mag = 10 ** Math.floor(Math.log10(raw)), step = [1, 2, 5, 10].map((k) => k * mag).find((s) => s >= raw);
+  const out = []; for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) out.push(+v.toFixed(10)); return out;
+}
+function scatter(points, frontier, o) {
+  const W = 760, H = 320, m = { l: 62, r: 22, t: 14, b: 44 };
+  const svg = sv("svg", { viewBox: `0 0 ${W} ${H}`, width: "100%", role: "img", "aria-label": "Cost against " + o.yLabel });
+  const ok = points.filter((p) => p.y > 0 && isFinite(p.y));
+  if (!ok.length) { svg.append(sv("text", { class: "lab", x: W / 2, y: H / 2, "text-anchor": "middle" }, "No valid points")); return svg; }
+  const xs = ok.map((p) => p.x), ys = ok.map((p) => p.y);
+  const xlo = Math.min(...xs) * 0.95, xhi = Math.max(...xs) * 1.05, ylo = o.log ? Math.min(...ys) / 1.3 : 0, yhi = Math.max(...ys) * (o.log ? 1.3 : 1.08);
+  const X = (v) => m.l + (v - xlo) / (xhi - xlo || 1) * (W - m.l - m.r);
+  const Y = (v) => H - m.b - (o.log ? (Math.log(v) - Math.log(ylo)) / (Math.log(yhi) - Math.log(ylo)) : (v - ylo) / (yhi - ylo)) * (H - m.t - m.b);
+  const yt = o.log ? [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000].filter((t) => t >= ylo && t <= yhi) : niceTicks(ylo, yhi, 5);
+  for (const t of yt) svg.append(sv("line", { class: "gr", x1: m.l, x2: W - m.r, y1: Y(t), y2: Y(t) }), sv("text", { class: "tick", x: m.l - 8, y: Y(t) + 4, "text-anchor": "end" }, nf(t, t < 10 ? 1 : 0)));
+  for (const t of niceTicks(xlo, xhi, 6)) svg.append(sv("text", { class: "tick", x: X(t), y: H - m.b + 16, "text-anchor": "middle" }, nf(t, 0)));
+  svg.append(sv("line", { class: "ax", x1: m.l, x2: W - m.r, y1: H - m.b, y2: H - m.b }), sv("text", { class: "lab", x: (m.l + W - m.r) / 2, y: H - 6, "text-anchor": "middle" }, "Resource cost (proxy units, lower is cheaper)"), sv("text", { class: "lab", transform: `translate(14 ${(m.t + H - m.b) / 2}) rotate(-90)`, "text-anchor": "middle" }, o.yLabel));
+  const fr = frontier.map((i) => points[i]).filter((p) => p.y > 0).sort((a, b) => a.x - b.x);
+  if (fr.length > 1) svg.append(sv("polyline", { points: fr.map((p) => `${X(p.x)},${Y(p.y)}`).join(" "), fill: "none", style: "stroke:var(--s1);stroke-width:2", opacity: 0.55 }));
+  const dots = ok.map((p) => { const f = frontier.includes(p.i); const c = sv("circle", { cx: X(p.x), cy: Y(p.y), r: f ? 5.5 : 4, style: `fill:${f ? "var(--s1)" : "var(--muted)"};stroke:var(--surface);stroke-width:2`, class: "mk" }); svg.append(c); return { p, cx: X(p.x), cy: Y(p.y), c }; });
+  const hit = sv("rect", { x: 0, y: 0, width: W, height: H, fill: "transparent", style: "cursor:pointer", tabindex: 0 });
+  const nearest = (e) => { const r = svg.getBoundingClientRect(), px = (e.clientX - r.left) / r.width * W, py = (e.clientY - r.top) / r.height * H; let b = null, bd = 1e9; for (const d of dots) { const dd = Math.hypot(d.cx - px, d.cy - py); if (dd < bd) { bd = dd; b = d; } } return bd < 26 * W / r.width ? b : null; };
+  hit.addEventListener("pointermove", (e) => { const d = nearest(e); if (!d) return hideTip(); showTip(e, d.p.title, [{ value: nf(d.p.y, 2) + " " + o.unit, label: o.yLabel }, { value: nf(d.p.x, 0), label: "cost" }, { value: d.p.frontier ? "on the cost/decode frontier" : "dominated", label: "" }, { value: "click to load this design", label: "" }]); });
+  hit.addEventListener("pointerleave", hideTip);
+  hit.addEventListener("click", (e) => { const d = nearest(e); if (d) o.onPick(d.p.i); });
+  svg.append(hit);
+  return svg;
+}
+function tornado(rows, key, title) {
+  const W = 760, lw = 190, rowH = 24, H = rows.length * rowH + 30, mid = lw + (W - lw - 60) / 2, half = (W - lw - 60) / 2 - 46;
+  const mx = Math.max(...rows.map((r) => Math.abs(r[key])), 0.05);
+  const svg = sv("svg", { viewBox: `0 0 ${W} ${H}`, width: "100%", role: "img", "aria-label": title });
+  svg.append(sv("text", { class: "tick", x: mid - 6, y: 12, "text-anchor": "end" }, "◀ faster when raised"), sv("text", { class: "tick", x: mid + 6, y: 12 }, "slower when raised ▶"), sv("line", { class: "ax", x1: mid, x2: mid, y1: 18, y2: H }));
+  rows.forEach((r, i) => {
+    const y = 22 + i * rowH, v = r[key], w = Math.abs(v) / mx * half, neg = v < 0;
+    const g = sv("g", { class: "seg", tabindex: 0 });
+    g.append(sv("text", { class: "lab", x: lw - 12, y: y + 13, "text-anchor": "end" }, r.param));
+    if (Math.abs(v) > 0.004) g.append(sv("rect", { x: neg ? mid - w : mid, y: y + 1, width: Math.max(1.5, w), height: 16, rx: 3, style: `fill:${neg ? "var(--div-neg)" : "var(--div-pos)"}` }));
+    g.append(sv("text", { class: "val", x: neg ? mid - w - 6 : mid + w + 6, y: y + 13, "text-anchor": neg ? "end" : "start" }, (v > 0 ? "+" : "") + nf(v, 2)));
+    const rr = [{ value: (v > 0 ? "+" : "") + nf(v, 2), label: `elasticity of ${title.toLowerCase()} to ${r.param}` }, { value: `${nf(r[key.replace("_elasticity", "_at_low")] * 1e3, 2)} → ${nf(r[key.replace("_elasticity", "_at_high")] * 1e3, 2)} ms`, label: "time at −/+ the change" }];
+    g.addEventListener("pointermove", (e) => showTip(e, r.param, rr)); g.addEventListener("pointerleave", hideTip);
+    svg.append(g);
+  });
+  return svg;
+}
+
+/* ---------- tabs: sweep ---------- */
+const sweepState = { x: "matrix.count", xv: "1, 2, 4, 8", y: "", yv: "", metric: "decode_s", log: false, data: null, busy: false };
+const METRICS = { decode_s: ["Decode time", "ms", (v) => v * 1e3], prefill_s: ["Prefill time", "ms", (v) => v * 1e3], cost: ["Resource cost", "units", (v) => v], decode_tps_per_seq: ["Decode tokens/s", "tok/s", (v) => v], prefill_tps: ["Prefill tokens/s", "tok/s", (v) => v] };
+function sweepable() { return meta.controls.filter((c) => ["num", "int", "select", "bool"].includes(c.kind)); }
+function defaultValues(path) {
+  const c = meta.controls.find((c) => c.path === path), cur = getp(state.cfg, path);
+  if (c.kind === "select") return c.options.join(", ");
+  if (c.kind === "bool") return "false, true";
+  const f = [0.5, 1, 2, 4].map((k) => c.kind === "int" ? Math.max(c.min, Math.round(cur * k)) : +(Math.min(c.max, Math.max(c.min, cur * k))).toPrecision(3));
+  return [...new Set(f)].join(", ");
+}
+function parseValues(text) { return text.split(",").map((s) => s.trim()).filter(Boolean).map((s) => { try { return JSON.parse(s); } catch { return s; } }); }
+function renderSweep() {
+  const host = $("#tab-sweep"); host.replaceChildren();
+  const opts = (sel, blank) => [blank ? el("option", { value: "", text: "— none —" }) : null, ...sweepable().map((c) => el("option", { value: c.path, text: c.label, selected: c.path === sel }))];
+  const xs = el("select", { id: "sx" }, opts(sweepState.x)), ys = el("select", { id: "sy" }, opts(sweepState.y, true));
+  const xv = el("input", { type: "text", id: "sxv", value: sweepState.xv }), yv = el("input", { type: "text", id: "syv", value: sweepState.yv, disabled: !sweepState.y });
+  const metric = el("select", { id: "sm" }, Object.entries(METRICS).map(([k, v]) => el("option", { value: k, text: v[0], selected: k === sweepState.metric })));
+  xs.addEventListener("change", () => { sweepState.x = xs.value; sweepState.xv = defaultValues(xs.value); xv.value = sweepState.xv; });
+  ys.addEventListener("change", () => { sweepState.y = ys.value; sweepState.yv = ys.value ? defaultValues(ys.value) : ""; yv.value = sweepState.yv; yv.disabled = !ys.value; });
+  const run = el("button", { class: "primary", text: sweepState.busy ? "Running…" : "Run sweep", disabled: sweepState.busy, onclick: async () => {
+    sweepState.xv = xv.value; sweepState.yv = yv.value; sweepState.metric = metric.value; sweepState.busy = true; sweepState.error = null; renderSweep();
+    const axes = { [xs.value]: parseValues(xv.value) }; if (ys.value && ys.value !== xs.value) axes[ys.value] = parseValues(yv.value);
+    try { sweepState.data = { ...(await api("/api/sweep", { graph: state.graph, config: state.cfg, axes })), axes, graph: state.graph }; } catch (e) { sweepState.error = e.message; }
+    sweepState.busy = false; renderSweep();
+  } });
+  host.append(el("div", { class: "panel" }, el("h2", { text: "Sweep one or two parameters" }), el("p", { class: "sub", text: "Every other parameter stays as you set it in the sidebar. Up to 80 points; each is a full model run." }),
+    el("div", { class: "form" }, el("label", {}, "Parameter", xs), el("label", {}, "Values (comma-separated)", xv), el("label", {}, "Second parameter (one line each)", ys), el("label", {}, "Values", yv), el("label", {}, "Show", metric), run)));
+  if (sweepState.error) host.append(el("div", { class: "notice" }, el("b", { text: "Sweep failed:" }), sweepState.error));
+  const d = sweepState.data; if (!d) return;
+  const [xk, yk] = Object.keys(d.axes), xvals = d.axes[xk], yvals = yk ? d.axes[yk] : [null];
+  const [mname, unit, conv] = METRICS[sweepState.metric];
+  const rec = (xi, yi) => d.records[xi * yvals.length + yi];
+  const series = yvals.map((yvv, yi) => ({ name: yk ? `${meta.controls.find((c) => c.path === yk).label} = ${optLabel(yvv)}` : mname, color: `var(--s${yi % 6 + 1})`,
+    points: xvals.map((xvv, xi) => { const r = rec(xi, yi); const v = r && r.valid ? conv(r[sweepState.metric]) : null; return { x: optLabel(xvv), y: v, label: v == null ? "invalid" : nf(v, 2) + " " + unit }; }) }));
+  const xlabel = meta.controls.find((c) => c.path === xk).label;
+  const tableRows = d.records.map((r, i) => [...Object.keys(d.axes).map((k) => optLabel(r[k])), r.valid ? nf(conv(r[sweepState.metric]), 2) : "invalid: " + (r.errors || "").slice(0, 60), r.valid ? nf(r.cost, 0) : "–", r.valid ? `${r.decode_binding}-bound` : "–"]);
+  const lp = chartPanel(`${mname} against ${xlabel.toLowerCase()}`, "One line per value of the second parameter." , (box) => { box.append(lineChart(series, { xLabel: xlabel, yLabel: `${mname} (${unit})`, aria: `${mname} against ${xlabel}` })); if (series.length > 1) box.append(legend(series.map((s) => ({ color: s.color, label: s.name, line: true })))); },
+    () => dataTable([...Object.keys(d.axes).map((k) => meta.controls.find((c) => c.path === k).label), mname + " (" + unit + ")", "Cost", "Decode limited by"], tableRows));
+  host.append(lp);
+  const pts = d.records.map((r, i) => ({ i, x: r.cost, y: r.valid ? r.decode_s * 1e3 : null, title: Object.keys(d.axes).map((k) => `${meta.controls.find((c) => c.path === k).label} ${optLabel(r[k])}`).join(" · "), frontier: d.frontier.includes(i) }));
+  const sp = chartPanel("Cost against decode time", "Each dot is one design from the sweep; the line joins the designs that nothing else beats on both. Click a dot to load that design into the sidebar.",
+    (box) => { const lg = el("label", { class: "muted", style: "display:inline-flex;gap:6px;align-items:center;margin-bottom:4px" }); const cb = el("input", { type: "checkbox", checked: sweepState.log }); cb.addEventListener("change", () => { sweepState.log = cb.checked; sp._paint(); }); lg.append(cb, "log scale"); box.append(lg, scatter(pts, d.frontier, { yLabel: "Decode time (ms)", unit: "ms", log: sweepState.log, onPick: (i) => { const r = d.records[i]; for (const k of Object.keys(d.axes)) setp(state.cfg, k, r[k]); syncControls(); schedule(); showTab("explore"); } })); },
+    () => dataTable(["Design", "Cost", "Decode (ms)", "On frontier"], pts.map((p) => [p.title, p.x == null ? "–" : nf(p.x, 0), p.y == null ? "invalid" : nf(p.y, 2), p.frontier ? "yes" : "no"])));
+  host.append(sp);
+}
+
+/* ---------- tabs: equations (ablation), sensitivity, about ---------- */
+async function runAblation() {
+  const host = $("#tab-ablation"); host.replaceChildren(el("p", { class: "muted" }, el("i", { class: "spin" }), "Running the equation ablation…"));
+  try { const d = await api("/api/ablation", { graph: state.graph, config: state.cfg }); state.ablation = { ...d, graph: state.graph }; } catch (e) { state.ablation = { error: e.message }; }
+  renderAblation();
+}
+function renderAblation() {
+  const host = $("#tab-ablation"); host.replaceChildren();
+  host.append(el("div", { class: "panel" }, el("h2", { text: "Which equations matter?" }),
+    el("p", { class: "sub", text: "Starts from the explorer’s original equations and switches each one to this engine’s version, one at a time (cumulative), then reverts each from the full engine (leave-one-out). Runs on the selected workload and your current hardware parameters; the fa-off graphs are the explorer’s own." }),
+    el("button", { class: "primary", text: "Run ablation", onclick: runAblation })));
+  const a = state.ablation; if (!a) return;
+  if (a.error) return host.append(el("div", { class: "notice" }, el("b", { text: "Failed:" }), a.error));
+  const bars = (v, big) => el("span", { class: "bar", style: `width:${Math.min(90, Math.abs(v) / big * 90)}px;background:${v < 0 ? "var(--div-neg)" : "var(--div-pos)"}` });
+  const pc = (v) => v == null ? "" : `${v > 0 ? "+" : ""}${nf(v, 1)} %`;
+  host.append(el("div", { class: "panel" }, el("h2", { text: `Cumulative: explorer equations → this engine (${a.graph})` }), el("p", { class: "sub", text: "Blue bars: faster than the row above; red: slower. Traffic columns show effects that time hides." }),
+    el("table", {}, el("thead", {}, el("tr", {}, ["Step", "Prefill", "Change", "Decode", "Change", "Prefill weights HBM", "Prefill act. HBM"].map((h, i) => el("th", { class: i ? "n" : "", text: h })))),
+      el("tbody", {}, a.cumulative.map((r) => el("tr", {}, el("td", { text: r.step }), el("td", { class: "n", text: fmtT(r.prefill_s) }), el("td", { class: "n" }, r.prefill_delta_pct != null ? [bars(r.prefill_delta_pct, 30), pc(r.prefill_delta_pct)] : ""),
+        el("td", { class: "n", text: fmtT(r.decode_s) }), el("td", { class: "n" }, r.decode_delta_pct != null ? [bars(r.decode_delta_pct, 30), pc(r.decode_delta_pct)] : ""), el("td", { class: "n", text: nf(r.prefill_weights_hbm_gb, 2) + " GB" }), el("td", { class: "n", text: nf(r.prefill_act_hbm_gb, 2) + " GB" })))))));
+  host.append(el("div", { class: "panel" }, el("h2", { text: "Leave-one-out: revert one equation from the full engine" }), el("p", { class: "sub", text: "How much slower (red) or faster (blue) the full engine would be with just that one equation back to the explorer’s version." }),
+    el("table", {}, el("thead", {}, el("tr", {}, ["Equation reverted", "Prefill", "Decode"].map((h, i) => el("th", { class: i ? "n" : "", text: h })))),
+      el("tbody", {}, a.leave_one_out.map((r) => el("tr", {}, el("td", { text: r.reverted }), el("td", { class: "n" }, [bars(r.prefill_delta_pct, 40), pc(r.prefill_delta_pct)]), el("td", { class: "n" }, [bars(r.decode_delta_pct, 40), pc(r.decode_delta_pct)])))))));
+}
+async function runSens(delta) {
+  const host = $("#tab-sens"); host.querySelector(".out")?.remove(); host.append(el("p", { class: "muted out" }, el("i", { class: "spin" }), "Perturbing each assumption (about 20–40 model runs)…"));
+  try { state.sens = { ...(await api("/api/sensitivity", { graph: state.graph, config: state.cfg, delta })), graph: state.graph }; } catch (e) { state.sens = { error: e.message }; }
+  renderSens();
+}
+function renderSens() {
+  const host = $("#tab-sens"); host.replaceChildren();
+  const dsel = el("select", { id: "delta" }, [10, 20, 30, 50].map((v) => el("option", { value: v / 100, text: `±${v} %`, selected: v === 30 })));
+  host.append(el("div", { class: "panel" }, el("h2", { text: "Which assumptions decide the answer?" }),
+    el("p", { class: "sub", text: "Each assumption is nudged up and down on its own. The bar is the elasticity: −1.0 means time falls in proportion as the parameter rises; 0 means it does not matter for this workload and design." }),
+    el("div", { class: "form" }, el("label", {}, "Perturbation", dsel), el("button", { class: "primary", text: "Run sensitivity", onclick: () => runSens(parseFloat(dsel.value)) }))));
+  const s = state.sens; if (!s) return;
+  if (s.error) return host.append(el("div", { class: "notice out" }, el("b", { text: "Failed:" }), s.error));
+  const dec = [...s.rows].sort((a, b) => Math.abs(b.decode_s_elasticity) - Math.abs(a.decode_s_elasticity)).slice(0, 12);
+  const pre = [...s.rows].sort((a, b) => Math.abs(b.prefill_s_elasticity) - Math.abs(a.prefill_s_elasticity)).slice(0, 12);
+  host.append(el("p", { class: "muted out" }, `${s.graph}: decode ${fmtT(s.base.decode_s)} (${s.base.decode_binding}-bound), prefill ${fmtT(s.base.prefill_s)} (${s.base.prefill_binding}-bound); ±${nf(s.delta * 100, 0)} % per assumption.`));
+  const tbl = (key) => () => dataTable(["Parameter", "Elasticity", "Time at −", "Time at +", "Binding changes"], s.rows.map((r) => [r.param, nf(r[key], 2), fmtT(r[key.replace("elasticity", "at_low")]), fmtT(r[key.replace("elasticity", "at_high")]), (r.decode_binding_flips ? "decode " : "") + (r.prefill_binding_flips ? "prefill" : "")]));
+  host.append(el("div", { class: "grid2" },
+    chartPanel("Decode", "Twelve most influential.", (box) => box.append(tornado(dec, "decode_s_elasticity", "Decode")), tbl("decode_s_elasticity")),
+    chartPanel("Prefill", "Twelve most influential.", (box) => box.append(tornado(pre, "prefill_s_elasticity", "Prefill")), tbl("prefill_s_elasticity"))));
+}
+function renderAbout() {
+  $("#tab-about").replaceChildren(
+    el("h2", { text: "What you are looking at" }),
+    el("p", {}, "Every number comes from the real engine (", el("code", { text: "engine/sbengine" }), ") running on the graphs captured from Qwen3.5-2B, one model run per change. It estimates prefill time, decode time, memory traffic and a resource cost for a parameterised accelerator: matrix, vector and recurrence units, a shared L1 and HBM."),
+    el("h2", { text: "Read the results with care" }),
+    el("p", {}, "These are analytical estimates, not FPGA or ASIC measurements, and not a model-quality evaluation. Every hardware parameter in the sidebar is an assumption; none is a decision by the Compute, Memory or Control teams. The Sensitivity tab shows which of them the answer actually depends on. Perturbing all of them by ±30 % moves decode time across roughly a 3.6× range."),
+    el("p", {}, "The biggest single assumption is recurrence lowering: with ‘chunked’ the recurrence runs as matrix GEMMs and is about 8× cheaper in prefill than the serial form. Nothing here shows that lowering exists in software. The weight-path switch is an architecture decision the model does not size."),
+    el("h2", { text: "Tips" }),
+    el("p", {}, "Change one thing at a time and watch ‘What limits it’: the answer changes as soon as the binding resource does. Pin a baseline to see every change as a percentage. Choose ‘legacy-equations’ under Start from to see the explorer’s original equations. Sweeps and the sensitivity view run on the workload and design currently set."),
+    el("p", {}, "Documentation: ", el("code", { text: "engine/docs/EQUATIONS.md" }), " (what changed and why), ", el("code", { text: "ASSUMPTIONS.md" }), " (every constant and who can settle it), ", el("code", { text: "VALIDATION.md" }), " (what was checked and what was not)."));
+}
+
+/* ---------- wiring ---------- */
+function showTab(name) {
+  for (const b of document.querySelectorAll("#tabs button")) b.setAttribute("aria-selected", b.dataset.tab === name);
+  for (const t of ["explore", "sweep", "ablation", "sens", "about"]) $("#tab-" + t).hidden = t !== name;
+  if (name === "sweep") renderSweep(); else if (name === "ablation") renderAblation(); else if (name === "sens") renderSens();
+}
+function encodeState() {
+  const diff = {};
+  for (const c of meta.controls) if (!same(getp(state.cfg, c.path), getp(presetCfg(), c.path))) diff[c.path] = getp(state.cfg, c.path);
+  return "#" + encodeURIComponent(JSON.stringify({ g: state.graph, p: state.preset, d: diff }));
+}
+function decodeState() {
+  try { const o = JSON.parse(decodeURIComponent(location.hash.slice(1))); if (o && meta.workloads.some((w) => w.name === o.g) && meta.profiles.some((p) => p.name === o.p)) { state.graph = o.g; state.preset = o.p; state.cfg = clone(presetCfg()); for (const [p, v] of Object.entries(o.d || {})) if (meta.controls.some((c) => c.path === p)) setp(state.cfg, p, v); return true; } } catch (e) { /* ignore a bad link */ }
+  return false;
+}
+async function init() {
+  meta = await api("/api/meta");
+  $("#runinfo").textContent = `run ${meta.run} · engine ${meta.engine_version} · ${meta.workloads.length} captured workloads`;
+  $("#graph").replaceChildren(...meta.workloads.map((w) => el("option", { value: w.name, text: `${w.name} — ${w.prompt_tokens} tokens, flash attention ${w.flash_attention ? "on" : "off"}` })));
+  $("#preset").replaceChildren(...meta.profiles.map((p) => el("option", { value: p.name, text: p.name, title: p.description })));
+  if (!meta.workloads.some((w) => w.name === state.graph)) state.graph = meta.workloads[0].name;
+  if (!decodeState()) state.cfg = clone(presetCfg());
+  $("#graph").value = state.graph; $("#preset").value = state.preset;
+  buildControls(); syncControls(); renderAbout();
+  $("#graph").addEventListener("change", (e) => { state.graph = e.target.value; state.result = null; schedule(); });
+  $("#preset").addEventListener("change", (e) => { state.preset = e.target.value; state.cfg = clone(presetCfg()); syncControls(); schedule(); });
+  $("#reset").addEventListener("click", () => { state.cfg = clone(presetCfg()); syncControls(); schedule(); });
+  $("#pin").addEventListener("click", () => { if (!state.result) return; state.baseline = { ...state.result.summary }; $("#unpin").hidden = false; renderExplore(); });
+  $("#unpin").addEventListener("click", () => { state.baseline = null; $("#unpin").hidden = true; renderExplore(); });
+  $("#copy").addEventListener("click", async () => { history.replaceState(null, "", encodeState()); try { await navigator.clipboard.writeText(location.href); $("#copy").textContent = "Link copied"; } catch { $("#copy").textContent = "Copy from the address bar"; } setTimeout(() => { $("#copy").textContent = "Copy link"; }, 2000); });
+  $("#tabs").addEventListener("click", (e) => { const b = e.target.closest("button[data-tab]"); if (b) showTab(b.dataset.tab); });
+  $("#theme").addEventListener("click", () => { const r = document.documentElement, dark = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; r.dataset.theme = dark ? "light" : "dark"; try { localStorage.setItem("sb-theme", r.dataset.theme); } catch (e) { /* storage unavailable */ } renderExplore(); });
+  try { const t = localStorage.getItem("sb-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) { /* storage unavailable */ }
+  evaluate();
+}
+init().catch((e) => { document.body.prepend(el("div", { class: "notice", style: "margin:20px" }, el("b", { text: "Could not reach the engine:" }), e.message)); });
+</script>
+</body>
+</html>

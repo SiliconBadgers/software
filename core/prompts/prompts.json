@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "description": "Eight prompts for per-prompt graph capture. Each file is used whole: its natural token count sets the prefill length, so prompts of different length give different graphs. Texts are original to this repository.",
+  "prompts": [
+    {"id": "narrative",    "file": "narrative.txt",    "description": "Literary prose, one long paragraph"},
+    {"id": "code",         "file": "code.txt",         "description": "Python function, docstring and tests; indentation and punctuation heavy"},
+    {"id": "math",         "file": "math.txt",         "description": "Word problem with a worked numeric solution"},
+    {"id": "json_records", "file": "json_records.txt", "description": "Highly repetitive structured data"},
+    {"id": "dialogue",     "file": "dialogue.txt",     "description": "Customer-support transcript, alternating speakers"},
+    {"id": "hardware",     "file": "hardware.txt",     "description": "Dense technical prose about the accelerator domain"},
+    {"id": "multilingual", "file": "multilingual.txt", "description": "The same sentence in six languages and scripts"},
+    {"id": "repetitive",   "file": "repetitive.txt",   "description": "Low-entropy repeating word sequence"}
+  ]
+}

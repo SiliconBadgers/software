@@ -1,0 +1,15 @@
+{
+  "name": "legacy-equations",
+  "description": "The balanced design with every switchable equation set back to the 2026-09-24 explorer's version: fixed tileN=64 tiling, fill/drain per tile, tile-level L1 feed, per-op spill proxy instead of residency, no fusion, serial op sum, uniform 8-bit weights (its W8/A16 mode). Used for ablation and for comparison with that model; it is not exactly equal to it (the KV footprint, recurrence and cross-unit terms differ, see docs/EQUATIONS.md).",
+  "status": "assumption",
+  "config": {
+    "matrix": {"tile_mode": "fixed", "pipelined_tiles": false},
+    "memory": {"residency": "per_op", "fusion": "none", "l1_feed": "tile"},
+    "schedule": {"mode": "serial"},
+    "precision": {"weights": "uniform_int8"},
+    "recurrent": {"lowering": "serial"},
+    "attention": {"causal_skip": false},
+    "sync_cycles": 0,
+    "resources": {"cost": {"l1_bank": 0.0, "direct_weight_buffer_per_pe": 0.0}}
+  }
+}
