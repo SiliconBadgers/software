@@ -63,6 +63,17 @@ class Residency(unittest.TestCase):
 
 
 class Schedule(unittest.TestCase):
+    def test_optional_intervals_preserve_bounds_and_include_auxiliary_work(self):
+        args = ([1.0, 1.0, 0.5], ["Matrix", "Vector", "Matrix"],
+                [[], [], [0, 1]], [0.1] * 3, [0.2] * 3, 0.1,
+                [{"Vector": 0.5}, {}, {}])
+        original = schedule(*args)
+        detailed = schedule(*args, detail=True)
+        self.assertEqual(original, {key: detailed[key] for key in original})
+        self.assertEqual(detailed["operations"][2]["start"], 1.6)
+        self.assertEqual(detailed["reservations"]["Vector"][0],
+                         {"node": 0, "start": 0.0, "end": 0.5})
+
     def test_independent_ops_on_different_pools_overlap(self):
         s = schedule([1.0, 1.0], ["Matrix", "Vector"], [[], []], [0.0, 0.0], [0.0, 0.0], 0.0, [{}, {}])
         self.assertEqual((s["serial"], s["list"]), (2.0, 1.0))

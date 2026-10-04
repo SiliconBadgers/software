@@ -1,4 +1,5 @@
 import { drawDependencies } from "./graph.js";
+import { initializeStudies } from "./studies.js";
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
 const escape = (value) =>
@@ -28,7 +29,11 @@ let registry,
   result,
   sweep = [],
   evaluationTimer;
-let capturedGraph, dependencies;
+let capturedGraph,
+  dependencies,
+  evaluationVersion = 0,
+  selectionVersion = 0,
+  expandedCaptures = [];
 const captureCache = new Map();
 const colors = {
   Matrix: "#81a5ff",
@@ -64,7 +69,7 @@ function changeView() {
   $$("[data-panel]").forEach(
     (panel) => (panel.hidden = panel.dataset.panel !== selected),
   );
-  $$("[data-view]").forEach((link) => {
+  $$("nav [data-view]").forEach((link) => {
     link.classList.toggle("active", link.dataset.view === selected);
     if (link.dataset.view === selected)
       link.setAttribute("aria-current", "page");
@@ -76,9 +81,13 @@ function changeView() {
 }
 
 async function selectStudy() {
+  const selection = ++selectionVersion;
+  ++evaluationVersion;
   component = registry.components.find((item) => item.id === $("#study").value);
   const module = await import(`./${component.module}`);
-  study = module.createStudy();
+  const selectedStudy = await module.createStudy();
+  if (selection !== selectionVersion) return;
+  study = selectedStudy;
   for (const method of ["defaults", "validate", "evaluate", "layerMap"]) {
     if (typeof study[method] !== "function")
       throw Error(`Study ${component.id} needs ${method}().`);
@@ -98,11 +107,13 @@ async function selectStudy() {
   $("#study-credit").innerHTML =
     `${escape(component.contributors.join(", "))} · ${(component.pullRequests || [component.pullRequest]).map((n) => `<a href="${repo}/pull/${n}">PR #${n}</a>`).join(" / ")}`;
   $("#model-scope").textContent = study.scope;
+  $('[data-preset="long"]').textContent =
+    component.id === "qwen-python" ? "8K capture" : "8K / 20K";
   $("#sweep-axis").innerHTML = study.controls
     .filter((control) => control.type === "number")
     .map(
       (control) =>
-        `<option value="${control.key}" ${control.key === "matrixCount" ? "selected" : ""}>${escape(control.label)}</option>`,
+        `<option value="${control.key}" ${["matrixCount", "matrix.count"].includes(control.key) ? "selected" : ""}>${escape(control.label)}</option>`,
     )
     .join("");
   $("#execution-layer").innerHTML =
@@ -113,9 +124,11 @@ async function selectStudy() {
         `<option value="${layer}">Layer ${layer} · ${(layer + 1) % 4 ? "DeltaNet" : "Full attention"}</option>`,
     ).join("") +
     '<option value="24">Output head</option>';
+  result = null;
+  clearResults();
   clearSweep();
   renderControls();
-  evaluate();
+  await evaluate();
   changeView();
 }
 
@@ -155,7 +168,8 @@ function renderControls() {
   );
 }
 
-function evaluate() {
+async function evaluate() {
+  const version = ++evaluationVersion;
   const errors = study.validate(config);
   if (errors.length) {
     result = null;
@@ -163,7 +177,31 @@ function evaluate() {
     clearResults();
     return;
   }
-  result = study.evaluate(config);
+  const currentStudy = study,
+    snapshot = structuredClone(config);
+  const asynchronous = component.id === "qwen-python";
+  if (asynchronous) {
+    notice("Calculating with the Python engine…");
+    $("#export-timeline").disabled = true;
+  }
+  let outcome;
+  try {
+    outcome = await currentStudy.evaluate(snapshot);
+  } catch (error) {
+    if (version === evaluationVersion) {
+      result = null;
+      clearResults();
+      notice(error.message, true);
+    }
+    return;
+  }
+  if (
+    version !== evaluationVersion ||
+    currentStudy !== study ||
+    JSON.stringify(snapshot) !== JSON.stringify(config)
+  )
+    return;
+  result = outcome;
   notice(result.valid ? "" : result.errors.join(" "), !result.valid);
   try {
     localStorage.setItem(
@@ -201,6 +239,7 @@ function clearResults() {
     "tensor-detail",
     "pool-breakdown",
     "schedule-comparison",
+    "active-workload",
   ])
     $(`#${id}`).replaceChildren();
   $("#export-timeline").disabled = true;
@@ -210,11 +249,16 @@ const metric = (label, value, detail) =>
   `<div class="metric"><span>${escape(label)}</span><strong>${escape(value)}</strong><small>${escape(detail)}</small></div>`;
 function renderMetrics() {
   if (!result?.decode) return clearResults();
+  $("#active-workload").textContent =
+    component.id === "qwen-python"
+      ? `${config._capture} · ${config["precision.weights"] === "captured" ? "Captured mixed Q4_K_M weights" : config["precision.weights"]} · Python equations`
+      : `Qwen3.5-2B · ${config.precision.toUpperCase()} estimate · BF16 capture topology`;
+  $("#capture-shortcut").hidden = component.id !== "qwen-python";
   $("#metrics").innerHTML =
     metric(
       "Prefill",
       milliseconds(result.prefill.seconds),
-      `${number(config.prompt, 0)} tokens per sequence`,
+      `${number(result.promptTokens ?? config.prompt, 0)} tokens per sequence`,
     ) +
     metric(
       "Decode",
@@ -267,13 +311,15 @@ async function runSweep() {
       true,
     );
   const axis = $("#sweep-axis").value,
-    base = JSON.parse(JSON.stringify(config));
+    base = JSON.parse(JSON.stringify(config)),
+    sweepStudy = study;
   const next = [];
   $("#run-sweep").disabled = true;
   try {
     for (const value of values) {
       const candidate = { ...base, [axis]: value };
-      const outcome = study.evaluate(candidate);
+      const outcome = await sweepStudy.evaluate(candidate);
+      if (sweepStudy !== study) return;
       next.push({ axis, value, base, config: candidate, result: outcome });
       await new Promise((resolve) => setTimeout(resolve, 0));
     }
@@ -315,31 +361,39 @@ async function renderGraph() {
     phase = $("#graph-phase").value,
     layer = $("#graph-layer").value;
   const original = $("#graph-style").value === "original";
-  $("#capture-image").src =
-    `assets/graphs/${capture}/${phase}.layer${layer}.svg`;
+  const expanded = capture.startsWith("raghav:");
+  const id = expanded ? capture.slice(7) : capture;
+  const folder = expanded ? `assets/captures/${id}` : `assets/graphs/${id}`;
+  $("#capture-image").src = `${folder}/${phase}.layer${layer}.svg`;
   $("#capture-image").hidden = !original;
   $("#dependency-graph").hidden = original;
-  $("#grouping-control").hidden = original;
-  $("#raw-graph").href = `assets/graphs/${capture}/${phase}.json`;
+  $("#grouping-control").hidden = original || expanded;
+  $("#raw-graph").href = `${folder}/${phase}.${expanded ? "json.gz" : "json"}`;
+  $("#graph-scope").textContent = expanded
+    ? "Raghav Iyer’s recorded mixed-format Q4_K_M graph. Flash attention and prompt length follow the selected capture. Graph inspection is independent of the active engine’s configuration."
+    : "Zeb Taylor’s recorded BF16-weight CPU graph, with flash attention off. Hardware controls change estimates without changing this capture.";
   $("#graph-caption").textContent =
-    `${capture} · ${phase} · layer ${layer} · ${original ? "original rendered capture" : "Adrian Luo’s dependency map"}`;
+    `${id} · ${phase} · layer ${layer} · ${original ? "original rendered capture" : expanded ? "Raghav Iyer’s active dependencies" : "Adrian Luo’s dependency map"}`;
   const key = `${capture}/${phase}`;
+
   try {
     if (!captureCache.has(key)) {
-      const paths = [
-        `assets/graphs/${key}.json`,
-        `assets/dependencies/${capture}-${phase}.json`,
-      ];
-      captureCache.set(
-        key,
-        await Promise.all(
-          paths.map(async (path) => {
-            const response = await fetch(path);
-            if (!response.ok) throw Error("Capture data could not load.");
-            return response.json();
-          }),
-        ),
+      const response = await fetch(
+        `${folder}/${phase}.${expanded ? "json.gz" : "json"}`,
       );
+      if (!response.ok) throw Error("Capture data could not load.");
+      const graph = expanded
+        ? await new Response(
+            response.body.pipeThrough(new DecompressionStream("gzip")),
+          ).json()
+        : await response.json();
+      const dependencyResponse = await fetch(
+        expanded
+          ? `${folder}/${phase}.dependencies.json`
+          : `assets/dependencies/${capture}-${phase}.json`,
+      );
+      if (!dependencyResponse.ok) throw Error("Dependency map could not load.");
+      captureCache.set(key, [graph, await dependencyResponse.json()]);
     }
     if (key !== `${$("#capture").value}/${$("#graph-phase").value}`) return;
     [capturedGraph, dependencies] = captureCache.get(key);
@@ -347,7 +401,7 @@ async function renderGraph() {
     const counts = drawDependencies(
       dependencies,
       layer,
-      $("#graph-grouping").value === "fusion",
+      !expanded && $("#graph-grouping").value === "fusion",
       $("#dependency-graph"),
       $("#dependency-detail"),
     );
@@ -422,9 +476,11 @@ function renderExecution() {
   const phase = result[$("#execution-phase").value],
     schedule = phase.execution;
   $("#execution-scope").textContent =
-    schedule.mode === "dependency-resource"
-      ? "Eric Wang’s dependency scheduler reserves compute, SRAM, external memory and launch intervals. State read/write ordering is preserved. Each compute pool works on one operation at a time. These are modeled reservations, not measured hardware utilization."
-      : "Serial baseline: operations run in captured order, with optional compute/memory overlap inside each operation. Switch Operation scheduling in the setup panel to inspect shared-resource reservations.";
+    schedule.mode === "python-pools"
+      ? "Raghav Iyer’s compute-pool schedule reserves whole-operation intervals, including auxiliary compute work. SRAM and external memory impose aggregate service-time floors; their contention is not scheduled as intervals. Total estimated latency can therefore extend beyond the last compute bar."
+      : schedule.mode === "dependency-resource"
+        ? "Eric Wang’s dependency scheduler reserves compute, SRAM, external memory and launch intervals. State read/write ordering is preserved. Each compute pool works on one operation at a time. These are modeled reservations, not measured hardware utilization."
+        : "Serial baseline: operations run in captured order, with optional compute/memory overlap inside each operation. Switch Operation scheduling in the setup panel to inspect shared-resource reservations.";
   $("#execution-summary").innerHTML =
     metric(
       "Total latency",
@@ -457,25 +513,29 @@ function renderExecution() {
     return;
   }
   const selectedIds = new Set(rows.map((r) => r.id));
-  const reservations =
-    schedule.mode === "dependency-resource"
-      ? Object.fromEntries(
-          Object.entries(schedule.calendars)
-            .map(([pool, intervals]) => [
-              pool,
-              intervals.filter((i) => selectedIds.has(i.id)),
-            ])
-            .filter(([, intervals]) => intervals.length),
-        )
-      : Object.fromEntries(
-          [...new Set(rows.map((r) => r.pool))].map((pool) => [
+  const reservations = ["dependency-resource", "python-pools"].includes(
+    schedule.mode,
+  )
+    ? Object.fromEntries(
+        Object.entries(schedule.calendars)
+          .map(([pool, intervals]) => [
             pool,
-            rows.filter((r) => r.pool === pool),
-          ]),
-        );
+            intervals.filter((i) => selectedIds.has(i.id)),
+          ])
+          .filter(([, intervals]) => intervals.length),
+      )
+    : Object.fromEntries(
+        [...new Set(rows.map((r) => r.pool))].map((pool) => [
+          pool,
+          rows.filter((r) => r.pool === pool),
+        ]),
+      );
   const pools = Object.keys(reservations),
     start = Math.min(...rows.map((r) => r.start)),
-    end = Math.max(...rows.map((r) => r.end));
+    end = Math.max(
+      ...rows.map((r) => r.end),
+      selected === "all" ? phase.seconds : 0,
+    );
   const width = 1100,
     laneHeight = 40,
     labelWidth = 160;
@@ -502,9 +562,11 @@ function renderExecution() {
   $("#timeline").innerHTML =
     svg +
     '</svg><p class="muted">' +
-    (schedule.mode === "serial"
-      ? "Bars include launch and memory time on the assigned compute pool."
-      : "Bars show the intervals reserved by the analytical scheduler. Empty space indicates an unreserved interval.") +
+    (schedule.mode === "python-pools"
+      ? "Whole-operation compute-pool reservations, including auxiliary work. Memory service is represented by aggregate bounds."
+      : schedule.mode === "serial"
+        ? "Bars include launch and memory time on the assigned compute pool."
+        : "Bars show the intervals reserved by the analytical scheduler. Empty space indicates an unreserved interval.") +
     "</p>";
   $("#execution-detail").innerHTML =
     `<div class="table-wrap"><table><thead><tr><th>Operation</th><th>Pool</th><th>Launch</th><th>End</th><th>Compute</th><th>SRAM</th><th>External memory</th></tr></thead><tbody>${rows.map((row) => `<tr><td>${escape(row.name)}<small>${escape(row.op)}</small></td><td>${escape(row.pool)}</td><td>${milliseconds(row.start)}</td><td>${milliseconds(row.end)}</td><td>${milliseconds(row.compute)}</td><td>${milliseconds(row.l1)}</td><td>${milliseconds(row.hbm)}</td></tr>`).join("")}</tbody></table></div>`;
@@ -526,7 +588,7 @@ function renderOverview() {
     .join("");
   const parallel = phase.parallel?.seconds;
   $("#schedule-comparison").innerHTML =
-    `<div class="schedule-values"><div><span>Serial</span><strong>${milliseconds(total)}</strong></div><span class="arrow">→</span><div><span>Shared resources</span><strong>${parallel ? milliseconds(parallel) : "Unavailable"}</strong></div></div><div class="schedule-note">${parallel ? `<b>${number(total / parallel, 2)}×</b> modeled ratio · same configuration and operation costs.` : "Enable within-operation overlap to compare scheduling."}</div>`;
+    `<div class="schedule-values"><div><span>Serial</span><strong>${milliseconds(total)}</strong></div><span class="arrow">→</span><div><span>${component.id === "qwen-python" ? "Compute pools" : "Shared resources"}</span><strong>${parallel ? milliseconds(parallel) : "Unavailable"}</strong></div></div><div class="schedule-note">${parallel ? `<b>${number(total / parallel, 2)}×</b> modeled ratio · same configuration and operation costs.` : "Enable within-operation overlap to compare scheduling."}</div>`;
 }
 
 function renderWork(statuses = build.work) {
@@ -597,6 +659,18 @@ async function start() {
       return response.json();
     }),
   );
+  const catalog = await fetch("assets/captures/index.json");
+  if (catalog.ok) {
+    expandedCaptures = await catalog.json();
+    $("#capture").innerHTML =
+      '<optgroup label="Zeb · BF16 / flash attention off"><option value="pp128">128 tokens</option><option value="pp512" selected>512 tokens</option></optgroup><optgroup label="Raghav · mixed Q4_K_M">' +
+      expandedCaptures
+        .map(
+          (c) => `<option value="raghav:${c.id}">${escape(c.label)}</option>`,
+        )
+        .join("") +
+      "</optgroup>";
+  }
   $("#study").innerHTML = registry.components
     .map(
       (component) =>
@@ -607,6 +681,11 @@ async function start() {
     selectStudy().catch((error) => notice(error.message, true)),
   );
   addEventListener("hashchange", changeView);
+  $("#capture-shortcut").onclick = () => {
+    $("#capture").value = `raghav:${config._capture}`;
+    location.hash = "graph";
+    renderGraph();
+  };
   $("#reset").onclick = () => {
     config = study.defaults();
     renderControls();
@@ -704,7 +783,9 @@ async function start() {
           phase: $("#execution-phase").value,
           model: result[$("#execution-phase").value].execution.mode,
           config,
+          latencySeconds: result[$("#execution-phase").value].seconds,
           rows: timelineRows(),
+          native: result.native,
           reservations: result[$("#execution-phase").value].execution.calendars,
         },
         null,
@@ -715,16 +796,16 @@ async function start() {
     (button) =>
       (button.onclick = () => {
         const preset = button.dataset.preset;
-        config = {
-          ...study.defaults(),
-          ...(preset === "vector"
+        const overrides =
+          study.presets?.[preset] ??
+          (preset === "vector"
             ? { vectorCount: 8 }
             : preset === "shared"
               ? { recurrentCount: 0, vectorCount: 8 }
               : preset === "long"
                 ? { prompt: 8192, context: 20000 }
-                : {}),
-        };
+                : {});
+        config = { ...study.defaults(), ...overrides };
         renderControls();
         evaluate();
         $$("[data-preset]").forEach((other) =>
@@ -732,9 +813,31 @@ async function start() {
         );
       }),
   );
+  $("#work-list").addEventListener("click", async (event) => {
+    const link = event.target.closest("[data-work-component]");
+    if (
+      link?.dataset.workComponent &&
+      link.dataset.workComponent !== component.id
+    ) {
+      $("#study").value = link.dataset.workComponent;
+      await selectStudy();
+    }
+  });
   renderSources();
   refreshWork();
   await selectStudy();
+  initializeStudies(async (design) => {
+    if (component.id !== "qwen-baseline") {
+      $("#study").value = "qwen-baseline";
+      await selectStudy();
+    }
+    config = structuredClone(design);
+    renderControls();
+    await evaluate();
+    location.hash = "model";
+  }).catch((error) => {
+    $("#saved-study-chart").textContent = error.message;
+  });
   globalThis.SB_WORKSPACE_READY = true;
 }
 start().catch((error) =>

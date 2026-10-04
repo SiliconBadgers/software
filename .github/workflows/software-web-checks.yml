@@ -18,6 +18,13 @@ jobs:
           python-version: '3.12'
       - name: Existing model checks
         run: node experiments/llama-cpp/2026-09-24-qwen35-2b/scripts/test_model.cjs
+      - name: Contributor engine checks
+        run: |
+          python3 -m pip install numpy==2.5.3
+          python3 -m unittest discover -s engine/tests -v
+          for script in test_sensitivity test_scheduler test_joint_resources test_recurrence_penalty; do
+            node "experiments/llama-cpp/2026-09-24-qwen35-2b/scripts/$script.cjs"
+          done
       - name: Workspace and publication checks
         run: python3 -m unittest discover -s tests/web -v
       - name: Build workspace
@@ -30,6 +37,7 @@ jobs:
           build/browser-tests/node_modules/.bin/playwright install --with-deps chromium
           python3 -m http.server 8767 --directory build/site > /tmp/software-web-server.log 2>&1 &
           NODE_PATH="$PWD/build/browser-tests/node_modules" node tests/web/smoke.cjs
+          NODE_PATH="$PWD/build/browser-tests/node_modules" node tests/web/python.cjs
       - uses: actions/upload-artifact@v4
         with:
           name: software-workspace
