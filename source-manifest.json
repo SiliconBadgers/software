@@ -2,22 +2,22 @@
   {
     "source": "web/index.html",
     "published": "index.html",
-    "sha256": "6a99e03dff403ec5ea8ee3503a45395830b5372721978757280171d478c3c34f"
+    "sha256": "84349642a98689e2b49eb8663d7c014ce0a4e6a7cc3952f6de4b67bebe0ea364"
   },
   {
     "source": "web/app.js",
     "published": "app.js",
-    "sha256": "232ff5fa1e6e1c01648dffc2bc5d600c23b83716f104eeb3e0dca2572db95140"
+    "sha256": "93bfb3a9416d0fae8219a68352ebd7768809cfbaee9c8d4028be5b80478aa892"
   },
   {
     "source": "web/style.css",
     "published": "style.css",
-    "sha256": "10466dd4ba6e73a67c509cb067e69c2250843b27b8338dcbde76e540b12a5fda"
+    "sha256": "8abf5bbbca0cb6b2e2e8c9f6c51cec3bfd075c7fb85ac16bf9baa66691f46ab1"
   },
   {
     "source": "web/registry.json",
     "published": "registry.json",
-    "sha256": "71968d9061a6e344bae2adc7e7d1b8a9d74e9e5906b9a601b402f5c8a6eb4444"
+    "sha256": "0a3eebba6eec9badca9fb7866dd67c877d087d9fc4044658d45a4529edc37713"
   },
   {
     "source": "web/graph.js",

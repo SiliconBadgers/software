@@ -1,9 +1,14 @@
 {
   "schemaVersion": 1,
-  "sha": "98997dfa938b1b1783a478ffc594529f7eeae3b5",
+  "sha": "60ed9307a3e82e2fcb789fd8700a8fd3800a8599",
   "ref": "main",
   "preview": false,
   "work": [
+    {
+      "merged_at": "2026-10-04T22:44:11Z",
+      "number": 17,
+      "state": "closed"
+    },
     {
       "merged_at": "2026-10-04T22:28:18Z",
       "number": 16,

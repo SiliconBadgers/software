@@ -31,6 +31,7 @@
       ><a href="#graph" data-view="graph">Graphs</a
       ><a href="#execution" data-view="execution">Timeline</a
       ><a href="#work" data-view="work">Studies</a
+      ><a href="#previews" data-view="previews">Previews</a
       ><a href="#sources" data-view="sources">Sources</a>
     </nav>
     <div class="workspace">
@@ -271,10 +272,9 @@
           <div class="page-heading">
             <div>
               <div class="section-label">SOFTWARE PROJECT</div>
-              <h1>One workspace. Shared evidence.</h1>
+              <h1>Software studies</h1>
               <p>
-                Use each contributor’s work without losing its source or
-                authorship.
+                Explore models, operation dependencies and saved experiments.
               </p>
             </div>
           </div>
@@ -314,6 +314,52 @@
             <a
               href="https://github.com/SiliconBadgers/software/blob/main/web/README.md"
               >Component format and preview instructions ↗</a
+            >
+          </div>
+        </section>
+        <section data-panel="previews" hidden>
+          <div class="page-heading">
+            <div>
+              <div class="section-label">CONTRIBUTOR WORKSPACE</div>
+              <h1>Branch previews</h1>
+              <p>
+                Try a contributor’s changes before they reach the shared
+                workspace.
+              </p>
+            </div>
+            <button id="refresh-previews">Refresh</button>
+          </div>
+          <p id="preview-status" class="muted" role="status"></p>
+          <div id="preview-list" class="study-grid"></div>
+          <div class="panel preview-guide">
+            <h2>Publish your branch</h2>
+            <ol>
+              <li>Push your changes to a branch in the software repository.</li>
+              <li>
+                Open
+                <a
+                  href="https://github.com/SiliconBadgers/software/actions/workflows/software-pages.yml"
+                  >Publish software workspace</a
+                >
+                and choose <strong>Run workflow</strong>.
+              </li>
+              <li>
+                Keep the workflow on <strong>main</strong>. Enter your branch in
+                <strong>preview_ref</strong>.
+              </li>
+              <li>
+                After publication finishes, refresh this list and share your
+                preview URL. Open a PR when the work is ready.
+              </li>
+            </ol>
+            <p class="muted">
+              Publishing requires repository write access. Preview content is
+              public. Updating a branch preview leaves the main workspace
+              unchanged.
+            </p>
+            <a
+              href="https://github.com/SiliconBadgers/software/blob/main/web/README.md"
+              >Build and component instructions ↗</a
             >
           </div>
         </section>

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "editions": [
+    {
+      "ref": "main",
+      "sha": "60ed9307a3e82e2fcb789fd8700a8fd3800a8599",
+      "preview": false,
+      "path": "./"
+    },
+    {
+      "ref": "feat/python-workbench",
+      "sha": "5f5b3b88fda2aac1d8b85bbcdc653c9b6a17071c",
+      "preview": true,
+      "path": "previews/feat-python-workbench-8a8c6ea0/"
+    },
+    {
+      "ref": "preview/software-workspace",
+      "sha": "e558d5d9dc02f24599760a68d10b64e0fdfc2b94",
+      "preview": true,
+      "path": "previews/preview-software-workspace-5a6f6324/"
+    }
+  ]
+}
