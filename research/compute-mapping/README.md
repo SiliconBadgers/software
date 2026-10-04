@@ -29,3 +29,8 @@ audits every captured gated-delta instance, adds an opt-in shared-matrix
 lowering with an explicit 32-bit penalty, and compares vector, shared-matrix and
 dedicated recurrence mappings across workload, precision, memory and resource
 classes.
+
+The [operation dependency map](2026-10-02-op-dependency-map/README.md) derives
+per-layer operation chains, persistent-state ordering, parallel projection
+groups and fusion candidates from those captured graphs. It is a structural
+analysis with no timing or measured traffic.
