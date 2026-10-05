@@ -57,9 +57,14 @@ def build_variant(ctx, variant, targets, compile=True):
     env = dict(os.environ)
     env["PATH"] = str(Path(sys.executable).parent) + os.pathsep + env.get("PATH", "")
     # CMake writes these values into generated files verbatim, so Windows backslashes would be read as escapes.
+    use_cuda = bool(ctx.state.get("cuda")) and variant == "baseline"
     configure = [tool("cmake"), "-S", HARNESS, "-B", directory, "-G", ctx.platform["cmake_generator"],
                  "-DCMAKE_BUILD_TYPE=Release", f"-DLLAMA_CPP_SOURCE={Path(source).as_posix()}", "-DGGML_NATIVE=ON",
-                 "-DGGML_METAL=" + ("ON" if ctx.state.get("metal") else "OFF")]
+                 "-DGGML_METAL=" + ("ON" if ctx.state.get("metal") else "OFF"),
+                 "-DGGML_CUDA=" + ("ON" if use_cuda else "OFF")]
+    if use_cuda:
+        import platform_profile
+        configure.append(f"-DCMAKE_CUDA_COMPILER={Path(platform_profile.cuda_compiler()).as_posix()}")
     if compilers["c"]:
         configure.append(f"-DCMAKE_C_COMPILER={Path(compilers['c']).as_posix()}")
     if compilers["cxx"]:
@@ -90,7 +95,8 @@ def build_config(ctx, variant="baseline"):
     cache, ninja = directory / "CMakeCache.txt", directory / "build.ninja"
     if not cache.is_file() or not ninja.is_file():
         return None
-    wanted = ("CMAKE_BUILD_TYPE", "BUILD_SHARED_LIBS", "GGML_NATIVE", "GGML_OPENMP", "GGML_METAL", "GGML_LLAMAFILE",
+    wanted = ("CMAKE_BUILD_TYPE", "BUILD_SHARED_LIBS", "GGML_NATIVE", "GGML_OPENMP", "GGML_METAL", "GGML_CUDA",
+              "CMAKE_CUDA_COMPILER", "GGML_LLAMAFILE",
               "GGML_CPU_REPACK", "GGML_BACKEND_DL")
     requested = {}
     for line in cache.read_text(encoding="utf-8", errors="replace").splitlines():
@@ -102,7 +108,8 @@ def build_config(ctx, variant="baseline"):
             "baseline_build_has_trace_code": has_trace_code(ctx, "baseline"),
             "traced_build_has_trace_code": has_trace_code(ctx, "profile") if build_dir(ctx, "profile").is_dir() else None,
             "effective": {"openmp": "GGML_USE_OPENMP" in text, "llamafile": "GGML_USE_LLAMAFILE" in text,
-                          "march_native": "-march=native" in text, "metal": "GGML_USE_METAL" in text}}
+                          "march_native": "-march=native" in text, "metal": "GGML_USE_METAL" in text,
+                          "cuda": "GGML_USE_CUDA" in text}}
 
 
 def _is_clean(source):
@@ -162,7 +169,7 @@ def ensure_baseline(ctx):
     check_instrumentation(ctx, "baseline", expected=False)
     if not ctx.dry_run:
         state = fetch.load_state(ctx)
-        state.update(baseline_ready=True, metal=bool(ctx.state.get("metal")))
+        state.update(baseline_ready=True, metal=bool(ctx.state.get("metal")), cuda=bool(ctx.state.get("cuda")))
         fetch.save_state(ctx, state)
     return compilers
 

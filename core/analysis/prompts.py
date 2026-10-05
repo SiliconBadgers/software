@@ -106,6 +106,7 @@ def build_row(run_dir, experiment, entry, prompt_dir, prompt_set_dir):
     baseline = summaries["cpu-baseline"]
     has_trace = exists(prompt_dir / "cpu-op-trace.jsonl")
     has_metal = exists(prompt_dir / "metal-baseline.jsonl")
+    has_cuda = exists(prompt_dir / "cuda-baseline.jsonl")
     profile_checks, backend_checks, _ = [], [], None
     check = {}
     try:
@@ -116,6 +117,7 @@ def build_row(run_dir, experiment, entry, prompt_dir, prompt_set_dir):
         check["traced_vs_untraced_logits_bit_identical"] = False
         check["error"] = str(error)
     check["cpu_vs_metal"] = backend_checks
+    check["cpu_vs_cuda"] = validate.compare_backend(prompt_dir, experiment, [n], "cuda") if has_cuda else []
     prefix = f"prompts/{prompt_id}/"
     trace_file = "cpu-op-trace.jsonl.gz" if (prompt_dir / "cpu-op-trace.jsonl.gz").is_file() else "cpu-op-trace.jsonl"
     row = {
@@ -134,6 +136,8 @@ def build_row(run_dir, experiment, entry, prompt_dir, prompt_set_dir):
                   "tokens": prefix + "cpu-baseline-tokens.json"}}
     if has_metal:
         row["timing"]["metal"] = _timing(summaries["metal-baseline"], prompt_dir / "metal-baseline.jsonl", n)
+    if has_cuda:
+        row["timing"]["cuda"] = _timing(summaries["cuda-baseline"], prompt_dir / "cuda-baseline.jsonl", n)
     if has_trace:
         row["trace"]["repetitions_traced"] = row["trace"]["prefill"]["repetitions"]
     return row

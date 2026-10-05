@@ -5,8 +5,8 @@
   "exe_suffix": ".exe",
   "cmake_generator": "Ninja",
   "compilers": {
-    "c": ["C:/Program Files/LLVM/bin/clang.exe", "clang"],
-    "cxx": ["C:/Program Files/LLVM/bin/clang++.exe", "clang++"],
+    "c": ["C:/Program Files/LLVM/bin/clang.exe", "C:/Program Files/Microsoft Visual Studio/*/*/VC/Tools/MSVC/*/bin/Hostx64/x64/cl.exe", "clang", "cl"],
+    "cxx": ["C:/Program Files/LLVM/bin/clang++.exe", "C:/Program Files/Microsoft Visual Studio/*/*/VC/Tools/MSVC/*/bin/Hostx64/x64/cl.exe", "clang++", "cl"],
     "rc": ["C:/Program Files (x86)/Windows Kits/10/bin/*/x64/rc.exe", "C:/Program Files/LLVM/bin/llvm-rc.exe", "rc"]
   },
   "cmake_args": [],

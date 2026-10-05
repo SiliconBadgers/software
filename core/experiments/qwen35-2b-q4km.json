@@ -53,8 +53,10 @@
     "summary_runs": [
       "cpu-baseline",
       "metal-baseline",
+      "cuda-baseline",
       "cpu-8k",
       "metal-8k",
+      "cuda-8k",
       "cpu-profile",
       "cpu-control",
       "cpu-8k-control",

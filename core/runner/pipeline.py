@@ -20,10 +20,11 @@ def _now():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
-def _subtitle(host, experiment, threads, metal):
+def _subtitle(host, experiment, threads, backends):
     parts = [host["cpu_model"], experiment["model"]["label"], f"{threads} CPU threads"]
-    if metal:
-        parts.append("Metal available")
+    accelerated = [name.upper() if name == "cuda" else name.title() for name in backends if name != "cpu"]
+    if accelerated:
+        parts.append(" + ".join(accelerated) + " measured")
     parts.append("one sequence")
     return " · ".join(parts)
 
@@ -42,7 +43,7 @@ def compress(ctx):
             gzip_in_place(path)
 
 
-def analyze_run(run_dir, experiment, lengths, has_trace, has_metal, subtitle):
+def analyze_run(run_dir, experiment, lengths, has_trace, backends, subtitle):
     """Write summaries, validation and the figure into run_dir/analysis. Raw files are only read."""
     import decode_curve
     import ops
@@ -58,11 +59,16 @@ def analyze_run(run_dir, experiment, lengths, has_trace, has_metal, subtitle):
     if has_trace:
         ops.write_outputs(out, *ops.aggregate(run_dir, experiment))
     profile_checks, backend_checks, missing = validate.validate(
-        run_dir, experiment, lengths, skip_metal=not has_metal, require_profile=has_trace)
+        run_dir, experiment, lengths, skip_metal="metal" not in backends, require_profile=has_trace)
     validate.write_outputs(out, profile_checks, backend_checks)
+    cuda_checks = validate.compare_backend(run_dir, experiment, lengths, "cuda") if "cuda" in backends else []
+    if cuda_checks:
+        validate.write_backend_output(out, "cuda", cuda_checks)
     plot.draw(out, out, experiment, subtitle)
     return {"decode_curves": len(curves), "profile_checks": len(profile_checks), "profile_bit_identical": all(c["bit_identical"] for c in profile_checks),
-            "backend_checks": len(backend_checks), "missing_optional_diagnostic_profile": missing}
+            "backend_checks": len(backend_checks) + len(cuda_checks),
+            "backend_checks_by_backend": {"metal": len(backend_checks), "cuda": len(cuda_checks)},
+            "missing_optional_diagnostic_profile": missing}
 
 
 def reanalyze_graphs(run_dir):
@@ -138,21 +144,25 @@ def run_profile(ctx, argv):
     metal_ok = platform_profile.metal_available(ctx.platform, ctx.os_label)
     if ctx.metal == "on" and not metal_ok:
         raise ValueError("Metal is only offered on macOS/arm64")
+    cuda_compiler = platform_profile.cuda_compiler()
+    if ctx.cuda == "on" and not cuda_compiler:
+        raise ValueError("CUDA requested but nvcc was not found; install the CUDA Toolkit or use --cuda off")
     ctx.state["metal"] = metal_ok if ctx.metal == "auto" else ctx.metal == "on"
-    use_metal = bool(ctx.state["metal"]) and not ctx.skip_metal
+    ctx.state["cuda"] = ctx.cuda == "on"
+    backends = [b for b, _ in measure.backends(ctx)]
     compilers = build.find_compilers(ctx)
-    host = hostinfo.collect(ctx.os_label, compilers)
+    host = hostinfo.collect(ctx.os_label, compilers, cuda_compiler if ctx.state["cuda"] else None)
     manifest = {
         "schema_version": 1,
         "run": {"name": ctx.run_dir.name, "started_at": _now(), "finished_at": None, "status": "running",
                 "command": " ".join(shlex.quote(a) for a in argv), "dry_run": ctx.dry_run},
         "host": host,
-        "plot_subtitle": _subtitle(host, exp, ctx.threads, use_metal),
+        "plot_subtitle": _subtitle(host, exp, ctx.threads, backends),
         "experiment": {"name": exp["name"], "llama_cpp": exp["llama_cpp"], "model": exp["model"],
                        "policy": exp["policy"]},
         "config": {"prompt_lengths": ctx.lengths, "threads": ctx.threads, "repetitions": ctx.repetitions,
                    "trace_repetitions": ctx.trace_repetitions, "decode_steps": ctx.decode_steps,
-                   "backends": [b for b, _ in measure.backends(ctx)], "trace": ctx.run_trace,
+                   "backends": backends, "trace": ctx.run_trace,
                    "include_diagnostic_cases": ctx.include_diagnostic,
                    "graphs": ctx.run_graphs and {"prompt_lengths": ctx.graph_lengths,
                                                   "flash_attention": exp["graphs"]["flash_attention"]}},
@@ -211,7 +221,7 @@ def run_profile(ctx, argv):
         if not ctx.prompts_only:
             print("\n== analyze")
             if not ctx.dry_run:
-                manifest["analysis"] = analyze_run(ctx.run_dir, exp, ctx.lengths, ctx.run_trace, use_metal,
+                manifest["analysis"] = analyze_run(ctx.run_dir, exp, ctx.lengths, ctx.run_trace, backends,
                                                    manifest["plot_subtitle"])
         manifest["run"]["status"] = "dry-run" if ctx.dry_run else "complete"
     except BaseException:

@@ -45,6 +45,8 @@ def build_parser():
     p.add_argument("--jobs", type=positive, default=6, help="Parallel build jobs")
     p.add_argument("--metal", choices=["auto", "on", "off"], default="auto")
     p.add_argument("--skip-metal", action="store_true")
+    p.add_argument("--cuda", choices=["on", "off"], default="off",
+                   help="Also run uninstrumented timings on CUDA; CPU traces and graph capture stay canonical")
     p.add_argument("--no-trace", action="store_true", help="Skip the patched runtime and operation traces")
     p.add_argument("--no-graphs", action="store_true", help="Skip scheduled-graph capture")
     p.add_argument("--include-diagnostic", action="store_true",
@@ -91,7 +93,7 @@ def make_context(args):
         lengths=lengths, threads=args.threads or work["threads"], repetitions=reps,
         trace_repetitions=args.trace_repetitions or (1 if args.smoke else work["trace_repetitions"]),
         decode_steps=steps,
-        graph_lengths=graph_lengths, jobs=args.jobs, metal=args.metal, skip_metal=args.skip_metal,
+        graph_lengths=graph_lengths, jobs=args.jobs, metal=args.metal, skip_metal=args.skip_metal, cuda=args.cuda,
         run_trace=not args.no_trace, run_graphs=not args.no_graphs, include_diagnostic=args.include_diagnostic,
         model_override=args.model, dry_run=args.dry_run, smoke=args.smoke,
         run_prompt_graphs=args.prompts_only or not (args.no_prompt_graphs or args.smoke),
@@ -110,6 +112,7 @@ def profile_command(args, argv):
 def doctor_command(args):
     ctx = make_context(args)
     ctx.state["metal"] = platform_profile.metal_available(ctx.platform, ctx.os_label) and args.metal != "off"
+    ctx.state["cuda"] = args.cuda == "on"
     if not pipeline.doctor(ctx):
         sys.exit(1)
 
@@ -120,8 +123,7 @@ def analyze_command(args):
     manifest = json.loads((run_dir / "run-manifest.json").read_text(encoding="utf-8"))
     exp = load_experiment(manifest["experiment"]["name"])
     cfg = manifest["config"]
-    has_metal = "metal" in cfg["backends"]
-    result = pipeline.analyze_run(run_dir, exp, cfg["prompt_lengths"], cfg["trace"], has_metal, manifest["plot_subtitle"])
+    result = pipeline.analyze_run(run_dir, exp, cfg["prompt_lengths"], cfg["trace"], cfg["backends"], manifest["plot_subtitle"])
     manifest["analysis"] = result
     (run_dir / "run-manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     print("Analysis written to", run_dir / "analysis")

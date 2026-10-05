@@ -8,6 +8,7 @@ import os
 from build import build_dir
 from capture import load_prompt_set
 from common import REPO, exe_path
+import measure
 
 CONTINUATION = REPO / "core" / "prompts" / "continuation.txt"
 
@@ -31,18 +32,16 @@ def _run(ctx, exe, model, ngl, reps, prompt_file, prefix, trace=None):
 
 
 def time_prompts(ctx, model):
-    """Untraced timings (CPU, and Metal where offered), then a traced CPU run, for every prompt."""
+    """Untraced timings for requested backends, then a traced CPU run, for every prompt."""
     plain = exe_path(ctx, build_dir(ctx, "baseline"), "sb-profile-prompt")
     traced = exe_path(ctx, build_dir(ctx, "profile"), "sb-profile-prompt")
-    metal = bool(ctx.state.get("metal")) and not ctx.skip_metal
     done = []
     for prompt_id, file, _ in load_prompt_set(ctx.prompt_set):
         out = prompt_dir(ctx, prompt_id)
         if not ctx.dry_run:
             out.mkdir(parents=True, exist_ok=False)
-        _run(ctx, plain, model, 0, ctx.repetitions, file, out / "cpu-baseline")
-        if metal:
-            _run(ctx, plain, model, 99, ctx.repetitions, file, out / "metal-baseline")
+        for backend, ngl in measure.backends(ctx):
+            _run(ctx, plain, model, ngl, ctx.repetitions, file, out / f"{backend}-baseline")
         if ctx.run_trace:
             _run(ctx, traced, model, 0, ctx.trace_repetitions, file, out / "cpu-profile",
                  trace=out / "cpu-op-trace.jsonl")

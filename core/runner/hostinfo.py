@@ -15,6 +15,14 @@ def _first_line(command):
         return None
 
 
+def _command_text(command):
+    try:
+        out = subprocess.run([str(c) for c in command], capture_output=True, text=True, timeout=30)
+        return (out.stdout or out.stderr).strip() or None
+    except (OSError, subprocess.SubprocessError):
+        return None
+
+
 def _windows_cpu_and_memory():
     import ctypes
     import winreg
@@ -56,8 +64,8 @@ def _linux_cpu_and_memory():
     return cpu, memory
 
 
-def collect(os_label, compilers):
-    """compilers: {"c": path or None, "cxx": path or None}"""
+def collect(os_label, compilers, cuda_compiler=None):
+    """compilers: {"c": path or None, "cxx": path or None}; CUDA details are best-effort."""
     reader = {"win32": _windows_cpu_and_memory, "darwin": _mac_cpu_and_memory}.get(sys.platform, _linux_cpu_and_memory)
     try:
         cpu, memory = reader()
@@ -71,7 +79,7 @@ def collect(os_label, compilers):
             return tool(name)
         except RuntimeError:
             return shutil.which(name) or name
-    return {
+    result = {
         "os_label": os_label,
         "os": platform.platform(),
         "machine": platform.machine(),
@@ -88,3 +96,15 @@ def collect(os_label, compilers):
             "cxx_compiler": compilers.get("cxx") and {"path": str(compilers["cxx"]), "version": _first_line([compilers["cxx"], "--version"])},
         },
     }
+    if cuda_compiler:
+        nvcc = _command_text([cuda_compiler, "--version"])
+        release = next((line.strip() for line in (nvcc or "").splitlines() if "release " in line), None)
+        result["tools"]["cuda_compiler"] = {"path": str(cuda_compiler), "version": release}
+        gpu = _first_line(["nvidia-smi", "--query-gpu=name,driver_version,memory.total,compute_cap",
+                           "--format=csv,noheader,nounits"])
+        if gpu:
+            fields = [field.strip() for field in gpu.split(",")]
+            if len(fields) == 4:
+                result["cuda_device"] = {"name": fields[0], "driver_version": fields[1],
+                                         "memory_total_mib": float(fields[2]), "compute_capability": fields[3]}
+    return result

@@ -11,7 +11,7 @@ import numpy as np
 from policy import load_experiment, timing_eligible, DEFAULT_EXPERIMENT
 from result_io import exists, load_json, output_dir
 
-COLORS = {"cpu": "#275DAD", "metal": "#148271"}
+COLORS = {"cpu": "#275DAD", "metal": "#148271", "cuda": "#6B4C9A"}
 GROUPS = ["MLP projections", "Attention/DeltaNet projections", "Vocabulary output head",
           "Attention QK/softmax/AV", "DeltaNet recurrence", "Copies/gather/state movement",
           "Vector/norm/activation/other", "Convolution"]
@@ -54,7 +54,7 @@ def draw(results_dir, out_dir, experiment, subtitle=None):
         grid = fig.add_gridspec(1, 2, wspace=0.27)
         ax1, ax2 = fig.add_subplot(grid[0, 0]), fig.add_subplot(grid[0, 1])
     plotted, decode_hi, prefill_lo, prefill_hi, repetitions, decode_steps = [], 0, 1e9, 0, 0, 0
-    for backend in ("cpu", "metal"):
+    for backend in ("cpu", "metal", "cuda"):
         data = sorted([r for r in baselines if r["run"] in run_names(experiment, backend)],
                       key=lambda r: r["prompt_tokens"])
         if not data:
@@ -70,10 +70,11 @@ def draw(results_dir, out_dir, experiment, subtitle=None):
                                       (ax2, "decode_ms", "decode_min_ms", "decode_max_ms")):
             y = np.array([r[metric] for r in data])
             err = np.array([[r[metric] - r[low] for r in data], [r[high] - r[metric] for r in data]])
-            label = "CPU" if backend == "cpu" else "Metal"
+            label = {"cpu": "CPU", "metal": "Metal", "cuda": "CUDA"}[backend]
             ax.errorbar(x, y, yerr=err, marker="o", capsize=4, lw=2, color=COLORS[backend], label=label)
+            offsets = {"cpu": 8, "metal": -18, "cuda": 18}
             for xi, yi in zip(x, y):
-                ax.annotate(f"{yi:.2f}", (xi, yi), xytext=(0, 8 if backend == "cpu" else -18),
+                ax.annotate(f"{yi:.2f}", (xi, yi), xytext=(0, offsets[backend]),
                             textcoords="offset points", ha="center", fontsize=9, color=COLORS[backend])
             ax.set_xticks(x, [f"{r['prompt_tokens']:,}" for r in data])
             ax.set_xlabel(f"Prompt tokens before {decode_steps} decode steps")
@@ -121,7 +122,7 @@ def draw(results_dir, out_dir, experiment, subtitle=None):
         ax3.legend(ncol=4, frameon=False, loc="upper center", bbox_to_anchor=(.5, -.28), fontsize=9, columnspacing=1.5)
         trace_reps = max(r["rep"] for r in ops) + 1
         notes.append(f"Bottom: {plural(trace_reps, 'CPU trace')}, {plural(decode_steps, 'decode step')} each.")
-        notes.append("CPU operation shares do not describe Metal kernels or predict accelerator area."
+        notes.append("CPU operation shares do not describe GPU kernels or predict accelerator area."
                      + (" Anomalous timing shares for excluded cases omitted."
                         if any(not timing_eligible(experiment, r["prompt_tokens"]) for r in ops) else ""))
     fig.suptitle("Qwen3.5-2B in llama.cpp", x=.08, y=.98, ha="left", fontsize=22, fontweight="bold")

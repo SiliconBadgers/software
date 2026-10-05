@@ -115,6 +115,15 @@ class PromptProfiles(unittest.TestCase):
         self.assertIsNone(row["trace"])
         self.assertIsNone(row["checks"]["traced_vs_untraced_logits_bit_identical"])
 
+    def test_optional_cuda_timing_and_numerical_check(self):
+        directory = make_prompt_dir(self.run, "alpha", traced=False)
+        timings(directory, "cuda-baseline", 2)
+        logits(directory, "cuda-baseline")
+        (row,) = prompts.build(self.run, prompt_set=make_prompt_set(Path(self.tmp.name) / "set", ["alpha"]))["prompts"]
+        self.assertAlmostEqual(row["timing"]["cuda"]["prefill_seconds"], 2.1)
+        self.assertEqual(len(row["checks"]["cpu_vs_cuda"]), 2)
+        self.assertTrue(all(check["max_abs_difference"] == 0 for check in row["checks"]["cpu_vs_cuda"]))
+
     def test_one_row_per_prompt_in_prompt_set_order_skipping_missing(self):
         make_prompt_dir(self.run, "beta")
         make_prompt_dir(self.run, "alpha")

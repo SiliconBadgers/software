@@ -38,7 +38,8 @@ def _cases(ctx):
 
 def backends(ctx):
     metal = bool(ctx.state.get("metal")) and not ctx.skip_metal
-    return [("cpu", 0)] + ([("metal", 99)] if metal else [])
+    cuda = bool(ctx.state.get("cuda"))
+    return [("cpu", 0)] + ([("metal", 99)] if metal else []) + ([("cuda", 99)] if cuda else [])
 
 
 def baseline(ctx, model):
