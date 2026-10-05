@@ -1,0 +1,97 @@
+prompt_tokens,rep,phase,group,time_us,percent_of_timed_CPU_intervals,timing_eligible_for_report
+128,0,decode,Copies/gather/state movement,77742,8.134629148303011,True
+128,0,decode,Vector/norm/activation/other,22071,2.3094260493966674,True
+128,0,decode,Attention/DeltaNet projections,215442,22.54303687798998,True
+128,0,decode,Convolution,3561,0.37260958551499856,True
+128,0,decode,DeltaNet recurrence,19309,2.0204208050292354,True
+128,0,decode,MLP projections,362704,37.95197615968324,True
+128,0,decode,Attention QK/softmax/AV,6924,0.7245011991311008,True
+128,0,decode,Vocabulary output head,247939,25.943400174951766,True
+128,0,prefill,Copies/gather/state movement,79440,9.518719909509853,True
+128,0,prefill,Vector/norm/activation/other,19087,2.2870569853073333,True
+128,0,prefill,Attention/DeltaNet projections,328404,39.35027307606588,True
+128,0,prefill,Convolution,10209,1.2232705382198652,True
+128,0,prefill,DeltaNet recurrence,26571,3.18381050749731,True
+128,0,prefill,MLP projections,356383,42.70279402707515,True
+128,0,prefill,Attention QK/softmax/AV,4540,0.5439953221195208,True
+128,0,prefill,Vocabulary output head,9932,1.190079634205084,True
+128,1,decode,Copies/gather/state movement,83852,8.371337065819004,True
+128,1,decode,Vector/norm/activation/other,27082,2.703722635315917,True
+128,1,decode,Attention/DeltaNet projections,228621,22.824302954307665,True
+128,1,decode,Convolution,3836,0.3829658086209237,True
+128,1,decode,DeltaNet recurrence,21464,2.142851438018641,True
+128,1,decode,MLP projections,374180,37.3561382350827,True
+128,1,decode,Attention QK/softmax/AV,6922,0.6910556119066825,True
+128,1,decode,Vocabulary output head,255699,25.527626250928463,True
+128,1,prefill,Copies/gather/state movement,84994,10.133207434245744,True
+128,1,prefill,Vector/norm/activation/other,20036,2.388744430813325,True
+128,1,prefill,Attention/DeltaNet projections,323479,38.5660141612629,True
+128,1,prefill,Convolution,10126,1.2072482584555664,True
+128,1,prefill,DeltaNet recurrence,28407,3.3867569897242022,True
+128,1,prefill,MLP projections,357161,42.581670475829405,True
+128,1,prefill,Attention QK/softmax/AV,5127,0.611254376960467,True
+128,1,prefill,Vocabulary output head,9437,1.1251038727083922,True
+512,0,decode,Copies/gather/state movement,80004,8.238203996564842,True
+512,0,decode,Vector/norm/activation/other,23593,2.4294278647436918,True
+512,0,decode,Attention/DeltaNet projections,215057,22.144935714329844,True
+512,0,decode,Convolution,3653,0.37615818208403784,True
+512,0,decode,DeltaNet recurrence,24235,2.4955361464020416,True
+512,0,decode,MLP projections,359344,37.00251458604065,True
+512,0,decode,Attention QK/softmax/AV,19457,2.0035340128138857,True
+512,0,decode,Vocabulary output head,245791,25.309689497021008,True
+512,0,prefill,Copies/gather/state movement,909679,23.75428772571925,True
+512,0,prefill,Vector/norm/activation/other,107183,2.7988508268364627,True
+512,0,prefill,Attention/DeltaNet projections,1208983,31.569960433848905,True
+512,0,prefill,Convolution,62170,1.6234342750662223,True
+512,0,prefill,DeltaNet recurrence,138611,3.6195246630401177,True
+512,0,prefill,MLP projections,1361739,35.558850993958536,True
+512,0,prefill,Attention QK/softmax/AV,30618,0.799522448672633,True
+512,0,prefill,Vocabulary output head,10553,0.27556863285787103,True
+512,1,decode,Copies/gather/state movement,77138,8.08822835524957,True
+512,1,decode,Vector/norm/activation/other,21083,2.2106370195458354,True
+512,1,decode,Attention/DeltaNet projections,210393,22.06054899460736,True
+512,1,decode,Convolution,3204,0.3359522369029482,True
+512,1,decode,DeltaNet recurrence,23250,2.4378556516833787,True
+512,1,decode,MLP projections,355404,37.265533334661484,True
+512,1,decode,Attention QK/softmax/AV,18494,1.9391699966551572,True
+512,1,decode,Vocabulary output head,244741,25.66207441069427,True
+512,1,prefill,Copies/gather/state movement,895657,23.16012698471803,True
+512,1,prefill,Vector/norm/activation/other,113187,2.9268182943015906,True
+512,1,prefill,Attention/DeltaNet projections,1240649,32.08101804983765,True
+512,1,prefill,Convolution,61765,1.5971351122261188,True
+512,1,prefill,DeltaNet recurrence,140918,3.6438935601826317,True
+512,1,prefill,MLP projections,1374489,35.54188688202973,True
+512,1,prefill,Attention QK/softmax/AV,30306,0.7836602721788192,True
+512,1,prefill,Vocabulary output head,10266,0.2654608445254325,True
+2048,0,decode,Copies/gather/state movement,78644,7.748482698825569,True
+2048,0,decode,Vector/norm/activation/other,22340,2.20107196342713,True
+2048,0,decode,Attention/DeltaNet projections,218059,21.484491999684714,True
+2048,0,decode,Convolution,3660,0.3606053440529676,True
+2048,0,decode,DeltaNet recurrence,22106,2.1780168676598093,True
+2048,0,decode,MLP projections,361308,35.59825017734689,True
+2048,0,decode,Attention QK/softmax/AV,59922,5.9038779853393235,True
+2048,0,decode,Vocabulary output head,248921,24.52520296366359,True
+2048,0,prefill,Copies/gather/state movement,2462592,16.220986596992475,True
+2048,0,prefill,Vector/norm/activation/other,453173,2.9850308776763956,True
+2048,0,prefill,Attention/DeltaNet projections,5235863,34.48840227966663,True
+2048,0,prefill,Convolution,279877,1.843537648870159,True
+2048,0,prefill,DeltaNet recurrence,581753,3.8319817557111215,True
+2048,0,prefill,MLP projections,5735922,37.78226920390965,True
+2048,0,prefill,Attention QK/softmax/AV,422763,2.7847215278472155,True
+2048,0,prefill,Vocabulary output head,9575,0.06307010932635326,True
+2048,1,decode,Copies/gather/state movement,75943,7.610243460048801,True
+2048,1,decode,Vector/norm/activation/other,21398,2.1442922923524783,True
+2048,1,decode,Attention/DeltaNet projections,213723,21.417168968990033,True
+2048,1,decode,Convolution,3492,0.34993310986516757,True
+2048,1,decode,DeltaNet recurrence,21085,2.112926581187588,True
+2048,1,decode,MLP projections,355633,35.6379615294041,True
+2048,1,decode,Attention QK/softmax/AV,58424,5.8546655242733525,True
+2048,1,decode,Vocabulary output head,248207,24.872808533878477,True
+2048,1,prefill,Copies/gather/state movement,2443476,16.567773232114444,True
+2048,1,prefill,Vector/norm/activation/other,449588,3.0483917304200525,True
+2048,1,prefill,Attention/DeltaNet projections,5051797,34.25326342909693,True
+2048,1,prefill,Convolution,254511,1.7256893593711087,True
+2048,1,prefill,DeltaNet recurrence,579276,3.9277297615390236,True
+2048,1,prefill,MLP projections,5545053,37.59774217715087,True
+2048,1,prefill,Attention QK/softmax/AV,413633,2.804602028143184,True
+2048,1,prefill,Vocabulary output head,11033,0.07480828216439149,True

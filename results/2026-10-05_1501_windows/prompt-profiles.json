@@ -1,0 +1,2478 @@
+{
+  "schema_version": 1,
+  "note": "One row per prompt. Timings are CPU wall-clock medians; trace shares are CPU operation intervals. Neither is accelerator area, bandwidth or speedup, and results from different hosts are not comparable.",
+  "prompts": [
+    {
+      "prompt_id": "narrative",
+      "description": "Literary prose, one long paragraph",
+      "prompt_file": "core/prompts/narrative.txt",
+      "prompt_sha256": "a4adf39d087070545f7ca5d4c8eb1d7593dccf08a6f327a7fef1e121f3ddc023",
+      "prompt_tokens": 191,
+      "continuation": {
+        "mode": "teacher_forced_shared_continuation",
+        "steps": 32,
+        "source": "core/prompts/continuation.txt",
+        "source_sha256": "f958377c12459590af0cc2ec4166d3b392e1cc909491f0fe324cf95a49f1874e"
+      },
+      "config": {
+        "threads": 6,
+        "flash_attention": "on",
+        "n_ubatch": 512,
+        "layers": 24,
+        "untraced_repetitions": 3
+      },
+      "timing": {
+        "cpu": {
+          "repetitions": 3,
+          "decode_steps_per_rep": 32,
+          "prefill_seconds": 1.2058727,
+          "prefill_min_s": 1.1913906,
+          "prefill_max_s": 1.2138348,
+          "prefill_tps": 158.391511807175,
+          "decode_ms": 29.022290625,
+          "decode_min_ms": 28.987287499999997,
+          "decode_max_ms": 29.504959375,
+          "decode_tps": 34.45627407295664,
+          "prefill_samples_seconds": [
+            1.2138348,
+            1.2058727,
+            1.1913906
+          ],
+          "decode_run_means_ms": [
+            29.504959375,
+            28.987287499999997,
+            29.022290625
+          ],
+          "decode_curve": {
+            "prompt_tokens": 191,
+            "repetitions": 3,
+            "steps": 32,
+            "first_context_tokens": 192,
+            "last_context_tokens": 223,
+            "context_span_fraction": 0.16145833333333334,
+            "window_steps": 8,
+            "first_window_mean_ms": 28.87585,
+            "last_window_mean_ms": 28.7566125,
+            "growth_ratio": 0.9958706843261756,
+            "slope_ms_per_1000_context_tokens": -9.237078445747777,
+            "fit_intercept_ms": 31.005921902492663,
+            "fit_r_squared": 0.022649940474042625,
+            "median_ms": 29.02625,
+            "min_ms": 28.3489,
+            "max_ms": 30.5838,
+            "bins": [
+              {
+                "first_context": 192,
+                "last_context": 193,
+                "steps": 2,
+                "mean_ms": 29.782049999999998
+              },
+              {
+                "first_context": 194,
+                "last_context": 195,
+                "steps": 2,
+                "mean_ms": 28.65885
+              },
+              {
+                "first_context": 196,
+                "last_context": 197,
+                "steps": 2,
+                "mean_ms": 28.5415
+              },
+              {
+                "first_context": 198,
+                "last_context": 199,
+                "steps": 2,
+                "mean_ms": 28.521
+              },
+              {
+                "first_context": 200,
+                "last_context": 201,
+                "steps": 2,
+                "mean_ms": 29.13045
+              },
+              {
+                "first_context": 202,
+                "last_context": 203,
+                "steps": 2,
+                "mean_ms": 29.17895
+              },
+              {
+                "first_context": 204,
+                "last_context": 205,
+                "steps": 2,
+                "mean_ms": 29.277549999999998
+              },
+              {
+                "first_context": 206,
+                "last_context": 207,
+                "steps": 2,
+                "mean_ms": 29.76615
+              },
+              {
+                "first_context": 208,
+                "last_context": 209,
+                "steps": 2,
+                "mean_ms": 29.804850000000002
+              },
+              {
+                "first_context": 210,
+                "last_context": 211,
+                "steps": 2,
+                "mean_ms": 29.86525
+              },
+              {
+                "first_context": 212,
+                "last_context": 213,
+                "steps": 2,
+                "mean_ms": 29.0647
+              },
+              {
+                "first_context": 214,
+                "last_context": 215,
+                "steps": 2,
+                "mean_ms": 28.8099
+              },
+              {
+                "first_context": 216,
+                "last_context": 217,
+                "steps": 2,
+                "mean_ms": 29.1047
+              },
+              {
+                "first_context": 218,
+                "last_context": 219,
+                "steps": 2,
+                "mean_ms": 28.721249999999998
+              },
+              {
+                "first_context": 220,
+                "last_context": 221,
+                "steps": 2,
+                "mean_ms": 28.581200000000003
+              },
+              {
+                "first_context": 222,
+                "last_context": 223,
+                "steps": 2,
+                "mean_ms": 28.619300000000003
+              }
+            ]
+          }
+        }
+      },
+      "trace": {
+        "prefill": {
+          "repetitions": 2,
+          "timed_interval_us_per_prefill": 1202417.5,
+          "groups_percent": {
+            "MLP projections": 42.36157574220269,
+            "Attention/DeltaNet projections": 38.70635615333276,
+            "Copies/gather/state movement": 10.384620982312716,
+            "DeltaNet recurrence": 3.287876299205559,
+            "Vector/norm/activation/other": 2.4402921614164796,
+            "Convolution": 1.4642584626388089,
+            "Vocabulary output head": 0.8871294704210476,
+            "Attention QK/softmax/AV": 0.4678907284699366
+          },
+          "groups_us": {
+            "Copies/gather/state movement": 249733,
+            "Vector/norm/activation/other": 58685,
+            "Attention/DeltaNet projections": 930824,
+            "Convolution": 35213,
+            "DeltaNet recurrence": 79068,
+            "MLP projections": 1018726,
+            "Attention QK/softmax/AV": 11252,
+            "Vocabulary output head": 21334
+          },
+          "top_operations_percent": {
+            "MUL_MAT": 81.9550613659565,
+            "CONCAT": 10.175167942915003,
+            "GATED_DELTA_NET": 3.287876299205559,
+            "SSM_CONV": 1.4642584626388089,
+            "RMS_NORM": 0.9395655003357819,
+            "GLU": 0.6576750587878171,
+            "FLASH_ATTN_EXT": 0.4678907284699366,
+            "ADD": 0.28983277438992694,
+            "UNARY": 0.28168252707566216,
+            "SCALE": 0.11023625321487752
+          },
+          "operation_calls": {
+            "GET_ROWS": 74,
+            "RMS_NORM": 115,
+            "SCALE": 72,
+            "CPY": 72,
+            "MUL_MAT": 187,
+            "CONCAT": 18,
+            "SSM_CONV": 18,
+            "UNARY": 78,
+            "ADD": 66,
+            "MUL": 42,
+            "GATED_DELTA_NET": 18,
+            "GLU": 24,
+            "ROPE": 12,
+            "SET_ROWS": 12,
+            "FLASH_ATTN_EXT": 6,
+            "CONT": 6
+          },
+          "dense_matrix_macs": 262697517056
+        },
+        "decode": {
+          "repetitions": 2,
+          "timed_interval_us_per_token": 29694.953125,
+          "groups_percent": {
+            "MLP projections": 37.488483154492265,
+            "Vocabulary output head": 26.081715274638945,
+            "Attention/DeltaNet projections": 22.689882592633325,
+            "Copies/gather/state movement": 8.073867771091152,
+            "Vector/norm/activation/other": 2.29800202791194,
+            "DeltaNet recurrence": 2.0268595726230836,
+            "Attention QK/softmax/AV": 0.9684410808444406,
+            "Convolution": 0.37274852576484746
+          },
+          "groups_us": {
+            "Copies/gather/state movement": 153442,
+            "Vector/norm/activation/other": 43673,
+            "Attention/DeltaNet projections": 431216,
+            "Convolution": 7084,
+            "DeltaNet recurrence": 38520,
+            "MLP projections": 712460,
+            "Attention QK/softmax/AV": 18405,
+            "Vocabulary output head": 495677
+          },
+          "top_operations_percent": {
+            "MUL_MAT": 86.26008102176453,
+            "GET_ROWS": 4.233884440590441,
+            "CONCAT": 2.2785858497629805,
+            "GATED_DELTA_NET": 2.0268595726230836,
+            "CPY": 1.4927831276042804,
+            "FLASH_ATTN_EXT": 0.9684410808444406,
+            "RMS_NORM": 0.8192680048219473,
+            "UNARY": 0.4425204830155798,
+            "ADD": 0.38837618134815627,
+            "SSM_CONV": 0.37274852576484746
+          },
+          "operation_calls": {
+            "GET_ROWS": 74,
+            "RMS_NORM": 115,
+            "SCALE": 72,
+            "CPY": 72,
+            "MUL_MAT": 187,
+            "CONCAT": 18,
+            "SSM_CONV": 18,
+            "UNARY": 78,
+            "ADD": 66,
+            "MUL": 42,
+            "GATED_DELTA_NET": 18,
+            "GLU": 24,
+            "ROPE": 12,
+            "SET_ROWS": 12,
+            "FLASH_ATTN_EXT": 6,
+            "CONT": 6
+          },
+          "dense_matrix_macs": 1881276416
+        },
+        "profiler_overhead_check": {
+          "note": "Sum of timed operation intervals divided by the untraced median. Near 1 means the instrumentation did not visibly slow execution; enabled-trace outer-call latency is never used.",
+          "prefill_timed_over_untraced": 0.9971346892586588,
+          "decode_timed_over_untraced": 1.0231774434586003
+        },
+        "records": 54120,
+        "fused_records": 5214,
+        "repetitions_traced": 2
+      },
+      "checks": {
+        "traced_vs_untraced_logits_bit_identical": true,
+        "cpu_vs_metal": []
+      },
+      "graphs": {
+        "flash_attention_on": {
+          "directory": "graphs/prompt-narrative-fa-on",
+          "structure_sha256": "32d6f358b2b945fd00a466ecb947fb7f2a04faa0803611b29ffd8ed4364695f8",
+          "op_sequence_sha256": "940b2386113de0bcc83a558a0f550400b2e2471fcebcbdfe793cac34f390fe44",
+          "scheduled_nodes": {
+            "prefill": 1411,
+            "decode": 1411
+          }
+        },
+        "flash_attention_off": {
+          "directory": "graphs/prompt-narrative-fa-off",
+          "structure_sha256": "3f55ff25ed165fb8fa770b76d286c5c74516165a2a008c705e57b25edd0ddc6f",
+          "op_sequence_sha256": "79124a71ec27dd751caabfe0e7f612cbd990204d6c73e10e3eb0b00f5cc43103",
+          "scheduled_nodes": {
+            "prefill": 1441,
+            "decode": 1441
+          }
+        }
+      },
+      "files": {
+        "cpu_timings": "prompts/narrative/cpu-baseline.jsonl",
+        "cpu_trace": "prompts/narrative/cpu-op-trace.jsonl.gz",
+        "tokens": "prompts/narrative/cpu-baseline-tokens.json"
+      }
+    },
+    {
+      "prompt_id": "code",
+      "description": "Python function, docstring and tests; indentation and punctuation heavy",
+      "prompt_file": "core/prompts/code.txt",
+      "prompt_sha256": "a23d34f695c214b997850b392645e09793a5be37763e67d46580e871906d8197",
+      "prompt_tokens": 307,
+      "continuation": {
+        "mode": "teacher_forced_shared_continuation",
+        "steps": 32,
+        "source": "core/prompts/continuation.txt",
+        "source_sha256": "f958377c12459590af0cc2ec4166d3b392e1cc909491f0fe324cf95a49f1874e"
+      },
+      "config": {
+        "threads": 6,
+        "flash_attention": "on",
+        "n_ubatch": 512,
+        "layers": 24,
+        "untraced_repetitions": 3
+      },
+      "timing": {
+        "cpu": {
+          "repetitions": 3,
+          "decode_steps_per_rep": 32,
+          "prefill_seconds": 2.0969705,
+          "prefill_min_s": 2.0009266,
+          "prefill_max_s": 2.115529,
+          "prefill_tps": 146.40167803981984,
+          "decode_ms": 29.589125,
+          "decode_min_ms": 29.36076875,
+          "decode_max_ms": 29.8329625,
+          "decode_tps": 33.79620046216304,
+          "prefill_samples_seconds": [
+            2.115529,
+            2.0969705,
+            2.0009266
+          ],
+          "decode_run_means_ms": [
+            29.589125,
+            29.8329625,
+            29.36076875
+          ],
+          "decode_curve": {
+            "prompt_tokens": 307,
+            "repetitions": 3,
+            "steps": 32,
+            "first_context_tokens": 308,
+            "last_context_tokens": 339,
+            "context_span_fraction": 0.10064935064935066,
+            "window_steps": 8,
+            "first_window_mean_ms": 29.5749375,
+            "last_window_mean_ms": 29.5724125,
+            "growth_ratio": 0.9999146236572773,
+            "slope_ms_per_1000_context_tokens": -0.15480205278591527,
+            "fit_intercept_ms": 29.533153464076243,
+            "fit_r_squared": 7.931488113989199e-06,
+            "median_ms": 29.38955,
+            "min_ms": 28.7088,
+            "max_ms": 31.0973,
+            "bins": [
+              {
+                "first_context": 308,
+                "last_context": 309,
+                "steps": 2,
+                "mean_ms": 29.43955
+              },
+              {
+                "first_context": 310,
+                "last_context": 311,
+                "steps": 2,
+                "mean_ms": 29.313450000000003
+              },
+              {
+                "first_context": 312,
+                "last_context": 313,
+                "steps": 2,
+                "mean_ms": 29.33115
+              },
+              {
+                "first_context": 314,
+                "last_context": 315,
+                "steps": 2,
+                "mean_ms": 30.215600000000002
+              },
+              {
+                "first_context": 316,
+                "last_context": 317,
+                "steps": 2,
+                "mean_ms": 30.05415
+              },
+              {
+                "first_context": 318,
+                "last_context": 319,
+                "steps": 2,
+                "mean_ms": 29.01945
+              },
+              {
+                "first_context": 320,
+                "last_context": 321,
+                "steps": 2,
+                "mean_ms": 29.0213
+              },
+              {
+                "first_context": 322,
+                "last_context": 323,
+                "steps": 2,
+                "mean_ms": 29.67945
+              },
+              {
+                "first_context": 324,
+                "last_context": 325,
+                "steps": 2,
+                "mean_ms": 29.25995
+              },
+              {
+                "first_context": 326,
+                "last_context": 327,
+                "steps": 2,
+                "mean_ms": 29.16385
+              },
+              {
+                "first_context": 328,
+                "last_context": 329,
+                "steps": 2,
+                "mean_ms": 29.3928
+              },
+              {
+                "first_context": 330,
+                "last_context": 331,
+                "steps": 2,
+                "mean_ms": 29.54885
+              },
+              {
+                "first_context": 332,
+                "last_context": 333,
+                "steps": 2,
+                "mean_ms": 29.50225
+              },
+              {
+                "first_context": 334,
+                "last_context": 335,
+                "steps": 2,
+                "mean_ms": 29.67355
+              },
+              {
+                "first_context": 336,
+                "last_context": 337,
+                "steps": 2,
+                "mean_ms": 29.341300000000004
+              },
+              {
+                "first_context": 338,
+                "last_context": 339,
+                "steps": 2,
+                "mean_ms": 29.772550000000003
+              }
+            ]
+          }
+        }
+      },
+      "trace": {
+        "prefill": {
+          "repetitions": 2,
+          "timed_interval_us_per_prefill": 1931302.5,
+          "groups_percent": {
+            "MLP projections": 41.2389307216244,
+            "Attention/DeltaNet projections": 37.5595226537531,
+            "Copies/gather/state movement": 11.760094547591587,
+            "DeltaNet recurrence": 3.718759748925919,
+            "Vector/norm/activation/other": 2.8003381137859034,
+            "Convolution": 1.6893780233805942,
+            "Attention QK/softmax/AV": 0.7218703439777042,
+            "Vocabulary output head": 0.5111058469607946
+          },
+          "groups_us": {
+            "Copies/gather/state movement": 454246,
+            "Vector/norm/activation/other": 108166,
+            "Attention/DeltaNet projections": 1450776,
+            "Convolution": 65254,
+            "DeltaNet recurrence": 143641,
+            "MLP projections": 1592897,
+            "Attention QK/softmax/AV": 27883,
+            "Vocabulary output head": 19742
+          },
+          "top_operations_percent": {
+            "MUL_MAT": 79.3095592223383,
+            "CONCAT": 11.572242049083455,
+            "GATED_DELTA_NET": 3.718759748925919,
+            "SSM_CONV": 1.6893780233805942,
+            "RMS_NORM": 0.977759827888174,
+            "GLU": 0.9516116713979297,
+            "FLASH_ATTN_EXT": 0.7218703439777042,
+            "ADD": 0.33951180615154797,
+            "UNARY": 0.288302842252832,
+            "MUL": 0.08848950384520292
+          },
+          "operation_calls": {
+            "GET_ROWS": 74,
+            "RMS_NORM": 115,
+            "SCALE": 72,
+            "CPY": 72,
+            "MUL_MAT": 187,
+            "CONCAT": 18,
+            "SSM_CONV": 18,
+            "UNARY": 78,
+            "ADD": 66,
+            "MUL": 42,
+            "GATED_DELTA_NET": 18,
+            "GLU": 24,
+            "ROPE": 12,
+            "SET_ROWS": 12,
+            "FLASH_ATTN_EXT": 6,
+            "CONT": 6
+          },
+          "dense_matrix_macs": 421932695552
+        },
+        "decode": {
+          "repetitions": 2,
+          "timed_interval_us_per_token": 29741.859375,
+          "groups_percent": {
+            "MLP projections": 37.40561361591065,
+            "Vocabulary output head": 26.017360842961757,
+            "Attention/DeltaNet projections": 22.52207668169704,
+            "Copies/gather/state movement": 7.930583946552602,
+            "Vector/norm/activation/other": 2.2900173839585305,
+            "DeltaNet recurrence": 2.058546482519639,
+            "Attention QK/softmax/AV": 1.410469986797858,
+            "Convolution": 0.36533105960191836
+          },
+          "groups_us": {
+            "Copies/gather/state movement": 150957,
+            "Vector/norm/activation/other": 43590,
+            "Attention/DeltaNet projections": 428703,
+            "Convolution": 6954,
+            "DeltaNet recurrence": 39184,
+            "MLP projections": 712008,
+            "Attention QK/softmax/AV": 26848,
+            "Vocabulary output head": 495235
+          },
+          "top_operations_percent": {
+            "MUL_MAT": 85.94505114056945,
+            "GET_ROWS": 4.19678914240714,
+            "CONCAT": 2.263592085859629,
+            "GATED_DELTA_NET": 2.058546482519639,
+            "CPY": 1.412518866769741,
+            "FLASH_ATTN_EXT": 1.410469986797858,
+            "RMS_NORM": 0.8239649610003578,
+            "UNARY": 0.44949274460080724,
+            "ADD": 0.3859249300885379,
+            "SSM_CONV": 0.36533105960191836
+          },
+          "operation_calls": {
+            "GET_ROWS": 74,
+            "RMS_NORM": 115,
+            "SCALE": 72,
+            "CPY": 72,
+            "MUL_MAT": 187,
+            "CONCAT": 18,
+            "SSM_CONV": 18,
+            "UNARY": 78,
+            "ADD": 66,
+            "MUL": 42,
+            "GATED_DELTA_NET": 18,
+            "GLU": 24,
+            "ROPE": 12,
+            "SET_ROWS": 12,
+            "FLASH_ATTN_EXT": 6,
+            "CONT": 6
+          },
+          "dense_matrix_macs": 1881276416
+        },
+        "profiler_overhead_check": {
+          "note": "Sum of timed operation intervals divided by the untraced median. Near 1 means the instrumentation did not visibly slow execution; enabled-trace outer-call latency is never used.",
+          "prefill_timed_over_untraced": 0.9209965042426682,
+          "decode_timed_over_untraced": 1.0051618415549632
+        },
+        "records": 54120,
+        "fused_records": 5214,
+        "repetitions_traced": 2
+      },
+      "checks": {
+        "traced_vs_untraced_logits_bit_identical": true,
+        "cpu_vs_metal": []
+      },
+      "graphs": {
+        "flash_attention_on": {
+          "directory": "graphs/prompt-code-fa-on",
+          "structure_sha256": "4dceba08eed4d90aea9cdf7277c761054870e118f140e9643d57b2720973b494",
+          "op_sequence_sha256": "940b2386113de0bcc83a558a0f550400b2e2471fcebcbdfe793cac34f390fe44",
+          "scheduled_nodes": {
+            "prefill": 1411,
+            "decode": 1411
+          }
+        },
+        "flash_attention_off": {
+          "directory": "graphs/prompt-code-fa-off",
+          "structure_sha256": "2529507710c217d71a76073796c5fb636a6b175e1dd120d62f746fc34822c24a",
+          "op_sequence_sha256": "79124a71ec27dd751caabfe0e7f612cbd990204d6c73e10e3eb0b00f5cc43103",
+          "scheduled_nodes": {
+            "prefill": 1441,
+            "decode": 1441
+          }
+        }
+      },
+      "files": {
+        "cpu_timings": "prompts/code/cpu-baseline.jsonl",
+        "cpu_trace": "prompts/code/cpu-op-trace.jsonl.gz",
+        "tokens": "prompts/code/cpu-baseline-tokens.json"
+      }
+    },
+    {
+      "prompt_id": "math",
+      "description": "Word problem with a worked numeric solution",
+      "prompt_file": "core/prompts/math.txt",
+      "prompt_sha256": "b599ba7535ed8ee3dba80232284f0573409afcd7465c054e58016806d508d861",
+      "prompt_tokens": 264,
+      "continuation": {
+        "mode": "teacher_forced_shared_continuation",
+        "steps": 32,
+        "source": "core/prompts/continuation.txt",
+        "source_sha256": "f958377c12459590af0cc2ec4166d3b392e1cc909491f0fe324cf95a49f1874e"
+      },
+      "config": {
+        "threads": 6,
+        "flash_attention": "on",
+        "n_ubatch": 512,
+        "layers": 24,
+        "untraced_repetitions": 3
+      },
+      "timing": {
+        "cpu": {
+          "repetitions": 3,
+          "decode_steps_per_rep": 32,
+          "prefill_seconds": 1.7295557,
+          "prefill_min_s": 1.6719933999999999,
+          "prefill_max_s": 1.8068842,
+          "prefill_tps": 152.64035728944722,
+          "decode_ms": 30.108615625,
+          "decode_min_ms": 29.908009375000002,
+          "decode_max_ms": 30.1851875,
+          "decode_tps": 33.2130846683523,
+          "prefill_samples_seconds": [
+            1.6719933999999999,
+            1.8068842,
+            1.7295557
+          ],
+          "decode_run_means_ms": [
+            30.108615625,
+            30.1851875,
+            29.908009375000002
+          ],
+          "decode_curve": {
+            "prompt_tokens": 264,
+            "repetitions": 3,
+            "steps": 32,
+            "first_context_tokens": 265,
+            "last_context_tokens": 296,
+            "context_span_fraction": 0.1169811320754717,
+            "window_steps": 8,
+            "first_window_mean_ms": 30.087575,
+            "last_window_mean_ms": 30.059075,
+            "growth_ratio": 0.9990527651364391,
+            "slope_ms_per_1000_context_tokens": -2.22547653958947,
+            "fit_intercept_ms": 30.58123991935485,
+            "fit_r_squared": 0.002288029621472049,
+            "median_ms": 29.90535,
+            "min_ms": 29.3025,
+            "max_ms": 31.1304,
+            "bins": [
+              {
+                "first_context": 265,
+                "last_context": 266,
+                "steps": 2,
+                "mean_ms": 30.45655
+              },
+              {
+                "first_context": 267,
+                "last_context": 268,
+                "steps": 2,
+                "mean_ms": 29.801050000000004
+              },
+              {
+                "first_context": 269,
+                "last_context": 270,
+                "steps": 2,
+                "mean_ms": 30.10145
+              },
+              {
+                "first_context": 271,
+                "last_context": 272,
+                "steps": 2,
+                "mean_ms": 29.99125
+              },
+              {
+                "first_context": 273,
+                "last_context": 274,
+                "steps": 2,
+                "mean_ms": 29.66435
+              },
+              {
+                "first_context": 275,
+                "last_context": 276,
+                "steps": 2,
+                "mean_ms": 30.0858
+              },
+              {
+                "first_context": 277,
+                "last_context": 278,
+                "steps": 2,
+                "mean_ms": 29.5494
+              },
+              {
+                "first_context": 279,
+                "last_context": 280,
+                "steps": 2,
+                "mean_ms": 30.082050000000002
+              },
+              {
+                "first_context": 281,
+                "last_context": 282,
+                "steps": 2,
+                "mean_ms": 29.93345
+              },
+              {
+                "first_context": 283,
+                "last_context": 284,
+                "steps": 2,
+                "mean_ms": 29.706000000000003
+              },
+              {
+                "first_context": 285,
+                "last_context": 286,
+                "steps": 2,
+                "mean_ms": 29.8919
+              },
+              {
+                "first_context": 287,
+                "last_context": 288,
+                "steps": 2,
+                "mean_ms": 29.812350000000002
+              },
+              {
+                "first_context": 289,
+                "last_context": 290,
+                "steps": 2,
+                "mean_ms": 29.89725
+              },
+              {
+                "first_context": 291,
+                "last_context": 292,
+                "steps": 2,
+                "mean_ms": 30.3125
+              },
+              {
+                "first_context": 293,
+                "last_context": 294,
+                "steps": 2,
+                "mean_ms": 30.2299
+              },
+              {
+                "first_context": 295,
+                "last_context": 296,
+                "steps": 2,
+                "mean_ms": 29.79665
+              }
+            ]
+          }
+        }
+      },
+      "trace": {
+        "prefill": {
+          "repetitions": 2,
+          "timed_interval_us_per_prefill": 1679451.5,
+          "groups_percent": {
+            "MLP projections": 41.432158058747156,
+            "Attention/DeltaNet projections": 37.804574886503126,
+            "Copies/gather/state movement": 11.5237921428514,
+            "DeltaNet recurrence": 3.507067634879602,
+            "Vector/norm/activation/other": 2.7527142046078734,
+            "Convolution": 1.6647399463455776,
+            "Attention QK/softmax/AV": 0.7297620681514173,
+            "Vocabulary output head": 0.5851910579138486
+          },
+          "groups_us": {
+            "Copies/gather/state movement": 387073,
+            "Vector/norm/activation/other": 92461,
+            "Attention/DeltaNet projections": 1269819,
+            "Convolution": 55917,
+            "DeltaNet recurrence": 117799,
+            "MLP projections": 1391666,
+            "Attention QK/softmax/AV": 24512,
+            "Vocabulary output head": 19656
+          },
+          "top_operations_percent": {
+            "MUL_MAT": 79.82192400316413,
+            "CONCAT": 11.333045342482352,
+            "GATED_DELTA_NET": 3.507067634879602,
+            "SSM_CONV": 1.6647399463455776,
+            "GLU": 0.9350374214438464,
+            "RMS_NORM": 0.932923636079994,
+            "FLASH_ATTN_EXT": 0.7297620681514173,
+            "ADD": 0.32626723665434815,
+            "UNARY": 0.2875938959833017,
+            "MUL": 0.10878551717629238
+          },
+          "operation_calls": {
+            "GET_ROWS": 74,
+            "RMS_NORM": 115,
+            "SCALE": 72,
+            "CPY": 72,
+            "MUL_MAT": 187,
+            "CONCAT": 18,
+            "SSM_CONV": 18,
+            "UNARY": 78,
+            "ADD": 66,
+            "MUL": 42,
+            "GATED_DELTA_NET": 18,
+            "GLU": 24,
+            "ROPE": 12,
+            "SET_ROWS": 12,
+            "FLASH_ATTN_EXT": 6,
+            "CONT": 6
+          },
+          "dense_matrix_macs": 362905862144
+        },
+        "decode": {
+          "repetitions": 2,
+          "timed_interval_us_per_token": 29805.34375,
+          "groups_percent": {
+            "MLP projections": 37.6376509665318,
+            "Vocabulary output head": 25.89510479978947,
+            "Attention/DeltaNet projections": 22.19117586926002,
+            "Copies/gather/state movement": 7.977491452350722,
+            "Vector/norm/activation/other": 2.47737664491791,
+            "DeltaNet recurrence": 2.134527051042651,
+            "Attention QK/softmax/AV": 1.3240599682733067,
+            "Convolution": 0.3626132478341237
+          },
+          "groups_us": {
+            "Copies/gather/state movement": 152174,
+            "Vector/norm/activation/other": 47257,
+            "Attention/DeltaNet projections": 423306,
+            "Convolution": 6917,
+            "DeltaNet recurrence": 40717,
+            "MLP projections": 717954,
+            "Attention QK/softmax/AV": 25257,
+            "Vocabulary output head": 493960
+          },
+          "top_operations_percent": {
+            "MUL_MAT": 85.72393163558128,
+            "GET_ROWS": 4.150996413185136,
+            "CONCAT": 2.2813652333736294,
+            "GATED_DELTA_NET": 2.134527051042651,
+            "CPY": 1.4827982817678458,
+            "FLASH_ATTN_EXT": 1.3240599682733067,
+            "RMS_NORM": 0.8710162082931857,
+            "ADD": 0.49477285428053486,
+            "UNARY": 0.4539873827155575,
+            "SSM_CONV": 0.3626132478341237
+          },
+          "operation_calls": {
+            "GET_ROWS": 74,
+            "RMS_NORM": 115,
+            "SCALE": 72,
+            "CPY": 72,
+            "MUL_MAT": 187,
+            "CONCAT": 18,
+            "SSM_CONV": 18,
+            "UNARY": 78,
+            "ADD": 66,
+            "MUL": 42,
+            "GATED_DELTA_NET": 18,
+            "GLU": 24,
+            "ROPE": 12,
+            "SET_ROWS": 12,
+            "FLASH_ATTN_EXT": 6,
+            "CONT": 6
+          },
+          "dense_matrix_macs": 1881276416
+        },
+        "profiler_overhead_check": {
+          "note": "Sum of timed operation intervals divided by the untraced median. Near 1 means the instrumentation did not visibly slow execution; enabled-trace outer-call latency is never used.",
+          "prefill_timed_over_untraced": 0.9710305947359776,
+          "decode_timed_over_untraced": 0.989927405538095
+        },
+        "records": 54120,
+        "fused_records": 5214,
+        "repetitions_traced": 2
+      },
+      "checks": {
+        "traced_vs_untraced_logits_bit_identical": true,
+        "cpu_vs_metal": []
+      },
+      "graphs": {
+        "flash_attention_on": {
+          "directory": "graphs/prompt-math-fa-on",
+          "structure_sha256": "47115f02bfe1b2ef66ac647d9bf6214bd1ad5a44f019193c1edde1cbad89d4df",
+          "op_sequence_sha256": "940b2386113de0bcc83a558a0f550400b2e2471fcebcbdfe793cac34f390fe44",
+          "scheduled_nodes": {
+            "prefill": 1411,
+            "decode": 1411
+          }
+        },
+        "flash_attention_off": {
+          "directory": "graphs/prompt-math-fa-off",
+          "structure_sha256": "29361c8bb464a13ce1716aacd572aa4035b44c7a68c4240038121978bc89049d",
+          "op_sequence_sha256": "79124a71ec27dd751caabfe0e7f612cbd990204d6c73e10e3eb0b00f5cc43103",
+          "scheduled_nodes": {
+            "prefill": 1441,
+            "decode": 1441
+          }
+        }
+      },
+      "files": {
+        "cpu_timings": "prompts/math/cpu-baseline.jsonl",
+        "cpu_trace": "prompts/math/cpu-op-trace.jsonl.gz",
+        "tokens": "prompts/math/cpu-baseline-tokens.json"
+      }
+    },
+    {
+      "prompt_id": "json_records",
+      "description": "Highly repetitive structured data",
+      "prompt_file": "core/prompts/json_records.txt",
+      "prompt_sha256": "a3ec9fa641b529d3a9e13082074727945fcc84f14e5451afcca3056c369ac600",
+      "prompt_tokens": 628,
+      "continuation": {
+        "mode": "teacher_forced_shared_continuation",
+        "steps": 32,
+        "source": "core/prompts/continuation.txt",
+        "source_sha256": "f958377c12459590af0cc2ec4166d3b392e1cc909491f0fe324cf95a49f1874e"
+      },
+      "config": {
+        "threads": 6,
+        "flash_attention": "on",
+        "n_ubatch": 512,
+        "layers": 24,
+        "untraced_repetitions": 3
+      },
+      "timing": {
+        "cpu": {
+          "repetitions": 3,
+          "decode_steps_per_rep": 32,
+          "prefill_seconds": 4.0902316,
+          "prefill_min_s": 3.9879723,
+          "prefill_max_s": 4.1122427,
+          "prefill_tps": 153.5365381265941,
+          "decode_ms": 29.610912499999998,
+          "decode_min_ms": 29.501328125,
+          "decode_max_ms": 30.249134375,
+          "decode_tps": 33.77133345688013,
+          "prefill_samples_seconds": [
+            3.9879723,
+            4.0902316,
+            4.1122427
+          ],
+          "decode_run_means_ms": [
+            29.610912499999998,
+            30.249134375,
+            29.501328125
+          ],
+          "decode_curve": {
+            "prompt_tokens": 628,
+            "repetitions": 3,
+            "steps": 32,
+            "first_context_tokens": 629,
+            "last_context_tokens": 660,
+            "context_span_fraction": 0.0492845786963434,
+            "window_steps": 8,
+            "first_window_mean_ms": 29.572875,
+            "last_window_mean_ms": 29.660700000000002,
+            "growth_ratio": 1.0029697822751424,
+            "slope_ms_per_1000_context_tokens": 3.876319648093906,
+            "fit_intercept_ms": 27.14435573680348,
+            "fit_r_squared": 0.00690178551402231,
+            "median_ms": 29.6297,
+            "min_ms": 28.704099999999997,
+            "max_ms": 30.6196,
+            "bins": [
+              {
+                "first_context": 629,
+                "last_context": 630,
+                "steps": 2,
+                "mean_ms": 29.686049999999998
+              },
+              {
+                "first_context": 631,
+                "last_context": 632,
+                "steps": 2,
+                "mean_ms": 29.472450000000002
+              },
+              {
+                "first_context": 633,
+                "last_context": 634,
+                "steps": 2,
+                "mean_ms": 29.229599999999998
+              },
+              {
+                "first_context": 635,
+                "last_context": 636,
+                "steps": 2,
+                "mean_ms": 29.903399999999998
+              },
+              {
+                "first_context": 637,
+                "last_context": 638,
+                "steps": 2,
+                "mean_ms": 29.42895
+              },
+              {
+                "first_context": 639,
+                "last_context": 640,
+                "steps": 2,
+                "mean_ms": 30.5403
+              },
+              {
+                "first_context": 641,
+                "last_context": 642,
+                "steps": 2,
+                "mean_ms": 29.455350000000003
+              },
+              {
+                "first_context": 643,
+                "last_context": 644,
+                "steps": 2,
+                "mean_ms": 29.271549999999998
+              },
+              {
+                "first_context": 645,
+                "last_context": 646,
+                "steps": 2,
+                "mean_ms": 29.24835
+              },
+              {
+                "first_context": 647,
+                "last_context": 648,
+                "steps": 2,
+                "mean_ms": 29.65
+              },
+              {
+                "first_context": 649,
+                "last_context": 650,
+                "steps": 2,
+                "mean_ms": 30.134050000000002
+              },
+              {
+                "first_context": 651,
+                "last_context": 652,
+                "steps": 2,
+                "mean_ms": 29.61945
+              },
+              {
+                "first_context": 653,
+                "last_context": 654,
+                "steps": 2,
+                "mean_ms": 29.451950000000004
+              },
+              {
+                "first_context": 655,
+                "last_context": 656,
+                "steps": 2,
+                "mean_ms": 29.58515
+              },
+              {
+                "first_context": 657,
+                "last_context": 658,
+                "steps": 2,
+                "mean_ms": 29.7031
+              },
+              {
+                "first_context": 659,
+                "last_context": 660,
+                "steps": 2,
+                "mean_ms": 29.9026
+              }
+            ]
+          }
+        }
+      },
+      "trace": {
+        "prefill": {
+          "repetitions": 2,
+          "timed_interval_us_per_prefill": 4064226.0,
+          "groups_percent": {
+            "MLP projections": 41.708962542929456,
+            "Attention/DeltaNet projections": 37.496684485557644,
+            "Copies/gather/state movement": 10.75090312398966,
+            "DeltaNet recurrence": 3.720413185684064,
+            "Vector/norm/activation/other": 2.9802722584816888,
+            "Convolution": 1.7492383543631678,
+            "Attention QK/softmax/AV": 1.330105658494385,
+            "Vocabulary output head": 0.26342039049993776
+          },
+          "groups_us": {
+            "Copies/gather/state movement": 873882,
+            "Vector/norm/activation/other": 242250,
+            "Attention/DeltaNet projections": 3047900,
+            "Convolution": 142186,
+            "DeltaNet recurrence": 302412,
+            "MLP projections": 3390293,
+            "Attention QK/softmax/AV": 108117,
+            "Vocabulary output head": 21412
+          },
+          "top_operations_percent": {
+            "MUL_MAT": 79.46906741898704,
+            "CONCAT": 10.559279921933475,
+            "GATED_DELTA_NET": 3.720413185684064,
+            "SSM_CONV": 1.7492383543631678,
+            "FLASH_ATTN_EXT": 1.330105658494385,
+            "RMS_NORM": 1.0655288362408981,
+            "GLU": 0.998283560018562,
+            "UNARY": 0.3422176817923019,
+            "ADD": 0.33083790123875984,
+            "MUL": 0.1076096654073863
+          },
+          "operation_calls": {
+            "GET_ROWS": 148,
+            "RMS_NORM": 230,
+            "SCALE": 144,
+            "CPY": 144,
+            "MUL_MAT": 374,
+            "CONCAT": 36,
+            "SSM_CONV": 36,
+            "UNARY": 156,
+            "ADD": 132,
+            "MUL": 84,
+            "GATED_DELTA_NET": 36,
+            "GLU": 48,
+            "ROPE": 24,
+            "SET_ROWS": 24,
+            "FLASH_ATTN_EXT": 12,
+            "CONT": 12
+          },
+          "dense_matrix_macs": 862574870528
+        },
+        "decode": {
+          "repetitions": 2,
+          "timed_interval_us_per_token": 30283.078125,
+          "groups_percent": {
+            "MLP projections": 36.89926872319886,
+            "Vocabulary output head": 25.702060298733254,
+            "Attention/DeltaNet projections": 22.303607057778244,
+            "Copies/gather/state movement": 8.069120698079631,
+            "Vector/norm/activation/other": 2.313173043732654,
+            "Attention QK/softmax/AV": 2.2395964743098586,
+            "DeltaNet recurrence": 2.1091089959997253,
+            "Convolution": 0.36406470816777314
+          },
+          "groups_us": {
+            "Copies/gather/state movement": 156389,
+            "Vector/norm/activation/other": 44832,
+            "Attention/DeltaNet projections": 432270,
+            "Convolution": 7056,
+            "DeltaNet recurrence": 40877,
+            "MLP projections": 715151,
+            "Attention QK/softmax/AV": 43406,
+            "Vocabulary output head": 498136
+          },
+          "top_operations_percent": {
+            "MUL_MAT": 84.90493607971035,
+            "GET_ROWS": 4.223584025113035,
+            "CONCAT": 2.32509182882148,
+            "FLASH_ATTN_EXT": 2.2395964743098586,
+            "GATED_DELTA_NET": 2.1091089959997253,
+            "CPY": 1.4574455515327507,
+            "RMS_NORM": 0.8324058867447115,
+            "UNARY": 0.45492609579297844,
+            "ADD": 0.3713398107544591,
+            "SSM_CONV": 0.36406470816777314
+          },
+          "operation_calls": {
+            "GET_ROWS": 74,
+            "RMS_NORM": 115,
+            "SCALE": 72,
+            "CPY": 72,
+            "MUL_MAT": 187,
+            "CONCAT": 18,
+            "SSM_CONV": 18,
+            "UNARY": 78,
+            "ADD": 66,
+            "MUL": 42,
+            "GATED_DELTA_NET": 18,
+            "GLU": 24,
+            "ROPE": 12,
+            "SET_ROWS": 12,
+            "FLASH_ATTN_EXT": 6,
+            "CONT": 6
+          },
+          "dense_matrix_macs": 1881276416
+        },
+        "profiler_overhead_check": {
+          "note": "Sum of timed operation intervals divided by the untraced median. Near 1 means the instrumentation did not visibly slow execution; enabled-trace outer-call latency is never used.",
+          "prefill_timed_over_untraced": 0.9936420226179856,
+          "decode_timed_over_untraced": 1.0226999294601273
+        },
+        "records": 55760,
+        "fused_records": 5372,
+        "repetitions_traced": 2
+      },
+      "checks": {
+        "traced_vs_untraced_logits_bit_identical": true,
+        "cpu_vs_metal": []
+      },
+      "graphs": {
+        "flash_attention_on": {
+          "directory": "graphs/prompt-json_records-fa-on",
+          "structure_sha256": "cd6e8fe018f3454e59c74872e9e52774a66726eff580f3763ae3e392b0da0636",
+          "op_sequence_sha256": "940b2386113de0bcc83a558a0f550400b2e2471fcebcbdfe793cac34f390fe44",
+          "scheduled_nodes": {
+            "prefill": 1411,
+            "decode": 1411
+          }
+        },
+        "flash_attention_off": {
+          "directory": "graphs/prompt-json_records-fa-off",
+          "structure_sha256": "2c3827bebf81e6e237038275491d2acb2a008913fb3c53542888f63ab9175ea1",
+          "op_sequence_sha256": "79124a71ec27dd751caabfe0e7f612cbd990204d6c73e10e3eb0b00f5cc43103",
+          "scheduled_nodes": {
+            "prefill": 1441,
+            "decode": 1441
+          }
+        }
+      },
+      "files": {
+        "cpu_timings": "prompts/json_records/cpu-baseline.jsonl",
+        "cpu_trace": "prompts/json_records/cpu-op-trace.jsonl.gz",
+        "tokens": "prompts/json_records/cpu-baseline-tokens.json"
+      }
+    },
+    {
+      "prompt_id": "dialogue",
+      "description": "Customer-support transcript, alternating speakers",
+      "prompt_file": "core/prompts/dialogue.txt",
+      "prompt_sha256": "4bd01f3814cb101c4d27c63eb470dbf872ddc6bf7b8dd73af66b4a67d5ab6689",
+      "prompt_tokens": 235,
+      "continuation": {
+        "mode": "teacher_forced_shared_continuation",
+        "steps": 32,
+        "source": "core/prompts/continuation.txt",
+        "source_sha256": "f958377c12459590af0cc2ec4166d3b392e1cc909491f0fe324cf95a49f1874e"
+      },
+      "config": {
+        "threads": 6,
+        "flash_attention": "on",
+        "n_ubatch": 512,
+        "layers": 24,
+        "untraced_repetitions": 3
+      },
+      "timing": {
+        "cpu": {
+          "repetitions": 3,
+          "decode_steps_per_rep": 32,
+          "prefill_seconds": 1.4898403,
+          "prefill_min_s": 1.4579654,
+          "prefill_max_s": 1.531367,
+          "prefill_tps": 157.73502703611925,
+          "decode_ms": 29.212903125,
+          "decode_min_ms": 29.089425,
+          "decode_max_ms": 29.894309375000002,
+          "decode_tps": 34.23144888137509,
+          "prefill_samples_seconds": [
+            1.531367,
+            1.4579654,
+            1.4898403
+          ],
+          "decode_run_means_ms": [
+            29.212903125,
+            29.894309375000002,
+            29.089425
+          ],
+          "decode_curve": {
+            "prompt_tokens": 235,
+            "repetitions": 3,
+            "steps": 32,
+            "first_context_tokens": 236,
+            "last_context_tokens": 267,
+            "context_span_fraction": 0.13135593220338984,
+            "window_steps": 8,
+            "first_window_mean_ms": 29.0594875,
+            "last_window_mean_ms": 29.657775,
+            "growth_ratio": 1.0205883706655186,
+            "slope_ms_per_1000_context_tokens": 28.708394428152523,
+            "fit_intercept_ms": 22.04047005131964,
+            "fit_r_squared": 0.24856803574064387,
+            "median_ms": 29.169600000000003,
+            "min_ms": 28.489,
+            "max_ms": 30.483900000000002,
+            "bins": [
+              {
+                "first_context": 236,
+                "last_context": 237,
+                "steps": 2,
+                "mean_ms": 29.799699999999998
+              },
+              {
+                "first_context": 238,
+                "last_context": 239,
+                "steps": 2,
+                "mean_ms": 28.835549999999998
+              },
+              {
+                "first_context": 240,
+                "last_context": 241,
+                "steps": 2,
+                "mean_ms": 28.73105
+              },
+              {
+                "first_context": 242,
+                "last_context": 243,
+                "steps": 2,
+                "mean_ms": 28.871650000000002
+              },
+              {
+                "first_context": 244,
+                "last_context": 245,
+                "steps": 2,
+                "mean_ms": 28.78185
+              },
+              {
+                "first_context": 246,
+                "last_context": 247,
+                "steps": 2,
+                "mean_ms": 29.20485
+              },
+              {
+                "first_context": 248,
+                "last_context": 249,
+                "steps": 2,
+                "mean_ms": 28.522399999999998
+              },
+              {
+                "first_context": 250,
+                "last_context": 251,
+                "steps": 2,
+                "mean_ms": 28.826700000000002
+              },
+              {
+                "first_context": 252,
+                "last_context": 253,
+                "steps": 2,
+                "mean_ms": 29.198700000000002
+              },
+              {
+                "first_context": 254,
+                "last_context": 255,
+                "steps": 2,
+                "mean_ms": 29.29515
+              },
+              {
+                "first_context": 256,
+                "last_context": 257,
+                "steps": 2,
+                "mean_ms": 29.736900000000002
+              },
+              {
+                "first_context": 258,
+                "last_context": 259,
+                "steps": 2,
+                "mean_ms": 29.7345
+              },
+              {
+                "first_context": 260,
+                "last_context": 261,
+                "steps": 2,
+                "mean_ms": 29.4197
+              },
+              {
+                "first_context": 262,
+                "last_context": 263,
+                "steps": 2,
+                "mean_ms": 29.68745
+              },
+              {
+                "first_context": 264,
+                "last_context": 265,
+                "steps": 2,
+                "mean_ms": 29.6789
+              },
+              {
+                "first_context": 266,
+                "last_context": 267,
+                "steps": 2,
+                "mean_ms": 29.84505
+              }
+            ]
+          }
+        }
+      },
+      "trace": {
+        "prefill": {
+          "repetitions": 2,
+          "timed_interval_us_per_prefill": 1557106.0,
+          "groups_percent": {
+            "MLP projections": 41.89599166659174,
+            "Attention/DeltaNet projections": 37.367976232831936,
+            "Copies/gather/state movement": 11.315350400036992,
+            "DeltaNet recurrence": 3.5477995717696804,
+            "Vector/norm/activation/other": 2.770909623365397,
+            "Convolution": 1.6476720274663381,
+            "Attention QK/softmax/AV": 0.7860094303149561,
+            "Vocabulary output head": 0.6682910476229621
+          },
+          "groups_us": {
+            "Copies/gather/state movement": 352384,
+            "Vector/norm/activation/other": 86292,
+            "Attention/DeltaNet projections": 1163718,
+            "Convolution": 51312,
+            "DeltaNet recurrence": 110486,
+            "MLP projections": 1304730,
+            "Attention QK/softmax/AV": 24478,
+            "Vocabulary output head": 20812
+          },
+          "top_operations_percent": {
+            "MUL_MAT": 79.93225894704663,
+            "CONCAT": 11.077954872693317,
+            "GATED_DELTA_NET": 3.5477995717696804,
+            "SSM_CONV": 1.6476720274663381,
+            "RMS_NORM": 0.981371852654861,
+            "GLU": 0.8936450055423331,
+            "FLASH_ATTN_EXT": 0.7860094303149561,
+            "ADD": 0.31015871751826785,
+            "UNARY": 0.30836050981757185,
+            "MUL": 0.1048740419727366
+          },
+          "operation_calls": {
+            "GET_ROWS": 74,
+            "RMS_NORM": 115,
+            "SCALE": 72,
+            "CPY": 72,
+            "MUL_MAT": 187,
+            "CONCAT": 18,
+            "SSM_CONV": 18,
+            "UNARY": 78,
+            "ADD": 66,
+            "MUL": 42,
+            "GATED_DELTA_NET": 18,
+            "GLU": 24,
+            "ROPE": 12,
+            "SET_ROWS": 12,
+            "FLASH_ATTN_EXT": 6,
+            "CONT": 6
+          },
+          "dense_matrix_macs": 323097067520
+        },
+        "decode": {
+          "repetitions": 2,
+          "timed_interval_us_per_token": 29507.0625,
+          "groups_percent": {
+            "MLP projections": 37.580674541899924,
+            "Vocabulary output head": 26.198547805292378,
+            "Attention/DeltaNet projections": 22.330141300917365,
+            "Copies/gather/state movement": 7.974573883794769,
+            "Vector/norm/activation/other": 2.215730132404742,
+            "DeltaNet recurrence": 2.1974082476017394,
+            "Attention QK/softmax/AV": 1.1418346878819265,
+            "Convolution": 0.3610894002071538
+          },
+          "groups_us": {
+            "Copies/gather/state movement": 150596,
+            "Vector/norm/activation/other": 41843,
+            "Attention/DeltaNet projections": 421694,
+            "Convolution": 6819,
+            "DeltaNet recurrence": 41497,
+            "MLP projections": 709693,
+            "Attention QK/softmax/AV": 21563,
+            "Vocabulary output head": 494747
+          },
+          "top_operations_percent": {
+            "MUL_MAT": 86.10936364810966,
+            "GET_ROWS": 4.183373472028943,
+            "CONCAT": 2.315759150881251,
+            "GATED_DELTA_NET": 2.1974082476017394,
+            "CPY": 1.4108380832554919,
+            "FLASH_ATTN_EXT": 1.1418346878819265,
+            "RMS_NORM": 0.828297462683722,
+            "UNARY": 0.433794451752017,
+            "SSM_CONV": 0.3610894002071538,
+            "ADD": 0.3497044139856348
+          },
+          "operation_calls": {
+            "GET_ROWS": 74,
+            "RMS_NORM": 115,
+            "SCALE": 72,
+            "CPY": 72,
+            "MUL_MAT": 187,
+            "CONCAT": 18,
+            "SSM_CONV": 18,
+            "UNARY": 78,
+            "ADD": 66,
+            "MUL": 42,
+            "GATED_DELTA_NET": 18,
+            "GLU": 24,
+            "ROPE": 12,
+            "SET_ROWS": 12,
+            "FLASH_ATTN_EXT": 6,
+            "CONT": 6
+          },
+          "dense_matrix_macs": 1881276416
+        },
+        "profiler_overhead_check": {
+          "note": "Sum of timed operation intervals divided by the untraced median. Near 1 means the instrumentation did not visibly slow execution; enabled-trace outer-call latency is never used.",
+          "prefill_timed_over_untraced": 1.045149604289802,
+          "decode_timed_over_untraced": 1.0100695016082897
+        },
+        "records": 54120,
+        "fused_records": 5214,
+        "repetitions_traced": 2
+      },
+      "checks": {
+        "traced_vs_untraced_logits_bit_identical": true,
+        "cpu_vs_metal": []
+      },
+      "graphs": {
+        "flash_attention_on": {
+          "directory": "graphs/prompt-dialogue-fa-on",
+          "structure_sha256": "3f77da15ca61a24beda45f46fcb529dd8df5f9ff226d2f4a51980890de495fd1",
+          "op_sequence_sha256": "940b2386113de0bcc83a558a0f550400b2e2471fcebcbdfe793cac34f390fe44",
+          "scheduled_nodes": {
+            "prefill": 1411,
+            "decode": 1411
+          }
+        },
+        "flash_attention_off": {
+          "directory": "graphs/prompt-dialogue-fa-off",
+          "structure_sha256": "c28b6df1e2ae7890ec8322fd53074ad97182e7ddfbad85b85fc0a5a20b34ac16",
+          "op_sequence_sha256": "79124a71ec27dd751caabfe0e7f612cbd990204d6c73e10e3eb0b00f5cc43103",
+          "scheduled_nodes": {
+            "prefill": 1441,
+            "decode": 1441
+          }
+        }
+      },
+      "files": {
+        "cpu_timings": "prompts/dialogue/cpu-baseline.jsonl",
+        "cpu_trace": "prompts/dialogue/cpu-op-trace.jsonl.gz",
+        "tokens": "prompts/dialogue/cpu-baseline-tokens.json"
+      }
+    },
+    {
+      "prompt_id": "hardware",
+      "description": "Dense technical prose about the accelerator domain",
+      "prompt_file": "core/prompts/hardware.txt",
+      "prompt_sha256": "92f66aa150b92178d00db3e434360a6e25afe2b772e0419ce0b768f7cf0e6c11",
+      "prompt_tokens": 230,
+      "continuation": {
+        "mode": "teacher_forced_shared_continuation",
+        "steps": 32,
+        "source": "core/prompts/continuation.txt",
+        "source_sha256": "f958377c12459590af0cc2ec4166d3b392e1cc909491f0fe324cf95a49f1874e"
+      },
+      "config": {
+        "threads": 6,
+        "flash_attention": "on",
+        "n_ubatch": 512,
+        "layers": 24,
+        "untraced_repetitions": 3
+      },
+      "timing": {
+        "cpu": {
+          "repetitions": 3,
+          "decode_steps_per_rep": 32,
+          "prefill_seconds": 1.4918455,
+          "prefill_min_s": 1.466326,
+          "prefill_max_s": 1.7562357,
+          "prefill_tps": 154.1714607846456,
+          "decode_ms": 30.960315625,
+          "decode_min_ms": 30.33741875,
+          "decode_max_ms": 31.105303125,
+          "decode_tps": 32.299412322286365,
+          "prefill_samples_seconds": [
+            1.466326,
+            1.4918455,
+            1.7562357
+          ],
+          "decode_run_means_ms": [
+            30.33741875,
+            31.105303125,
+            30.960315625
+          ],
+          "decode_curve": {
+            "prompt_tokens": 230,
+            "repetitions": 3,
+            "steps": 32,
+            "first_context_tokens": 231,
+            "last_context_tokens": 262,
+            "context_span_fraction": 0.1341991341991342,
+            "window_steps": 8,
+            "first_window_mean_ms": 30.248975,
+            "last_window_mean_ms": 31.006525,
+            "growth_ratio": 1.0250438237989883,
+            "slope_ms_per_1000_context_tokens": 37.78907624633432,
+            "fit_intercept_ms": 21.52516770527859,
+            "fit_r_squared": 0.3199710541355863,
+            "median_ms": 30.9484,
+            "min_ms": 29.781200000000002,
+            "max_ms": 32.2832,
+            "bins": [
+              {
+                "first_context": 231,
+                "last_context": 232,
+                "steps": 2,
+                "mean_ms": 30.5126
+              },
+              {
+                "first_context": 233,
+                "last_context": 234,
+                "steps": 2,
+                "mean_ms": 29.82685
+              },
+              {
+                "first_context": 235,
+                "last_context": 236,
+                "steps": 2,
+                "mean_ms": 30.45145
+              },
+              {
+                "first_context": 237,
+                "last_context": 238,
+                "steps": 2,
+                "mean_ms": 30.205
+              },
+              {
+                "first_context": 239,
+                "last_context": 240,
+                "steps": 2,
+                "mean_ms": 30.7211
+              },
+              {
+                "first_context": 241,
+                "last_context": 242,
+                "steps": 2,
+                "mean_ms": 29.971600000000002
+              },
+              {
+                "first_context": 243,
+                "last_context": 244,
+                "steps": 2,
+                "mean_ms": 30.54205
+              },
+              {
+                "first_context": 245,
+                "last_context": 246,
+                "steps": 2,
+                "mean_ms": 31.34655
+              },
+              {
+                "first_context": 247,
+                "last_context": 248,
+                "steps": 2,
+                "mean_ms": 31.0914
+              },
+              {
+                "first_context": 249,
+                "last_context": 250,
+                "steps": 2,
+                "mean_ms": 31.7065
+              },
+              {
+                "first_context": 251,
+                "last_context": 252,
+                "steps": 2,
+                "mean_ms": 31.7395
+              },
+              {
+                "first_context": 253,
+                "last_context": 254,
+                "steps": 2,
+                "mean_ms": 31.302100000000003
+              },
+              {
+                "first_context": 255,
+                "last_context": 256,
+                "steps": 2,
+                "mean_ms": 30.96275
+              },
+              {
+                "first_context": 257,
+                "last_context": 258,
+                "steps": 2,
+                "mean_ms": 31.332349999999998
+              },
+              {
+                "first_context": 259,
+                "last_context": 260,
+                "steps": 2,
+                "mean_ms": 30.8004
+              },
+              {
+                "first_context": 261,
+                "last_context": 262,
+                "steps": 2,
+                "mean_ms": 30.9306
+              }
+            ]
+          }
+        }
+      },
+      "trace": {
+        "prefill": {
+          "repetitions": 2,
+          "timed_interval_us_per_prefill": 1704198.0,
+          "groups_percent": {
+            "MLP projections": 41.63641783407797,
+            "Attention/DeltaNet projections": 38.87142221737145,
+            "Copies/gather/state movement": 10.414869633692799,
+            "DeltaNet recurrence": 3.281807630334034,
+            "Vector/norm/activation/other": 2.656117422975499,
+            "Convolution": 1.8344112597245157,
+            "Attention QK/softmax/AV": 0.7420792654374668,
+            "Vocabulary output head": 0.562874736386265
+          },
+          "groups_us": {
+            "Copies/gather/state movement": 354980,
+            "Vector/norm/activation/other": 90531,
+            "Attention/DeltaNet projections": 1324892,
+            "Convolution": 62524,
+            "DeltaNet recurrence": 111857,
+            "MLP projections": 1419134,
+            "Attention QK/softmax/AV": 25293,
+            "Vocabulary output head": 19185
+          },
+          "top_operations_percent": {
+            "MUL_MAT": 81.07071478783568,
+            "CONCAT": 10.205210896855881,
+            "GATED_DELTA_NET": 3.281807630334034,
+            "SSM_CONV": 1.8344112597245157,
+            "RMS_NORM": 0.9872385720438588,
+            "GLU": 0.7915160092900003,
+            "FLASH_ATTN_EXT": 0.7420792654374668,
+            "UNARY": 0.3107326730814142,
+            "ADD": 0.30445405991557317,
+            "MUL": 0.09596889563301916
+          },
+          "operation_calls": {
+            "GET_ROWS": 74,
+            "RMS_NORM": 115,
+            "SCALE": 72,
+            "CPY": 72,
+            "MUL_MAT": 187,
+            "CONCAT": 18,
+            "SSM_CONV": 18,
+            "UNARY": 78,
+            "ADD": 66,
+            "MUL": 42,
+            "GATED_DELTA_NET": 18,
+            "GLU": 24,
+            "ROPE": 12,
+            "SET_ROWS": 12,
+            "FLASH_ATTN_EXT": 6,
+            "CONT": 6
+          },
+          "dense_matrix_macs": 316233482240
+        },
+        "decode": {
+          "repetitions": 2,
+          "timed_interval_us_per_token": 30725.59375,
+          "groups_percent": {
+            "MLP projections": 37.017134534625555,
+            "Vocabulary output head": 25.67245954360117,
+            "Attention/DeltaNet projections": 22.709233649878612,
+            "Copies/gather/state movement": 8.556588104989835,
+            "Vector/norm/activation/other": 2.4224511527950536,
+            "DeltaNet recurrence": 2.1012612652928797,
+            "Attention QK/softmax/AV": 1.139166350528214,
+            "Convolution": 0.3817053982886824
+          },
+          "groups_us": {
+            "Copies/gather/state movement": 168260,
+            "Vector/norm/activation/other": 47636,
+            "Attention/DeltaNet projections": 446563,
+            "Convolution": 7506,
+            "DeltaNet recurrence": 41320,
+            "MLP projections": 727919,
+            "Attention QK/softmax/AV": 22401,
+            "Vocabulary output head": 504833
+          },
+          "top_operations_percent": {
+            "MUL_MAT": 85.39882772810533,
+            "GET_ROWS": 4.337131402057934,
+            "CONCAT": 2.630695704619215,
+            "GATED_DELTA_NET": 2.1012612652928797,
+            "CPY": 1.5170068926658251,
+            "FLASH_ATTN_EXT": 1.139166350528214,
+            "RMS_NORM": 0.8560656374622541,
+            "UNARY": 0.45645985278966333,
+            "ADD": 0.40789488404923013,
+            "SSM_CONV": 0.3817053982886824
+          },
+          "operation_calls": {
+            "GET_ROWS": 74,
+            "RMS_NORM": 115,
+            "SCALE": 72,
+            "CPY": 72,
+            "MUL_MAT": 187,
+            "CONCAT": 18,
+            "SSM_CONV": 18,
+            "UNARY": 78,
+            "ADD": 66,
+            "MUL": 42,
+            "GATED_DELTA_NET": 18,
+            "GLU": 24,
+            "ROPE": 12,
+            "SET_ROWS": 12,
+            "FLASH_ATTN_EXT": 6,
+            "CONT": 6
+          },
+          "dense_matrix_macs": 1881276416
+        },
+        "profiler_overhead_check": {
+          "note": "Sum of timed operation intervals divided by the untraced median. Near 1 means the instrumentation did not visibly slow execution; enabled-trace outer-call latency is never used.",
+          "prefill_timed_over_untraced": 1.1423421527229194,
+          "decode_timed_over_untraced": 0.9924186213783149
+        },
+        "records": 54120,
+        "fused_records": 5214,
+        "repetitions_traced": 2
+      },
+      "checks": {
+        "traced_vs_untraced_logits_bit_identical": true,
+        "cpu_vs_metal": []
+      },
+      "graphs": {
+        "flash_attention_on": {
+          "directory": "graphs/prompt-hardware-fa-on",
+          "structure_sha256": "c557553c7f8987a1b25062fb8d34f291e785c0e986d8043c7b0e22ed7b7d6023",
+          "op_sequence_sha256": "940b2386113de0bcc83a558a0f550400b2e2471fcebcbdfe793cac34f390fe44",
+          "scheduled_nodes": {
+            "prefill": 1411,
+            "decode": 1411
+          }
+        },
+        "flash_attention_off": {
+          "directory": "graphs/prompt-hardware-fa-off",
+          "structure_sha256": "ba896009ad118594b37f4a94bed5926d58799639efd8f4c08ba66f1dc3bf9bb8",
+          "op_sequence_sha256": "79124a71ec27dd751caabfe0e7f612cbd990204d6c73e10e3eb0b00f5cc43103",
+          "scheduled_nodes": {
+            "prefill": 1441,
+            "decode": 1441
+          }
+        }
+      },
+      "files": {
+        "cpu_timings": "prompts/hardware/cpu-baseline.jsonl",
+        "cpu_trace": "prompts/hardware/cpu-op-trace.jsonl.gz",
+        "tokens": "prompts/hardware/cpu-baseline-tokens.json"
+      }
+    },
+    {
+      "prompt_id": "multilingual",
+      "description": "The same sentence in six languages and scripts",
+      "prompt_file": "core/prompts/multilingual.txt",
+      "prompt_sha256": "0db1d23486e99ec996af103fa307d56e9a4fbc7eee3bedf2b98a25a7e368ffdd",
+      "prompt_tokens": 152,
+      "continuation": {
+        "mode": "teacher_forced_shared_continuation",
+        "steps": 32,
+        "source": "core/prompts/continuation.txt",
+        "source_sha256": "f958377c12459590af0cc2ec4166d3b392e1cc909491f0fe324cf95a49f1874e"
+      },
+      "config": {
+        "threads": 6,
+        "flash_attention": "on",
+        "n_ubatch": 512,
+        "layers": 24,
+        "untraced_repetitions": 3
+      },
+      "timing": {
+        "cpu": {
+          "repetitions": 3,
+          "decode_steps_per_rep": 32,
+          "prefill_seconds": 0.9681072,
+          "prefill_min_s": 0.9354526,
+          "prefill_max_s": 0.9746072,
+          "prefill_tps": 157.00740579142476,
+          "decode_ms": 28.738309375,
+          "decode_min_ms": 28.645859375,
+          "decode_max_ms": 28.753940625,
+          "decode_tps": 34.79675811653413,
+          "prefill_samples_seconds": [
+            0.9746072,
+            0.9681072,
+            0.9354526
+          ],
+          "decode_run_means_ms": [
+            28.738309375,
+            28.645859375,
+            28.753940625
+          ],
+          "decode_curve": {
+            "prompt_tokens": 152,
+            "repetitions": 3,
+            "steps": 32,
+            "first_context_tokens": 153,
+            "last_context_tokens": 184,
+            "context_span_fraction": 0.20261437908496732,
+            "window_steps": 8,
+            "first_window_mean_ms": 28.76145,
+            "last_window_mean_ms": 28.5373375,
+            "growth_ratio": 0.9922078859028317,
+            "slope_ms_per_1000_context_tokens": -7.79758064516129,
+            "fit_intercept_ms": 29.93432983870968,
+            "fit_r_squared": 0.0657357790779249,
+            "median_ms": 28.5547,
+            "min_ms": 28.2707,
+            "max_ms": 29.732400000000002,
+            "bins": [
+              {
+                "first_context": 153,
+                "last_context": 154,
+                "steps": 2,
+                "mean_ms": 29.19905
+              },
+              {
+                "first_context": 155,
+                "last_context": 156,
+                "steps": 2,
+                "mean_ms": 28.44675
+              },
+              {
+                "first_context": 157,
+                "last_context": 158,
+                "steps": 2,
+                "mean_ms": 28.5761
+              },
+              {
+                "first_context": 159,
+                "last_context": 160,
+                "steps": 2,
+                "mean_ms": 28.823900000000002
+              },
+              {
+                "first_context": 161,
+                "last_context": 162,
+                "steps": 2,
+                "mean_ms": 28.627299999999998
+              },
+              {
+                "first_context": 163,
+                "last_context": 164,
+                "steps": 2,
+                "mean_ms": 28.44925
+              },
+              {
+                "first_context": 165,
+                "last_context": 166,
+                "steps": 2,
+                "mean_ms": 28.7499
+              },
+              {
+                "first_context": 167,
+                "last_context": 168,
+                "steps": 2,
+                "mean_ms": 28.491999999999997
+              },
+              {
+                "first_context": 169,
+                "last_context": 170,
+                "steps": 2,
+                "mean_ms": 28.419850000000004
+              },
+              {
+                "first_context": 171,
+                "last_context": 172,
+                "steps": 2,
+                "mean_ms": 28.62355
+              },
+              {
+                "first_context": 173,
+                "last_context": 174,
+                "steps": 2,
+                "mean_ms": 28.58305
+              },
+              {
+                "first_context": 175,
+                "last_context": 176,
+                "steps": 2,
+                "mean_ms": 28.78695
+              },
+              {
+                "first_context": 177,
+                "last_context": 178,
+                "steps": 2,
+                "mean_ms": 28.6526
+              },
+              {
+                "first_context": 179,
+                "last_context": 180,
+                "steps": 2,
+                "mean_ms": 28.45715
+              },
+              {
+                "first_context": 181,
+                "last_context": 182,
+                "steps": 2,
+                "mean_ms": 28.4902
+              },
+              {
+                "first_context": 183,
+                "last_context": 184,
+                "steps": 2,
+                "mean_ms": 28.5494
+              }
+            ]
+          }
+        }
+      },
+      "trace": {
+        "prefill": {
+          "repetitions": 2,
+          "timed_interval_us_per_prefill": 978760.0,
+          "groups_percent": {
+            "MLP projections": 41.871194164044304,
+            "Attention/DeltaNet projections": 39.23060811639217,
+            "Copies/gather/state movement": 10.63212636397074,
+            "DeltaNet recurrence": 3.0886019044505293,
+            "Vector/norm/activation/other": 2.2648044464424375,
+            "Convolution": 1.4027442886918142,
+            "Vocabulary output head": 1.0064775838816462,
+            "Attention QK/softmax/AV": 0.5034431321263639
+          },
+          "groups_us": {
+            "Copies/gather/state movement": 208126,
+            "Vector/norm/activation/other": 44334,
+            "Attention/DeltaNet projections": 767947,
+            "Convolution": 27459,
+            "DeltaNet recurrence": 60460,
+            "MLP projections": 819637,
+            "Attention QK/softmax/AV": 9855,
+            "Vocabulary output head": 19702
+          },
+          "top_operations_percent": {
+            "MUL_MAT": 82.10827986431812,
+            "CONCAT": 10.414248641137766,
+            "GATED_DELTA_NET": 3.0886019044505293,
+            "SSM_CONV": 1.4027442886918142,
+            "RMS_NORM": 0.8645122399771139,
+            "GLU": 0.5712840737259389,
+            "FLASH_ATTN_EXT": 0.5034431321263639,
+            "UNARY": 0.2976725652866893,
+            "ADD": 0.2427561404225755,
+            "SCALE": 0.12071396460827986
+          },
+          "operation_calls": {
+            "GET_ROWS": 74,
+            "RMS_NORM": 115,
+            "SCALE": 72,
+            "CPY": 72,
+            "MUL_MAT": 187,
+            "CONCAT": 18,
+            "SSM_CONV": 18,
+            "UNARY": 78,
+            "ADD": 66,
+            "MUL": 42,
+            "GATED_DELTA_NET": 18,
+            "GLU": 24,
+            "ROPE": 12,
+            "SET_ROWS": 12,
+            "FLASH_ATTN_EXT": 6,
+            "CONT": 6
+          },
+          "dense_matrix_macs": 209161551872
+        },
+        "decode": {
+          "repetitions": 2,
+          "timed_interval_us_per_token": 29233.03125,
+          "groups_percent": {
+            "MLP projections": 37.743958300595324,
+            "Vocabulary output head": 26.239688195181607,
+            "Attention/DeltaNet projections": 22.66218543449886,
+            "Copies/gather/state movement": 7.940076347710264,
+            "Vector/norm/activation/other": 2.314056124439712,
+            "DeltaNet recurrence": 1.9129687414814363,
+            "Attention QK/softmax/AV": 0.8271892775402825,
+            "Convolution": 0.35987757855251495
+          },
+          "groups_us": {
+            "Copies/gather/state movement": 148552,
+            "Vector/norm/activation/other": 43294,
+            "Attention/DeltaNet projections": 423990,
+            "Convolution": 6733,
+            "DeltaNet recurrence": 35790,
+            "MLP projections": 706157,
+            "Attention QK/softmax/AV": 15476,
+            "Vocabulary output head": 490922
+          },
+          "top_operations_percent": {
+            "MUL_MAT": 86.64583193027579,
+            "GET_ROWS": 4.152462379350414,
+            "CONCAT": 2.274449814368806,
+            "GATED_DELTA_NET": 1.9129687414814363,
+            "CPY": 1.4483295330517598,
+            "RMS_NORM": 0.8552504284002365,
+            "FLASH_ATTN_EXT": 0.8271892775402825,
+            "UNARY": 0.4633029631506312,
+            "ADD": 0.3754849234117656,
+            "SSM_CONV": 0.35987757855251495
+          },
+          "operation_calls": {
+            "GET_ROWS": 74,
+            "RMS_NORM": 115,
+            "SCALE": 72,
+            "CPY": 72,
+            "MUL_MAT": 187,
+            "CONCAT": 18,
+            "SSM_CONV": 18,
+            "UNARY": 78,
+            "ADD": 66,
+            "MUL": 42,
+            "GATED_DELTA_NET": 18,
+            "GLU": 24,
+            "ROPE": 12,
+            "SET_ROWS": 12,
+            "FLASH_ATTN_EXT": 6,
+            "CONT": 6
+          },
+          "dense_matrix_macs": 1881276416
+        },
+        "profiler_overhead_check": {
+          "note": "Sum of timed operation intervals divided by the untraced median. Near 1 means the instrumentation did not visibly slow execution; enabled-trace outer-call latency is never used.",
+          "prefill_timed_over_untraced": 1.011003740081677,
+          "decode_timed_over_untraced": 1.0172147174193331
+        },
+        "records": 54120,
+        "fused_records": 5214,
+        "repetitions_traced": 2
+      },
+      "checks": {
+        "traced_vs_untraced_logits_bit_identical": true,
+        "cpu_vs_metal": []
+      },
+      "graphs": {
+        "flash_attention_on": {
+          "directory": "graphs/prompt-multilingual-fa-on",
+          "structure_sha256": "632cd9d884b15b402c541d0ddf1a19f4e63ebe81d137a296ddcc2369bbfc8102",
+          "op_sequence_sha256": "940b2386113de0bcc83a558a0f550400b2e2471fcebcbdfe793cac34f390fe44",
+          "scheduled_nodes": {
+            "prefill": 1411,
+            "decode": 1411
+          }
+        },
+        "flash_attention_off": {
+          "directory": "graphs/prompt-multilingual-fa-off",
+          "structure_sha256": "5938611eddaac4a33c4517935d36bd36ad233fd7f0000190c663a0cf90fa548b",
+          "op_sequence_sha256": "79124a71ec27dd751caabfe0e7f612cbd990204d6c73e10e3eb0b00f5cc43103",
+          "scheduled_nodes": {
+            "prefill": 1441,
+            "decode": 1441
+          }
+        }
+      },
+      "files": {
+        "cpu_timings": "prompts/multilingual/cpu-baseline.jsonl",
+        "cpu_trace": "prompts/multilingual/cpu-op-trace.jsonl.gz",
+        "tokens": "prompts/multilingual/cpu-baseline-tokens.json"
+      }
+    },
+    {
+      "prompt_id": "repetitive",
+      "description": "Low-entropy repeating word sequence",
+      "prompt_file": "core/prompts/repetitive.txt",
+      "prompt_sha256": "cf428c75cbbad68bda229788589af70a40fecff71a09803c9d1681f1244e26f0",
+      "prompt_tokens": 71,
+      "continuation": {
+        "mode": "teacher_forced_shared_continuation",
+        "steps": 32,
+        "source": "core/prompts/continuation.txt",
+        "source_sha256": "f958377c12459590af0cc2ec4166d3b392e1cc909491f0fe324cf95a49f1874e"
+      },
+      "config": {
+        "threads": 6,
+        "flash_attention": "on",
+        "n_ubatch": 512,
+        "layers": 24,
+        "untraced_repetitions": 3
+      },
+      "timing": {
+        "cpu": {
+          "repetitions": 3,
+          "decode_steps_per_rep": 32,
+          "prefill_seconds": 0.45373209999999997,
+          "prefill_min_s": 0.4409533,
+          "prefill_max_s": 0.4611078,
+          "prefill_tps": 156.48000218631216,
+          "decode_ms": 28.92181875,
+          "decode_min_ms": 28.759515625,
+          "decode_max_ms": 29.360621875,
+          "decode_tps": 34.57597216288481,
+          "prefill_samples_seconds": [
+            0.4409533,
+            0.4611078,
+            0.45373209999999997
+          ],
+          "decode_run_means_ms": [
+            28.92181875,
+            28.759515625,
+            29.360621875
+          ],
+          "decode_curve": {
+            "prompt_tokens": 71,
+            "repetitions": 3,
+            "steps": 32,
+            "first_context_tokens": 72,
+            "last_context_tokens": 103,
+            "context_span_fraction": 0.4305555555555556,
+            "window_steps": 8,
+            "first_window_mean_ms": 28.7262375,
+            "last_window_mean_ms": 28.83695,
+            "growth_ratio": 1.0038540550254798,
+            "slope_ms_per_1000_context_tokens": 4.30500366568916,
+            "fit_intercept_ms": 28.5331840542522,
+            "fit_r_squared": 0.009064837336936358,
+            "median_ms": 28.90065,
+            "min_ms": 28.1375,
+            "max_ms": 30.0485,
+            "bins": [
+              {
+                "first_context": 72,
+                "last_context": 73,
+                "steps": 2,
+                "mean_ms": 29.0001
+              },
+              {
+                "first_context": 74,
+                "last_context": 75,
+                "steps": 2,
+                "mean_ms": 28.5529
+              },
+              {
+                "first_context": 76,
+                "last_context": 77,
+                "steps": 2,
+                "mean_ms": 28.76175
+              },
+              {
+                "first_context": 78,
+                "last_context": 79,
+                "steps": 2,
+                "mean_ms": 28.5902
+              },
+              {
+                "first_context": 80,
+                "last_context": 81,
+                "steps": 2,
+                "mean_ms": 29.05925
+              },
+              {
+                "first_context": 82,
+                "last_context": 83,
+                "steps": 2,
+                "mean_ms": 29.27295
+              },
+              {
+                "first_context": 84,
+                "last_context": 85,
+                "steps": 2,
+                "mean_ms": 28.6381
+              },
+              {
+                "first_context": 86,
+                "last_context": 87,
+                "steps": 2,
+                "mean_ms": 29.148449999999997
+              },
+              {
+                "first_context": 88,
+                "last_context": 89,
+                "steps": 2,
+                "mean_ms": 29.20885
+              },
+              {
+                "first_context": 90,
+                "last_context": 91,
+                "steps": 2,
+                "mean_ms": 29.103650000000002
+              },
+              {
+                "first_context": 92,
+                "last_context": 93,
+                "steps": 2,
+                "mean_ms": 28.75345
+              },
+              {
+                "first_context": 94,
+                "last_context": 95,
+                "steps": 2,
+                "mean_ms": 29.1205
+              },
+              {
+                "first_context": 96,
+                "last_context": 97,
+                "steps": 2,
+                "mean_ms": 28.6771
+              },
+              {
+                "first_context": 98,
+                "last_context": 99,
+                "steps": 2,
+                "mean_ms": 28.224
+              },
+              {
+                "first_context": 100,
+                "last_context": 101,
+                "steps": 2,
+                "mean_ms": 28.938200000000002
+              },
+              {
+                "first_context": 102,
+                "last_context": 103,
+                "steps": 2,
+                "mean_ms": 29.508499999999998
+              }
+            ]
+          }
+        }
+      },
+      "trace": {
+        "prefill": {
+          "repetitions": 2,
+          "timed_interval_us_per_prefill": 486363.5,
+          "groups_percent": {
+            "MLP projections": 43.04547935854561,
+            "Attention/DeltaNet projections": 38.00943121759754,
+            "Copies/gather/state movement": 9.068114691994774,
+            "DeltaNet recurrence": 3.5816832472009104,
+            "Vector/norm/activation/other": 2.3753838435655634,
+            "Vocabulary output head": 1.9431968065037775,
+            "Convolution": 1.1902620159613129,
+            "Attention QK/softmax/AV": 0.7864488186305099
+          },
+          "groups_us": {
+            "Copies/gather/state movement": 88208,
+            "Vector/norm/activation/other": 23106,
+            "Attention/DeltaNet projections": 369728,
+            "Convolution": 11578,
+            "DeltaNet recurrence": 34840,
+            "MLP projections": 418715,
+            "Attention QK/softmax/AV": 7650,
+            "Vocabulary output head": 18902
+          },
+          "top_operations_percent": {
+            "MUL_MAT": 82.99810738264694,
+            "CONCAT": 8.677460376858049,
+            "GATED_DELTA_NET": 3.5816832472009104,
+            "SSM_CONV": 1.1902620159613129,
+            "RMS_NORM": 0.8792806203590524,
+            "FLASH_ATTN_EXT": 0.7864488186305099,
+            "GLU": 0.49931789700501783,
+            "UNARY": 0.33174775656479155,
+            "SCALE": 0.24857950894752587,
+            "ADD": 0.2454953959332886
+          },
+          "operation_calls": {
+            "GET_ROWS": 74,
+            "RMS_NORM": 115,
+            "SCALE": 72,
+            "CPY": 72,
+            "MUL_MAT": 187,
+            "CONCAT": 18,
+            "SSM_CONV": 18,
+            "UNARY": 78,
+            "ADD": 66,
+            "MUL": 42,
+            "GATED_DELTA_NET": 18,
+            "GLU": 24,
+            "ROPE": 12,
+            "SET_ROWS": 12,
+            "FLASH_ATTN_EXT": 6,
+            "CONT": 6
+          },
+          "dense_matrix_macs": 97971470336
+        },
+        "decode": {
+          "repetitions": 2,
+          "timed_interval_us_per_token": 30026.59375,
+          "groups_percent": {
+            "MLP projections": 37.4133450451735,
+            "Vocabulary output head": 26.31661933015629,
+            "Attention/DeltaNet projections": 22.503645206176607,
+            "Copies/gather/state movement": 8.50652182284246,
+            "Vector/norm/activation/other": 2.328560827849479,
+            "DeltaNet recurrence": 2.042668426218009,
+            "Attention QK/softmax/AV": 0.5176661105624077,
+            "Convolution": 0.37097323102125096
+          },
+          "groups_us": {
+            "Copies/gather/state movement": 163470,
+            "Vector/norm/activation/other": 44748,
+            "Attention/DeltaNet projections": 432453,
+            "Convolution": 7129,
+            "DeltaNet recurrence": 39254,
+            "MLP projections": 718973,
+            "Attention QK/softmax/AV": 9948,
+            "Vocabulary output head": 505727
+          },
+          "top_operations_percent": {
+            "MUL_MAT": 86.2336095815064,
+            "GET_ROWS": 4.178639560139918,
+            "CONCAT": 2.7798274654446944,
+            "GATED_DELTA_NET": 2.042668426218009,
+            "CPY": 1.4867549703335896,
+            "RMS_NORM": 0.8631931485735042,
+            "FLASH_ATTN_EXT": 0.5176661105624077,
+            "UNARY": 0.4525155305036889,
+            "ADD": 0.3873129132404504,
+            "SSM_CONV": 0.37097323102125096
+          },
+          "operation_calls": {
+            "GET_ROWS": 74,
+            "RMS_NORM": 115,
+            "SCALE": 72,
+            "CPY": 72,
+            "MUL_MAT": 187,
+            "CONCAT": 18,
+            "SSM_CONV": 18,
+            "UNARY": 78,
+            "ADD": 66,
+            "MUL": 42,
+            "GATED_DELTA_NET": 18,
+            "GLU": 24,
+            "ROPE": 12,
+            "SET_ROWS": 12,
+            "FLASH_ATTN_EXT": 6,
+            "CONT": 6
+          },
+          "dense_matrix_macs": 1881276416
+        },
+        "profiler_overhead_check": {
+          "note": "Sum of timed operation intervals divided by the untraced median. Near 1 means the instrumentation did not visibly slow execution; enabled-trace outer-call latency is never used.",
+          "prefill_timed_over_untraced": 1.0719177682160905,
+          "decode_timed_over_untraced": 1.038198669646251
+        },
+        "records": 54120,
+        "fused_records": 5214,
+        "repetitions_traced": 2
+      },
+      "checks": {
+        "traced_vs_untraced_logits_bit_identical": true,
+        "cpu_vs_metal": []
+      },
+      "graphs": {
+        "flash_attention_on": {
+          "directory": "graphs/prompt-repetitive-fa-on",
+          "structure_sha256": "775a71e60dbd7b6fa0d84940e9e0efb27e5773dda6534a023c7cccbbbde81dac",
+          "op_sequence_sha256": "940b2386113de0bcc83a558a0f550400b2e2471fcebcbdfe793cac34f390fe44",
+          "scheduled_nodes": {
+            "prefill": 1411,
+            "decode": 1411
+          }
+        },
+        "flash_attention_off": {
+          "directory": "graphs/prompt-repetitive-fa-off",
+          "structure_sha256": "28dd19f55bfee59882eef471b51cbf85a8ba5b2a7608c2e6baf3d7b1a32b8945",
+          "op_sequence_sha256": "79124a71ec27dd751caabfe0e7f612cbd990204d6c73e10e3eb0b00f5cc43103",
+          "scheduled_nodes": {
+            "prefill": 1441,
+            "decode": 1441
+          }
+        }
+      },
+      "files": {
+        "cpu_timings": "prompts/repetitive/cpu-baseline.jsonl",
+        "cpu_trace": "prompts/repetitive/cpu-op-trace.jsonl.gz",
+        "tokens": "prompts/repetitive/cpu-baseline-tokens.json"
+      }
+    }
+  ]
+}
