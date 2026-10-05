@@ -22,23 +22,23 @@ windows\run.ps1 profile --cuda on --smoke           # matched CPU/CUDA validatio
 ```
 
 `profile` runs: **ensure** (pinned llama.cpp + verified model, both cached in the gitignored `work/`) ->
-**baseline** (canonical CPU, Metal on macOS/arm64, and optional separate CUDA execution) ->
+**baseline** (current CPU reference, Metal on macOS/arm64, and optional separate CUDA execution) ->
 **trace** (patched runtime, CPU op traces) ->
 **graphs** (scheduled dataflow graph per length and flash-attention setting) -> **analyze**
 (summaries, validation, `profiling-summary.png/.pdf`) -> `run-manifest.json`.
 Useful flags: `--lengths`, `--threads`, `--repetitions`, `--decode-steps`, `--cuda on|only`, `--skip-metal`, `--no-trace`,
 `--no-graphs`, `--include-diagnostic` (8K, timing stays excluded), `--model PATH`, `--work-dir`.
 
-**Optional CUDA has three deliberately separate roles.** The default `--cuda off` uses the canonical pristine
-CPU build for its baseline, trace validation and graph capture. `--cuda only` is the fast exploratory path: it
-builds/runs CUDA only and automatically skips CPU timing, traces, graph capture and per-prompt stages. It does
-not produce a CPU numerical comparison, so candidates selected this way must later be confirmed against the
-CPU reference. `--cuda on` is the freeze/comparison path: it runs the canonical CPU build, a zero-offload CPU
-control inside the separate CUDA-enabled build (`cuda-cpu-*`), and CUDA. The canonical CPU row validates the
-CPU-only trace; the CUDA-build CPU row is the matched control for backend speedup.
+**Optional CUDA has three deliberately separate roles.** The default `--cuda off` uses the current pristine
+CPU build for its reference baseline, trace validation and graph capture. `--cuda only` is the fast exploratory
+path: it builds/runs CUDA only and automatically skips CPU timing, traces, graph capture and per-prompt stages.
+It does not produce a CPU numerical comparison, so candidates selected this way should later be checked
+against the current CPU reference. `--cuda on` is the freeze/comparison path: it runs the current CPU-reference
+build, a zero-offload CPU control inside the separate CUDA-enabled build (`cuda-cpu-*`), and CUDA. The CPU
+reference row validates the CPU-only trace; the CUDA-build CPU row is the matched control for backend speedup.
 
 The traced build stays CPU-only, and graph capture hard-codes CPU placement, so GPU kernel selection is never
-presented as accelerator-architecture evidence. When both canonical CPU and CUDA are present, analysis writes
+presented as accelerator-architecture evidence. When both the current CPU reference and CUDA are present, analysis writes
 `cpu-cuda-logit-check.json` with finite-logit, maximum/mean difference, top-token and top-10-overlap checks. The
 Windows wrapper imports a Visual Studio developer environment when its historical standalone LLVM path is
 absent; CUDA itself remains an explicit, optional system prerequisite.
@@ -94,7 +94,7 @@ compiler/resource-compiler search lists. Override with `SB_CC`, `SB_CXX`, `SB_RC
 
 - **Line endings.** Git for Windows often checks files out as CRLF. `core/`, `unix/` and `windows/` force LF
   (`.gitattributes`); the runner normalizes the patch and forces `core.autocrlf=false` on the llama.cpp checkout.
-- **Separate builds and source trees.** Canonical CPU and CUDA use the pristine `work/llama.cpp` checkout but
+- **Separate builds and source trees.** The CPU reference and CUDA use the pristine `work/llama.cpp` checkout but
 separate `work/build-baseline` and `work/build-cuda` directories. The trace uses the patched worktree
 `work/llama.cpp-profile` and `work/build-profile`. Each build is checked for trace code and recorded
 separately as `build`, `cuda_build` and `profile_build` in `run-manifest.json`.

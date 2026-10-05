@@ -74,7 +74,7 @@ def analyze_run(run_dir, experiment, lengths, has_trace, backends, subtitle):
             "profile_bit_identical": all(c["bit_identical"] for c in profile_checks) if has_trace else None,
             "backend_checks": len(backend_checks) + len(cuda_checks),
             "backend_checks_by_backend": {"metal": len(backend_checks), "cuda": len(cuda_checks)},
-            "cuda_reference": "canonical cpu" if cuda_checks else None,
+            "cuda_reference": "current cpu reference" if cuda_checks else None,
             "missing_optional_diagnostic_profile": missing}
 
 
@@ -139,7 +139,7 @@ def doctor(ctx):
     cuda_mode = ctx.state.get("cuda_mode", "off")
     variants = []
     if cuda_mode != "only":
-        variants.append(("baseline", build.BASELINE_TARGETS, "canonical CPU"))
+        variants.append(("baseline", build.BASELINE_TARGETS, "CPU reference"))
     if cuda_mode != "off":
         variants.append(("cuda", build.CUDA_TARGETS, "CUDA"))
     for variant, targets, label in variants:
@@ -204,7 +204,7 @@ def run_profile(ctx, argv):
         fetch.ensure_source(ctx)
         model = fetch.ensure_model(ctx)
         if ctx.cuda != "only":
-            print("\n== build: pristine canonical CPU runtime")
+            print("\n== build: pristine CPU reference runtime")
             build.ensure_baseline(ctx)
         if ctx.cuda != "off":
             print("\n== build: separate pristine CUDA runtime")

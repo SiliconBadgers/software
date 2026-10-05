@@ -44,7 +44,7 @@ def build_dir(ctx, variant):
 
 
 def source_dir(ctx, variant):
-    """Canonical CPU and CUDA builds read pristine source; only the trace build reads the patched worktree.
+    """CPU-reference and CUDA builds read pristine source; only the trace build reads the patched worktree.
     Pristine and patched builds must never share a source tree."""
     return ctx.work / ("llama.cpp-profile" if variant == "profile" else "llama.cpp")
 

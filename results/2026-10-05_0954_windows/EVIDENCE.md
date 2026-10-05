@@ -3,7 +3,7 @@
 This is a matched CPU/CUDA timing experiment for the existing Qwen3.5-2B profiling harness. It answers a
 narrow software-team question: whether optional CUDA execution is useful for faster experimental iteration on
 this host. It is not evidence about the SiliconBadgers accelerator architecture, GPU kernel boundaries, ASIC
-performance, model quality, or a replacement for canonical CPU traces and graph capture.
+performance, model quality, or a replacement for the current CPU trace and graph-capture workflow.
 
 The committed evidence contains the manifest, timing records, numerical comparison, summaries and figures.
 Large saved logits and logs remain local and are listed with SHA-256 in
@@ -38,8 +38,8 @@ throughput from the same executable and build.
 | 8,192 diagnostic | 170.6 | 17,799.9 | 104.32x | 33.5 | 325.3 | 9.70x |
 
 The measured improvement is large enough to justify optional CUDA for rapid candidate evaluation on NVIDIA
-hosts, followed by canonical CPU-reference confirmation. CUDA alone must not establish subtle numerical or
-model-quality conclusions. It does not accelerate the analytical scheduler or resource sweeps, which consume
+hosts, followed by checks against the current CPU reference. CUDA alone should not be used to establish subtle
+numerical or model-quality conclusions. It does not accelerate the analytical scheduler or resource sweeps, which consume
 captured graphs on CPU.
 
 ## Numerical and CPU-path checks
@@ -55,19 +55,19 @@ Its median prefill throughput was within 0.7–1.5% of the recorded run and deco
 A separately compiled `GGML_CUDA=OFF` control was also tested locally. It retained the same top token in all six
 checkpoint comparisons, with 9–10 top-10 overlap, but was not byte-identical and its timing differed materially:
 prefill was 26.6–28.7% faster while decode was 6.5–9.1% slower than the CUDA-enabled executable's CPU path.
-This is why the speedup table compares placements inside one CUDA-enabled build, and why its CPU row must not be
-substituted for the canonical CPU-only/historical baseline. The normal default remains `--cuda off`.
+This is why the speedup table compares placements inside one CUDA-enabled build, and why its CPU row should not be
+substituted for the current CPU-only/historical baseline. The normal default remains `--cuda off`.
 
 This benchmark predates the split-build naming added after validation review. Its `cpu-*` files are the
 zero-offload CPU placement from the CUDA-enabled binary—the role that current comparison runs name
-`cuda-cpu-*`; they are not canonical CPU-only baseline files.
+`cuda-cpu-*`; they are not current CPU-reference files.
 
 ## Boundaries and omissions
 
 - No trace, graph capture, per-prompt timing, Metal run, long continuation, multiple batch/sequence study, or
   model-quality evaluation was performed in this run.
-- CPU remains the required trace and graph-capture backend. CUDA is opt-in and limited to uninstrumented timing
-  and saved-logit comparison.
+- The current implementation performs trace and graph capture on CPU. CUDA is opt-in and limited to
+  uninstrumented timing and saved-logit comparison.
 - The measurements are for this host, driver, toolkit, pinned model and pinned llama.cpp revision. They do not
   predict another GPU or the proposed accelerator.
 - Logs, prompts, token dumps, saved logits and the duplicate PDF rendering stay local. The committed JSONL,

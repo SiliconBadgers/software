@@ -32,13 +32,13 @@ def run_names(experiment, backend):
 
 def cpu_label(baselines):
     """Older CUDA runs named their same-binary zero-offload control `cpu-*`.
-    Split-build runs contain `cuda-cpu-*`, which makes `cpu-*` the canonical CPU-only build."""
+    Split-build runs contain `cuda-cpu-*`, which makes `cpu-*` the current CPU reference build."""
     runs = {row["run"] for row in baselines}
     has_cuda = any(name.startswith("cuda-") for name in runs)
     has_explicit_control = any(name.startswith("cuda-cpu-") for name in runs)
     if has_cuda and not has_explicit_control:
         return "CPU (CUDA build)"
-    return "Canonical CPU" if has_explicit_control else "CPU"
+    return "CPU reference" if has_explicit_control else "CPU"
 
 
 def subtitle_for(results_dir, override):

@@ -23,13 +23,13 @@ import validate  # noqa: E402
 
 
 class CudaRunner(unittest.TestCase):
-    def test_default_is_canonical_cpu_only(self):
+    def test_default_is_cpu_reference_only(self):
         args = cli.build_parser().parse_args(["profile", "--smoke"])
         self.assertEqual(args.cuda, "off")
         ctx = SimpleNamespace(state={"metal": False, "cuda_mode": "off"}, skip_metal=False)
         self.assertEqual(measure.backends(ctx), [("cpu", "baseline", 0)])
 
-    def test_cuda_compare_separates_canonical_and_cuda_builds(self):
+    def test_cuda_compare_separates_reference_and_cuda_builds(self):
         args = cli.build_parser().parse_args(["profile", "--cuda", "on", "--smoke"])
         self.assertEqual(args.cuda, "on")
         ctx = SimpleNamespace(state={"metal": False, "cuda_mode": "on"}, skip_metal=False)
@@ -55,11 +55,11 @@ class CudaRunner(unittest.TestCase):
         self.assertEqual(build.source_dir(ctx, "cuda"), Path("work/llama.cpp"))
         self.assertEqual(build.source_dir(ctx, "profile"), Path("work/llama.cpp-profile"))
 
-    def test_cpu_plot_label_distinguishes_legacy_control_from_canonical_cpu(self):
+    def test_cpu_plot_label_distinguishes_legacy_control_from_cpu_reference(self):
         legacy = [{"run": "cpu-baseline"}, {"run": "cuda-baseline"}]
         split = legacy + [{"run": "cuda-cpu-baseline"}]
         self.assertEqual(plot.cpu_label(legacy), "CPU (CUDA build)")
-        self.assertEqual(plot.cpu_label(split), "Canonical CPU")
+        self.assertEqual(plot.cpu_label(split), "CPU reference")
         self.assertEqual(plot.cpu_label([{"run": "cpu-baseline"}]), "CPU")
 
     def test_cpu_cuda_logit_comparison(self):

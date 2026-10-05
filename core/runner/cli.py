@@ -46,7 +46,7 @@ def build_parser():
     p.add_argument("--metal", choices=["auto", "on", "off"], default="auto")
     p.add_argument("--skip-metal", action="store_true")
     p.add_argument("--cuda", choices=["off", "on", "only"], default="off",
-                   help="off: canonical CPU; on: CPU + CUDA-build CPU control + CUDA; only: fast CUDA timing only")
+                   help="off: CPU reference; on: CPU reference + CUDA-build CPU control + CUDA; only: fast CUDA timing only")
     p.add_argument("--no-trace", action="store_true", help="Skip the patched runtime and operation traces")
     p.add_argument("--no-graphs", action="store_true", help="Skip scheduled-graph capture")
     p.add_argument("--include-diagnostic", action="store_true",
