@@ -37,14 +37,20 @@ def _cases(ctx):
 
 
 def backends(ctx):
+    """Timing plans as (result-name/backend, build variant, GPU layers)."""
     metal = bool(ctx.state.get("metal")) and not ctx.skip_metal
-    cuda = bool(ctx.state.get("cuda"))
-    return [("cpu", 0)] + ([("metal", 99)] if metal else []) + ([("cuda", 99)] if cuda else [])
+    cuda_mode = ctx.state.get("cuda_mode", "off")
+    if cuda_mode == "only":
+        return [("cuda", "cuda", 99)]
+    plans = [("cpu", "baseline", 0)] + ([("metal", "baseline", 99)] if metal else [])
+    if cuda_mode == "on":
+        plans += [("cuda-cpu", "cuda", 0), ("cuda", "cuda", 99)]
+    return plans
 
 
 def baseline(ctx, model):
-    exe = exe_path(ctx, build_dir(ctx, "baseline"), "sb-profile")
-    for backend, ngl in backends(ctx):
+    for backend, variant, ngl in backends(ctx):
+        exe = exe_path(ctx, build_dir(ctx, variant), "sb-profile")
         for tag, lengths in _cases(ctx):
             _measure(ctx, exe, model, f"{backend}-{tag}", lengths, ngl, ctx.repetitions)
 

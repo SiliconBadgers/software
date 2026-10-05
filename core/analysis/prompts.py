@@ -106,6 +106,7 @@ def build_row(run_dir, experiment, entry, prompt_dir, prompt_set_dir):
     baseline = summaries["cpu-baseline"]
     has_trace = exists(prompt_dir / "cpu-op-trace.jsonl")
     has_metal = exists(prompt_dir / "metal-baseline.jsonl")
+    has_cuda_cpu = exists(prompt_dir / "cuda-cpu-baseline.jsonl")
     has_cuda = exists(prompt_dir / "cuda-baseline.jsonl")
     profile_checks, backend_checks, _ = [], [], None
     check = {}
@@ -136,6 +137,9 @@ def build_row(run_dir, experiment, entry, prompt_dir, prompt_set_dir):
                   "tokens": prefix + "cpu-baseline-tokens.json"}}
     if has_metal:
         row["timing"]["metal"] = _timing(summaries["metal-baseline"], prompt_dir / "metal-baseline.jsonl", n)
+    if has_cuda_cpu:
+        row["timing"]["cuda_build_cpu"] = _timing(
+            summaries["cuda-cpu-baseline"], prompt_dir / "cuda-cpu-baseline.jsonl", n)
     if has_cuda:
         row["timing"]["cuda"] = _timing(summaries["cuda-baseline"], prompt_dir / "cuda-baseline.jsonl", n)
     if has_trace:

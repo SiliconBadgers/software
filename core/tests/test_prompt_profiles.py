@@ -117,9 +117,12 @@ class PromptProfiles(unittest.TestCase):
 
     def test_optional_cuda_timing_and_numerical_check(self):
         directory = make_prompt_dir(self.run, "alpha", traced=False)
+        timings(directory, "cuda-cpu-baseline", 2)
+        logits(directory, "cuda-cpu-baseline")
         timings(directory, "cuda-baseline", 2)
         logits(directory, "cuda-baseline")
         (row,) = prompts.build(self.run, prompt_set=make_prompt_set(Path(self.tmp.name) / "set", ["alpha"]))["prompts"]
+        self.assertAlmostEqual(row["timing"]["cuda_build_cpu"]["prefill_seconds"], 2.1)
         self.assertAlmostEqual(row["timing"]["cuda"]["prefill_seconds"], 2.1)
         self.assertEqual(len(row["checks"]["cpu_vs_cuda"]), 2)
         self.assertTrue(all(check["max_abs_difference"] == 0 for check in row["checks"]["cpu_vs_cuda"]))

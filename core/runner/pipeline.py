@@ -22,7 +22,8 @@ def _now():
 
 def _subtitle(host, experiment, threads, backends):
     parts = [host["cpu_model"], experiment["model"]["label"], f"{threads} CPU threads"]
-    accelerated = [name.upper() if name == "cuda" else name.title() for name in backends if name != "cpu"]
+    accelerated = [name.upper() if name == "cuda" else name.title()
+                   for name in backends if name not in ("cpu", "cuda-cpu")]
     if accelerated:
         parts.append(" + ".join(accelerated) + " measured")
     parts.append("one sequence")
@@ -58,16 +59,22 @@ def analyze_run(run_dir, experiment, lengths, has_trace, backends, subtitle):
     decode_curve.plot(out, curves)
     if has_trace:
         ops.write_outputs(out, *ops.aggregate(run_dir, experiment))
-    profile_checks, backend_checks, missing = validate.validate(
-        run_dir, experiment, lengths, skip_metal="metal" not in backends, require_profile=has_trace)
+    has_cpu = "cpu" in backends
+    if has_cpu:
+        profile_checks, backend_checks, missing = validate.validate(
+            run_dir, experiment, lengths, skip_metal="metal" not in backends, require_profile=has_trace)
+    else:
+        profile_checks, backend_checks, missing = [], [], []
     validate.write_outputs(out, profile_checks, backend_checks)
-    cuda_checks = validate.compare_backend(run_dir, experiment, lengths, "cuda") if "cuda" in backends else []
+    cuda_checks = validate.compare_backend(run_dir, experiment, lengths, "cuda") if has_cpu and "cuda" in backends else []
     if cuda_checks:
         validate.write_backend_output(out, "cuda", cuda_checks)
     plot.draw(out, out, experiment, subtitle)
-    return {"decode_curves": len(curves), "profile_checks": len(profile_checks), "profile_bit_identical": all(c["bit_identical"] for c in profile_checks),
+    return {"decode_curves": len(curves), "profile_checks": len(profile_checks),
+            "profile_bit_identical": all(c["bit_identical"] for c in profile_checks) if has_trace else None,
             "backend_checks": len(backend_checks) + len(cuda_checks),
             "backend_checks_by_backend": {"metal": len(backend_checks), "cuda": len(cuda_checks)},
+            "cuda_reference": "canonical cpu" if cuda_checks else None,
             "missing_optional_diagnostic_profile": missing}
 
 
@@ -129,11 +136,18 @@ def doctor(ctx):
         report("trace patch applies to the pinned source", True)
     except subprocess.CalledProcessError:
         report("trace patch applies to the pinned source", False)
-    try:
-        build.build_variant(ctx, "baseline", build.BASELINE_TARGETS, compile=False)
-        report("CMake configures the harness with the pinned llama.cpp", True)
-    except (subprocess.CalledProcessError, RuntimeError) as error:
-        report("CMake configures the harness with the pinned llama.cpp", False, str(error))
+    cuda_mode = ctx.state.get("cuda_mode", "off")
+    variants = []
+    if cuda_mode != "only":
+        variants.append(("baseline", build.BASELINE_TARGETS, "canonical CPU"))
+    if cuda_mode != "off":
+        variants.append(("cuda", build.CUDA_TARGETS, "CUDA"))
+    for variant, targets, label in variants:
+        try:
+            build.build_variant(ctx, variant, targets, compile=False)
+            report(f"CMake configures the {label} harness with the pinned llama.cpp", True)
+        except (subprocess.CalledProcessError, RuntimeError, TypeError) as error:
+            report(f"CMake configures the {label} harness with the pinned llama.cpp", False, str(error))
     print()
     print("Doctor: ready for `profile`." if ok else "Doctor: problems found.")
     return ok
@@ -145,13 +159,13 @@ def run_profile(ctx, argv):
     if ctx.metal == "on" and not metal_ok:
         raise ValueError("Metal is only offered on macOS/arm64")
     cuda_compiler = platform_profile.cuda_compiler()
-    if ctx.cuda == "on" and not cuda_compiler:
+    if ctx.cuda != "off" and not cuda_compiler:
         raise ValueError("CUDA requested but nvcc was not found; install the CUDA Toolkit or use --cuda off")
     ctx.state["metal"] = metal_ok if ctx.metal == "auto" else ctx.metal == "on"
-    ctx.state["cuda"] = ctx.cuda == "on"
-    backends = [b for b, _ in measure.backends(ctx)]
+    ctx.state["cuda_mode"] = ctx.cuda
+    backends = [name for name, _, _ in measure.backends(ctx)]
     compilers = build.find_compilers(ctx)
-    host = hostinfo.collect(ctx.os_label, compilers, cuda_compiler if ctx.state["cuda"] else None)
+    host = hostinfo.collect(ctx.os_label, compilers, cuda_compiler if ctx.cuda != "off" else None)
     manifest = {
         "schema_version": 1,
         "run": {"name": ctx.run_dir.name, "started_at": _now(), "finished_at": None, "status": "running",
@@ -169,7 +183,7 @@ def run_profile(ctx, argv):
         "comparability": "Results from different hosts are not comparable to each other or to the recorded "
                          "2026-09-22 Apple M5 Pro baseline. CPU operation shares do not describe accelerator "
                          "area, bandwidth or speedup.",
-        "graphs": [], "analysis": None, "build": None,
+        "graphs": [], "analysis": None, "build": None, "cuda_build": None, "profile_build": None,
     }
     manifest["config"]["smoke"] = ctx.smoke
     manifest["config"]["prompts_only"] = ctx.prompts_only
@@ -189,8 +203,12 @@ def run_profile(ctx, argv):
         print(f"\n== ensure: pinned llama.cpp {exp['llama_cpp']['commit'][:12]} and model {exp['model']['file']}")
         fetch.ensure_source(ctx)
         model = fetch.ensure_model(ctx)
-        print("\n== build: pristine baseline runtime")
-        build.ensure_baseline(ctx)
+        if ctx.cuda != "only":
+            print("\n== build: pristine canonical CPU runtime")
+            build.ensure_baseline(ctx)
+        if ctx.cuda != "off":
+            print("\n== build: separate pristine CUDA runtime")
+            build.ensure_cuda(ctx)
         if not ctx.prompts_only:
             print("\n== baseline: uninstrumented timings and saved logits")
             measure.baseline(ctx, model)
@@ -213,7 +231,9 @@ def run_profile(ctx, argv):
             if ctx.run_trace:
                 build.ensure_profile(ctx)
             manifest["prompt_timings"] = prompt_timing.time_prompts(ctx, model)
-        manifest["build"] = build.build_config(ctx)
+        manifest["build"] = build.build_config(ctx, "baseline") if ctx.cuda != "only" else None
+        manifest["cuda_build"] = build.build_config(ctx, "cuda") if ctx.cuda != "off" else None
+        manifest["profile_build"] = build.build_config(ctx, "profile") if ctx.run_trace else None
         compress(ctx)
         if ctx.run_prompt_timings and not ctx.dry_run:
             manifest["prompt_profiles"] = {"file": "prompt-profiles.json",

@@ -11,6 +11,7 @@ import fetch
 HARNESS = CORE / "harness"
 PATCH = HARNESS / "sb-cpu-profile.patch"
 BASELINE_TARGETS = ["sb-profile", "sb-profile-prompt", "sb-capture-graph"]
+CUDA_TARGETS = ["sb-profile", "sb-profile-prompt"]
 PROFILE_TARGETS = ["sb-profile", "sb-profile-prompt"]
 
 
@@ -43,24 +44,24 @@ def build_dir(ctx, variant):
 
 
 def source_dir(ctx, variant):
-    """The baseline build reads the pristine checkout; the traced build reads its own patched worktree.
-    They must never share a source tree: a later rebuild of the baseline would otherwise silently
-    compile the instrumentation into it."""
-    return ctx.work / ("llama.cpp" if variant == "baseline" else "llama.cpp-profile")
+    """Canonical CPU and CUDA builds read pristine source; only the trace build reads the patched worktree.
+    Pristine and patched builds must never share a source tree."""
+    return ctx.work / ("llama.cpp-profile" if variant == "profile" else "llama.cpp")
 
 
 def build_variant(ctx, variant, targets, compile=True):
-    """variant: 'baseline' (pristine source) or 'profile' (patched source). compile=False only configures."""
+    """Build baseline, CUDA, or patched-profile variant. compile=False only configures."""
     source = source_dir(ctx, variant)
     directory = build_dir(ctx, variant)
     compilers = find_compilers(ctx)
     env = dict(os.environ)
     env["PATH"] = str(Path(sys.executable).parent) + os.pathsep + env.get("PATH", "")
     # CMake writes these values into generated files verbatim, so Windows backslashes would be read as escapes.
-    use_cuda = bool(ctx.state.get("cuda")) and variant == "baseline"
+    use_cuda = variant == "cuda"
+    use_metal = bool(ctx.state.get("metal")) and variant == "baseline"
     configure = [tool("cmake"), "-S", HARNESS, "-B", directory, "-G", ctx.platform["cmake_generator"],
                  "-DCMAKE_BUILD_TYPE=Release", f"-DLLAMA_CPP_SOURCE={Path(source).as_posix()}", "-DGGML_NATIVE=ON",
-                 "-DGGML_METAL=" + ("ON" if ctx.state.get("metal") else "OFF"),
+                 "-DGGML_METAL=" + ("ON" if use_metal else "OFF"),
                  "-DGGML_CUDA=" + ("ON" if use_cuda else "OFF")]
     if use_cuda:
         import platform_profile
@@ -104,9 +105,8 @@ def build_config(ctx, variant="baseline"):
         if key in wanted and "=" in rest:
             requested[key] = rest.split("=", 1)[1]
     text = ninja.read_text(encoding="utf-8", errors="replace")
-    return {"requested": requested,
-            "baseline_build_has_trace_code": has_trace_code(ctx, "baseline"),
-            "traced_build_has_trace_code": has_trace_code(ctx, "profile") if build_dir(ctx, "profile").is_dir() else None,
+    return {"variant": variant, "requested": requested,
+            "build_has_trace_code": has_trace_code(ctx, variant),
             "effective": {"openmp": "GGML_USE_OPENMP" in text, "llamafile": "GGML_USE_LLAMAFILE" in text,
                           "march_native": "-march=native" in text, "metal": "GGML_USE_METAL" in text,
                           "cuda": "GGML_USE_CUDA" in text}}
@@ -169,7 +169,21 @@ def ensure_baseline(ctx):
     check_instrumentation(ctx, "baseline", expected=False)
     if not ctx.dry_run:
         state = fetch.load_state(ctx)
-        state.update(baseline_ready=True, metal=bool(ctx.state.get("metal")), cuda=bool(ctx.state.get("cuda")))
+        state.update(baseline_ready=True, metal=bool(ctx.state.get("metal")))
+        fetch.save_state(ctx, state)
+    return compilers
+
+
+def ensure_cuda(ctx):
+    """Pristine CUDA build used only for uninstrumented CUDA execution and its matched CPU control."""
+    pristine = source_dir(ctx, "cuda")
+    if not ctx.dry_run and pristine.is_dir() and not _is_clean(pristine):
+        raise ValueError(f"{pristine} is modified. The pristine checkout must stay unpatched")
+    compilers = build_variant(ctx, "cuda", CUDA_TARGETS)
+    check_instrumentation(ctx, "cuda", expected=False)
+    if not ctx.dry_run:
+        state = fetch.load_state(ctx)
+        state["cuda_ready"] = True
         fetch.save_state(ctx, state)
     return compilers
 

@@ -45,8 +45,8 @@ def build_parser():
     p.add_argument("--jobs", type=positive, default=6, help="Parallel build jobs")
     p.add_argument("--metal", choices=["auto", "on", "off"], default="auto")
     p.add_argument("--skip-metal", action="store_true")
-    p.add_argument("--cuda", choices=["on", "off"], default="off",
-                   help="Also run uninstrumented timings on CUDA; CPU traces and graph capture stay canonical")
+    p.add_argument("--cuda", choices=["off", "on", "only"], default="off",
+                   help="off: canonical CPU; on: CPU + CUDA-build CPU control + CUDA; only: fast CUDA timing only")
     p.add_argument("--no-trace", action="store_true", help="Skip the patched runtime and operation traces")
     p.add_argument("--no-graphs", action="store_true", help="Skip scheduled-graph capture")
     p.add_argument("--include-diagnostic", action="store_true",
@@ -87,6 +87,9 @@ def make_context(args):
             sys.exit(f"error: prompt length(s) {too_long} plus {steps} continuation steps exceed the "
                      f"{work['prompt_source_tokens']}-token source passage. Shorten --decode-steps to at most "
                      f"{work['prompt_source_tokens'] - max(too_long)} or drop those lengths.")
+    cuda_only = args.cuda == "only"
+    if cuda_only and args.prompts_only:
+        sys.exit("error: --cuda only is the fixed-length fast path and cannot be combined with --prompts-only")
     ctx = Context(
         experiment=exp, platform=profile, os_label=os_label, work=args.work_dir.resolve(),
         run_dir=runpaths.create_run_dir(args.results_root, os_label, create=False),
@@ -94,11 +97,12 @@ def make_context(args):
         trace_repetitions=args.trace_repetitions or (1 if args.smoke else work["trace_repetitions"]),
         decode_steps=steps,
         graph_lengths=graph_lengths, jobs=args.jobs, metal=args.metal, skip_metal=args.skip_metal, cuda=args.cuda,
-        run_trace=not args.no_trace, run_graphs=not args.no_graphs, include_diagnostic=args.include_diagnostic,
+        run_trace=not args.no_trace and not cuda_only,
+        run_graphs=not args.no_graphs and not cuda_only, include_diagnostic=args.include_diagnostic,
         model_override=args.model, dry_run=args.dry_run, smoke=args.smoke,
-        run_prompt_graphs=args.prompts_only or not (args.no_prompt_graphs or args.smoke),
+        run_prompt_graphs=not cuda_only and (args.prompts_only or not (args.no_prompt_graphs or args.smoke)),
         prompts_only=args.prompts_only, prompt_set=args.prompt_set.resolve(),
-        run_prompt_timings=args.prompts_only or not (args.no_prompt_timings or args.smoke))
+        run_prompt_timings=not cuda_only and (args.prompts_only or not (args.no_prompt_timings or args.smoke)))
     runpaths.assert_writable(ctx.work)
     return ctx
 
@@ -112,7 +116,7 @@ def profile_command(args, argv):
 def doctor_command(args):
     ctx = make_context(args)
     ctx.state["metal"] = platform_profile.metal_available(ctx.platform, ctx.os_label) and args.metal != "off"
-    ctx.state["cuda"] = args.cuda == "on"
+    ctx.state["cuda_mode"] = args.cuda
     if not pipeline.doctor(ctx):
         sys.exit(1)
 

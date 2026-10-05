@@ -30,7 +30,7 @@ class Context:
     jobs: int = 6
     metal: str = "auto"              # auto | on | off
     skip_metal: bool = False
-    cuda: str = "off"                # on | off; explicit opt-in keeps CPU canonical
+    cuda: str = "off"                # off | on (matched study) | only (fast exploratory run)
     run_trace: bool = True
     run_graphs: bool = True
     include_diagnostic: bool = False

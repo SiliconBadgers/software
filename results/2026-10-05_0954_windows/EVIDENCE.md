@@ -37,9 +37,10 @@ throughput from the same executable and build.
 | 2,048 | 185.8 | 18,199.9 | 97.94x | 39.7 | 336.9 | 8.48x |
 | 8,192 diagnostic | 170.6 | 17,799.9 | 104.32x | 33.5 | 325.3 | 9.70x |
 
-The measured improvement is large enough to justify optional CUDA for repeated uninstrumented inference,
-quantization and numerical experiments on NVIDIA hosts. It does not accelerate the analytical scheduler or
-resource sweeps, which consume captured graphs on CPU.
+The measured improvement is large enough to justify optional CUDA for rapid candidate evaluation on NVIDIA
+hosts, followed by canonical CPU-reference confirmation. CUDA alone must not establish subtle numerical or
+model-quality conclusions. It does not accelerate the analytical scheduler or resource sweeps, which consume
+captured graphs on CPU.
 
 ## Numerical and CPU-path checks
 
@@ -56,6 +57,10 @@ checkpoint comparisons, with 9–10 top-10 overlap, but was not byte-identical a
 prefill was 26.6–28.7% faster while decode was 6.5–9.1% slower than the CUDA-enabled executable's CPU path.
 This is why the speedup table compares placements inside one CUDA-enabled build, and why its CPU row must not be
 substituted for the canonical CPU-only/historical baseline. The normal default remains `--cuda off`.
+
+This benchmark predates the split-build naming added after validation review. Its `cpu-*` files are the
+zero-offload CPU placement from the CUDA-enabled binary—the role that current comparison runs name
+`cuda-cpu-*`; they are not canonical CPU-only baseline files.
 
 ## Boundaries and omissions
 

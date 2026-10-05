@@ -9,7 +9,8 @@ results/2026-09-25_1430_macos/      <date>_<HHMM>_<os>   os = macos | linux | wi
   cpu-baseline-p128-prefill.f32.gz  saved logits (also -decode)
   cpu-profile*.jsonl, cpu-op-trace.jsonl.gz     instrumented CPU run and operation trace
   metal-baseline*                   only on macOS/arm64
-  cuda-baseline*                    only when explicitly requested with --cuda on
+  cuda-cpu-baseline*                zero-offload matched control from the CUDA build (`--cuda on`)
+  cuda-baseline*                    CUDA execution (`--cuda on` or the fast `--cuda only` path)
   analysis/                         summary.json, operation-summary.json, validation JSONs, profiling-summary.png/.pdf,
                                     decode-curve.json/.csv/.png (decode ms per token vs tokens in the KV cache)
   graphs/pp128-fa-on/               scheduled dataflow graph, flash attention on (matches the profiled run)

@@ -33,14 +33,14 @@ def _run(ctx, exe, model, ngl, reps, prompt_file, prefix, trace=None):
 
 def time_prompts(ctx, model):
     """Untraced timings for requested backends, then a traced CPU run, for every prompt."""
-    plain = exe_path(ctx, build_dir(ctx, "baseline"), "sb-profile-prompt")
     traced = exe_path(ctx, build_dir(ctx, "profile"), "sb-profile-prompt")
     done = []
     for prompt_id, file, _ in load_prompt_set(ctx.prompt_set):
         out = prompt_dir(ctx, prompt_id)
         if not ctx.dry_run:
             out.mkdir(parents=True, exist_ok=False)
-        for backend, ngl in measure.backends(ctx):
+        for backend, variant, ngl in measure.backends(ctx):
+            plain = exe_path(ctx, build_dir(ctx, variant), "sb-profile-prompt")
             _run(ctx, plain, model, ngl, ctx.repetitions, file, out / f"{backend}-baseline")
         if ctx.run_trace:
             _run(ctx, traced, model, 0, ctx.trace_repetitions, file, out / "cpu-profile",

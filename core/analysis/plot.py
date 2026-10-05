@@ -11,7 +11,7 @@ import numpy as np
 from policy import load_experiment, timing_eligible, DEFAULT_EXPERIMENT
 from result_io import exists, load_json, output_dir
 
-COLORS = {"cpu": "#275DAD", "metal": "#148271", "cuda": "#6B4C9A"}
+COLORS = {"cpu": "#275DAD", "metal": "#148271", "cuda-cpu": "#A66A3F", "cuda": "#6B4C9A"}
 GROUPS = ["MLP projections", "Attention/DeltaNet projections", "Vocabulary output head",
           "Attention QK/softmax/AV", "DeltaNet recurrence", "Copies/gather/state movement",
           "Vector/norm/activation/other", "Convolution"]
@@ -54,7 +54,7 @@ def draw(results_dir, out_dir, experiment, subtitle=None):
         grid = fig.add_gridspec(1, 2, wspace=0.27)
         ax1, ax2 = fig.add_subplot(grid[0, 0]), fig.add_subplot(grid[0, 1])
     plotted, decode_hi, prefill_lo, prefill_hi, repetitions, decode_steps = [], 0, 1e9, 0, 0, 0
-    for backend in ("cpu", "metal", "cuda"):
+    for backend in ("cpu", "metal", "cuda-cpu", "cuda"):
         data = sorted([r for r in baselines if r["run"] in run_names(experiment, backend)],
                       key=lambda r: r["prompt_tokens"])
         if not data:
@@ -70,9 +70,10 @@ def draw(results_dir, out_dir, experiment, subtitle=None):
                                       (ax2, "decode_ms", "decode_min_ms", "decode_max_ms")):
             y = np.array([r[metric] for r in data])
             err = np.array([[r[metric] - r[low] for r in data], [r[high] - r[metric] for r in data]])
-            label = {"cpu": "CPU", "metal": "Metal", "cuda": "CUDA"}[backend]
+            label = {"cpu": "Canonical CPU", "metal": "Metal", "cuda-cpu": "CPU (CUDA build)",
+                     "cuda": "CUDA"}[backend]
             ax.errorbar(x, y, yerr=err, marker="o", capsize=4, lw=2, color=COLORS[backend], label=label)
-            offsets = {"cpu": 8, "metal": -18, "cuda": 18}
+            offsets = {"cpu": 8, "metal": -18, "cuda-cpu": -30, "cuda": 20}
             for xi, yi in zip(x, y):
                 ax.annotate(f"{yi:.2f}", (xi, yi), xytext=(0, offsets[backend]),
                             textcoords="offset points", ha="center", fontsize=9, color=COLORS[backend])

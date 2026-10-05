@@ -14,6 +14,7 @@ sys.path.insert(0, str(CORE / "analysis"))
 sys.path.insert(0, str(CORE / "runner"))
 
 import cli  # noqa: E402
+import build  # noqa: E402
 import hostinfo  # noqa: E402
 import measure  # noqa: E402
 import platform_profile  # noqa: E402
@@ -21,11 +22,37 @@ import validate  # noqa: E402
 
 
 class CudaRunner(unittest.TestCase):
-    def test_cuda_is_explicit_and_cpu_stays_first(self):
+    def test_default_is_canonical_cpu_only(self):
+        args = cli.build_parser().parse_args(["profile", "--smoke"])
+        self.assertEqual(args.cuda, "off")
+        ctx = SimpleNamespace(state={"metal": False, "cuda_mode": "off"}, skip_metal=False)
+        self.assertEqual(measure.backends(ctx), [("cpu", "baseline", 0)])
+
+    def test_cuda_compare_separates_canonical_and_cuda_builds(self):
         args = cli.build_parser().parse_args(["profile", "--cuda", "on", "--smoke"])
         self.assertEqual(args.cuda, "on")
-        ctx = SimpleNamespace(state={"metal": False, "cuda": True}, skip_metal=False)
-        self.assertEqual(measure.backends(ctx), [("cpu", 0), ("cuda", 99)])
+        ctx = SimpleNamespace(state={"metal": False, "cuda_mode": "on"}, skip_metal=False)
+        self.assertEqual(measure.backends(ctx), [
+            ("cpu", "baseline", 0),
+            ("cuda-cpu", "cuda", 0),
+            ("cuda", "cuda", 99),
+        ])
+
+    def test_cuda_only_is_a_gpu_only_fast_path(self):
+        args = cli.build_parser().parse_args(["profile", "--cuda", "only", "--smoke", "--dry-run"])
+        ctx = cli.make_context(args)
+        ctx.state["cuda_mode"] = ctx.cuda
+        self.assertEqual(measure.backends(ctx), [("cuda", "cuda", 99)])
+        self.assertFalse(ctx.run_trace)
+        self.assertFalse(ctx.run_graphs)
+        self.assertFalse(ctx.run_prompt_graphs)
+        self.assertFalse(ctx.run_prompt_timings)
+
+    def test_cuda_and_trace_sources_are_separate(self):
+        ctx = SimpleNamespace(work=Path("work"))
+        self.assertEqual(build.source_dir(ctx, "baseline"), Path("work/llama.cpp"))
+        self.assertEqual(build.source_dir(ctx, "cuda"), Path("work/llama.cpp"))
+        self.assertEqual(build.source_dir(ctx, "profile"), Path("work/llama.cpp-profile"))
 
     def test_cpu_cuda_logit_comparison(self):
         experiment = {
