@@ -110,6 +110,18 @@ Effects quote **pp512, flash attention off** (the explorer's own graph), cumulat
 - Why: dependency and consumer counts come from the capture. Optimistic (assumes the units can apply the epilogue in place);
   `fusion = none` is the pessimistic bracket. Activation HBM 4.10 -> 2.72 GB; time -0.1 %.
 
+- `fusion = groups` (added 2026-10-05) applies the anchored-group rule of the
+  [operation dependency map](../../research/compute-mapping/2026-10-02-op-dependency-map/README.md) instead
+  (`sbengine/groups.py`): any single-consumer edge inside one layer is fused, around at most one compute anchor (a set of
+  weight multiplies sharing an input, the attention core, or one matrix/conv/recurrence op). Unlike `chains` it also fuses
+  prologues (the state `GET_ROWS` into the recurrence), K/V into their cache writes, and QK -> softmax -> AV. On the
+  captures checked it fuses a superset of the `chains` edges: 519 edges at pp512 flash-attention-off (501 with flash
+  attention on) against 355. Activation HBM at pp512 fa-off: **4.10 GB (`none`), 2.72 GB (`chains`), 1.80 GB (`groups`)**;
+  prefill time is unchanged (679.0 ms) and decode moves 14.45 -> 14.29 ms because the fused state read no longer crosses L1.
+  This is the most optimistic setting: it assumes every unit can apply everything in its group in place.
+  `tests/test_groups.py` checks that the port reproduces the study's committed layer, category, parallel-group and
+  fusion-group assignment for every operation of the four 2026-09-24 captures.
+
 ### 2.8 Recurrence: serial or chunked, cheaper wins  (`recurrent.lowering`)  [assumption, high impact]
 - Explorer: serial only (`work = (7 S^2 + 3 S) H T B` per layer).
 - Engine adds the chunkwise-parallel form, mapped to the matrix units, for `T > 1`: per head per chunk of `C` tokens
@@ -126,6 +138,23 @@ Effects quote **pp512, flash attention off** (the explorer's own graph), cumulat
   (leave-one-out +38.3 %). It has no effect on decode (`T = 1`). **This is the most assumption-dependent number in the engine:**
   it presumes the matrix units can run the chunk GEMMs at `matrix.efficiency` and that the software can lower the op this way.
 
+- `lowering = matrix` (added 2026-10-05) is a third option that `auto` never selects: the **captured serial update**
+  on the matrix arrays, as in the [2026-10-03 recurrence study](../../research/compute-mapping/2026-10-03-recurrence-multiplier-sensitivity/REPORT.md)
+  (`explorer/engine.js`, same equation):
+  ```
+  MACs = 3 S^2 H T B                                  (state*k, outer-product update, state*q per head-token)
+  time = MACs * matrix_penalty / (U rows cols rate_w8 f eff)  +  T_vec((S^2 + 3 S) H T B ops, H T B exps)
+  L1   = one operand pass + state * (5 T - 1)         (state re-read 5x per token, as on the vector path)
+  ```
+  The vector tail also reserves the vector pool for its duration; no matrix/vector pipelining is claimed.
+  `recurrent.matrix_penalty` (default 16) is W8xA16-equivalent PE cycles per 32-bit MAC and is **not established**; the
+  study reports 4x and 16x. Unlike chunking, this is the algorithm llama.cpp ran in every capture, and it covers decode.
+  At pp512 flash-attention-on, balanced design: prefill 869.6 ms and decode 14.73 ms at any penalty from 1x to 16x,
+  because with 64 L1 banks the op is **L1-bound** (13.5 ms per layer of state re-reads) and the arithmetic never binds.
+  With 256 banks the penalty shows: prefill 722.6 / 746.2 / 840.6 / 966.4 ms at 1x / 4x / 16x / 32x. For comparison at
+  64 banks: serial on 2 dedicated units 923.5 ms, serial on vector 1,239.1 ms, chunked 663.7 ms. So on this design the
+  state traffic assumption, not the multiplier penalty, decides the shared-matrix result.
+
 ### 2.9 Whole-graph time: bounds and a dependency-aware schedule  (`schedule.mode`)  [derived + assumption]
 - Explorer: sum of op durations in captured order (no overlap between ops).
 - Engine reports three numbers: `serial` (the explorer's sum), `list` (in-order issue per unit pool, ops wait for dependencies
@@ -134,6 +163,10 @@ Effects quote **pp512, flash attention off** (the explorer's own graph), cumulat
   read-after-write and write-after-read ordering on the KV cache and recurrent/conv state, which tensor dataflow omits.
 - Effect: decode -9.6 % (leave-one-out +10.6 %), prefill -1.3 %. Pools are exclusive and memory systems are shared floors, so
   this is a bound-respecting estimate, not a simulation.
+
+- Write-after-write ordering on a persistent buffer is included since 2026-10-05 (prefill clears each recurrent state
+  with an in-place `SCALE` before the `CPY` write-back). No default result changed (compared before and after); the
+  dependency lists now equal the dependency-map study's edge tables exactly.
 
 ### 2.10 Cross-unit hand-off and host fallback  (`sync_cycles`, `host.*`)  [assumption; measured for the host]
 - Engine (new): a dependency crossing unit pools costs `sync_cycles / f` in the schedule (placeholder 100 cycles).
@@ -166,6 +199,30 @@ Effects quote **pp512, flash attention off** (the explorer's own graph), cumulat
   `l1.banks = 256` on the Pareto front at no cost. New placeholder cost terms: `l1_bank = 8` per bank and
   `direct_weight_buffer_per_pe = 0.25`; the capability count also gains one entry per supported weight-format class.
   These are **placeholders**; setting them to 0 restores the explorer's "free" behaviour.
+
+### 2.14 Stating the switches  (`python -m sbengine switches`)
+
+Every modelling switch is registered in `config.SWITCHES` with the explorer's setting, its pessimistic setting (when one
+setting is clearly the cautious one) and what the other setting assumes. Every result carries that list (`switches`), and
+`eval` prints the switches that are off their pessimistic setting. `python -m sbengine switches` prints three things for one
+design: the result as configured, the result with every bracketed switch pessimistic (`config.conservative`), and the change
+from moving each optimistic switch back alone. At pp512 flash-attention-on, balanced design:
+
+| | Prefill | Decode |
+|---|---:|---:|
+| As configured (defaults) | 663.7 ms | 14.38 ms |
+| Every bracketed switch pessimistic | 987.3 ms (+48.8 %) | 15.96 ms (+11.0 %) |
+| `recurrent.lowering` back to `serial`, alone | +39.1 % | 0 |
+| `schedule.mode` back to `serial`, alone | +1.8 % | +10.7 % |
+| `matrix.pipelined_tiles` off, alone | +3.1 % | 0 |
+| `attention.causal_skip` off, alone | +0.8 % | +0.2 % |
+| `attention.overlap_softmax` off, alone | +0.5 % | 0 |
+| `memory.fusion` back to `none`, alone | +0.2 % | 0 |
+| `attention.mask_onchip` off, alone | 0 | 0 |
+
+Switches with no pessimistic setting are derived accounting changes (`matrix.tile_mode`, `memory.l1_feed`,
+`memory.residency`) or a design choice (`precision.weights`); they are listed, not bracketed. The defaults are unchanged by
+this section. A switch makes an assumption visible; it does not validate it.
 
 ## 3. Ablation, pp512 fa-off (`python -m sbengine ablation --graph pp512-fa-off`)
 

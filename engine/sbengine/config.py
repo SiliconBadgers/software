@@ -6,6 +6,8 @@ parameter exists, so results are comparable to that experiment; parameters that 
 
 The `legacy` switches (matrix.tile_mode, memory.residency, memory.l1_feed, memory.fusion, schedule.mode,
 matrix.pipelined_tiles) select the older equation for that piece so each change can be ablated one at a time.
+SWITCHES below is the register of every modelling switch: what the explorer did, which setting is the
+pessimistic bracket, and what the other setting assumes. Results carry it so no switch is in effect unstated.
 """
 import copy
 import hashlib
@@ -30,8 +32,13 @@ DEFAULTS = {
     "vector": {"count": 4, "lanes": 32, "efficiency": 0.7, "special_cycles": 8,
                "caps": ["elementwise", "reduce", "exp", "rope", "quant", "recurrent", "conv"]},
     "recurrent": {"count": 2, "lanes": 128, "efficiency": 0.7, "scratch_kib": 64,
-                  "lowering": "auto",  # "serial" | "chunked" | "auto" (cheaper of the feasible)
-                  "chunk": 64},
+                  # "serial" | "chunked" | "auto" (cheaper of serial and chunked) | "matrix" (the captured serial
+                  # update run on the matrix arrays at matrix_penalty; never chosen by "auto")
+                  "lowering": "auto",
+                  "chunk": 64,
+                  # W8xA16-equivalent PE cycles per 32-bit recurrence MAC for lowering = "matrix". Not established
+                  # hardware performance: the 2026-10-03 recurrence study sweeps 1x-32x and reports 4x and 16x
+                  "matrix_penalty": 16.0},
     "dma": {"count": 2, "bytes_per_cycle": 64},
     "scalar": {"count": 1, "ipc": 1.0, "mhz": 300, "cycles_per_op": 4, "cycles_per_special": 40},
     "host": {"enabled": False, "link_gbps": 16.0, "link_latency_us": 20.0, "use_measured_cpu_time": False},
@@ -43,7 +50,7 @@ DEFAULTS = {
     "attention": {"causal_skip": True, "kv_padding": "captured", "kv_tile": 128, "overlap_softmax": True,
                   "mask_onchip": True, "capacity_tokens": None},
     "memory": {"residency": "belady",      # "belady" | "per_op" (legacy spill proxy)
-               "fusion": "chains",         # "chains" | "none"
+               "fusion": "chains",         # "chains" | "groups" (anchored groups, groups.py) | "none"
                "l1_feed": "array",         # "array" | "tile" (legacy)
                # "via_l1": HBM -> L1 -> array (explorer: no direct inter-unit channels), so every weight byte
                # crosses L1 twice. "direct": weights stream HBM -> array staging registers and skip L1 (needs
@@ -62,11 +69,11 @@ DEFAULTS = {
 
 _ENUMS = {
     ("matrix", "tile_mode"): {"search", "fixed"},
-    ("recurrent", "lowering"): {"serial", "chunked", "auto"},
+    ("recurrent", "lowering"): {"serial", "chunked", "auto", "matrix"},
     ("precision", "weights"): {"captured", "uniform_int4", "uniform_int8"},
     ("attention", "kv_padding"): {"captured", "exact"},
     ("memory", "residency"): {"belady", "per_op"},
-    ("memory", "fusion"): {"chains", "none"},
+    ("memory", "fusion"): {"chains", "groups", "none"},
     ("memory", "l1_feed"): {"array", "tile"},
     ("memory", "weight_path"): {"via_l1", "direct"},
     ("schedule", "mode"): {"pools", "serial"},
@@ -77,6 +84,60 @@ _POSITIVE_INT = [("batch",), ("matrix", "rows"), ("matrix", "cols"), ("vector", 
 _COUNTS = [("matrix", "count"), ("vector", "count"), ("recurrent", "count"), ("dma", "count"), ("scalar", "count")]
 _FRACTIONS = [("matrix", "efficiency"), ("vector", "efficiency"), ("recurrent", "efficiency"), ("l1", "efficiency"),
               ("hbm", "efficiency")]
+
+
+# Every modelling switch. `explorer` is the 2026-09-24 explorer's behaviour (None: it had no equivalent).
+# `conservative` is the pessimistic bracket, or None when neither setting is the cautious one (a derived
+# accounting change or a design choice). `status` follows docs/EQUATIONS.md.
+SWITCHES = [
+    {"path": "precision.weights", "explorer": "uniform_int8", "conservative": None, "status": "design choice",
+     "assumes": "captured: weight bytes are the mixed Q4_K_M sizes in the capture; per-format MAC rates are assumed"},
+    {"path": "matrix.tile_mode", "explorer": "fixed", "conservative": None, "status": "derived",
+     "assumes": "search: the tile shape that minimises operand re-streaming within the same L1 footprint"},
+    {"path": "matrix.pipelined_tiles", "explorer": False, "conservative": False, "status": "assumption",
+     "assumes": "true: array fill/drain is paid once per op (double-buffered accumulators), not once per tile"},
+    {"path": "memory.l1_feed", "explorer": "tile", "conservative": None, "status": "derived",
+     "assumes": "array: every output tile streams both operands past the PEs, weight scale bytes included"},
+    {"path": "memory.residency", "explorer": "per_op", "conservative": None, "status": "derived + assumption",
+     "assumes": "belady: activations stay in L1 while they fit and are needed; the static L1 partition is assumed"},
+    {"path": "memory.fusion", "explorer": "none", "conservative": "none", "status": "assumption",
+     "assumes": "chains / groups: the units apply fused consumers in place, so the intermediate is never stored"},
+    {"path": "memory.weight_path", "explorer": "via_l1", "conservative": "via_l1", "status": "assumption",
+     "assumes": "direct: weights stream HBM -> per-PE staging and skip L1; the buffers are not sized here"},
+    {"path": "recurrent.lowering", "explorer": "serial", "conservative": "serial", "status": "assumption",
+     "assumes": "auto / chunked: a chunk-parallel lowering nobody has implemented; matrix: the matrix arrays run "
+                "the 32-bit update at recurrent.matrix_penalty"},
+    {"path": "attention.causal_skip", "explorer": None, "conservative": False, "status": "derived + assumption",
+     "assumes": "true: fused attention skips fully masked key tiles (flash-attention-on graphs only)"},
+    {"path": "attention.overlap_softmax", "explorer": None, "conservative": False, "status": "assumption",
+     "assumes": "true: softmax runs on the vector units behind the matrix work instead of after it"},
+    {"path": "attention.mask_onchip", "explorer": None, "conservative": False, "status": "assumption",
+     "assumes": "true: the causal mask is generated on-chip instead of read from HBM"},
+    {"path": "schedule.mode", "explorer": "serial", "conservative": "serial", "status": "derived + assumption",
+     "assumes": "pools: ops on different unit pools overlap once their captured dependencies are met"},
+    {"path": "schedule.within_op_overlap", "explorer": True, "conservative": None, "status": "assumption",
+     "assumes": "true: compute, L1 and HBM service overlap inside one op (shared with the explorer)"},
+]
+
+
+def switch_report(cfg):
+    """Where each modelling switch stands in this config. `optimistic` marks a switch that is off its pessimistic
+    bracket, i.e. one whose assumption the reported numbers depend on."""
+    rows = []
+    for s in SWITCHES:
+        value = get_path(cfg, s["path"])
+        rows.append({**s, "value": value, "differs_from_explorer": s["explorer"] is not None and value != s["explorer"],
+                     "optimistic": s["conservative"] is not None and value != s["conservative"]})
+    return rows
+
+
+def conservative(cfg):
+    """A copy of cfg with every switch that has a pessimistic bracket set to it. Hardware parameters are untouched."""
+    out = copy.deepcopy(cfg)
+    for s in SWITCHES:
+        if s["conservative"] is not None:
+            set_path(out, s["path"], s["conservative"])
+    return out
 
 
 def deep_merge(base, over):
@@ -138,7 +199,7 @@ def validate(cfg):
         if v is not None and v > 1:
             errors.append(f"{'.'.join(path)} must be in (0, 1]")
     for path in [("clock_mhz",), ("hbm", "gib"), ("hbm", "gbs"), ("l1", "mib"), ("scalar", "ipc"), ("scalar", "mhz"),
-                 ("scalar", "cycles_per_op")]:
+                 ("scalar", "cycles_per_op"), ("recurrent", "matrix_penalty")]:
         num(path, True)
     for path in [("launch_cycles",), ("sync_cycles",), ("vector", "special_cycles"), ("scalar", "cycles_per_special"),
                  ("recurrent", "scratch_kib"), ("dma", "bytes_per_cycle"), ("host", "link_gbps"),

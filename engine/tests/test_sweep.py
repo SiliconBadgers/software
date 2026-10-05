@@ -76,6 +76,24 @@ class Analyses(unittest.TestCase):
         self.assertAlmostEqual(rows[-1]["decode_s"], final["phases"]["decode"]["seconds"], places=9)
         self.assertEqual(len(loo), len(sweep.ABLATION_STEPS))
 
+    def test_switch_table_brackets_the_configured_result(self):
+        base = config.load_profile("accel-balanced")[0]
+        t = sweep.switch_table(self.w, base)
+        given, cautious = t["given"], t["conservative"]
+        self.assertNotEqual(given["config_hash"], cautious["config_hash"])
+        self.assertGreater(cautious["prefill_s"], given["prefill_s"])
+        self.assertGreater(cautious["decode_s"], given["decode_s"])
+        rows = {r["path"]: r for r in t["rows"]}
+        self.assertEqual(set(rows), {s["path"] for s in config.SWITCHES})
+        for r in rows.values():                                                # only optimistic switches get a delta
+            self.assertEqual("prefill_delta_pct" in r, r["optimistic"], r["path"])
+        self.assertGreater(rows["recurrent.lowering"]["prefill_delta_pct"], 20)
+        self.assertAlmostEqual(rows["recurrent.lowering"]["decode_delta_pct"], 0)   # chunking never applies to one token
+        # a design that is already pessimistic everywhere has nothing to state
+        again = sweep.switch_table(self.w, config.conservative(base))
+        self.assertEqual(again["given"], again["conservative"])
+        self.assertFalse(any(r["optimistic"] for r in again["rows"]))
+
     def test_sensitivity_direction_and_binding_flags(self):
         base, rows = sweep.sensitivity(self.w, self.cfg, ["hbm.gbs", "clock_mhz", "l1.banks"], delta=0.3)
         by = {r["param"]: r for r in rows}

@@ -52,6 +52,7 @@ class GraphStructure(unittest.TestCase):
         deps = g.deps()
         self.assertIn(by["cache_k_l0 (view)"], deps[by["read"]])                   # read-after-write on the cache
         self.assertIn(by["read"], deps[by["cache_k_l0 (view) 2"]])                 # write-after-read
+        self.assertIn(by["cache_k_l0 (view)"], deps[by["cache_k_l0 (view) 2"]])    # write-after-write
         self.assertEqual(deps[by["Kcur"]], [])
 
     def test_fusion_rule(self):
@@ -216,6 +217,43 @@ class AttentionAndRecurrence(unittest.TestCase):
         g1 = one.graph(input_tokens=1)
         c1 = node_cost(Ctx(config.make_config({"recurrent": {"lowering": "chunked"}})), g1, g1.nodes[-1])
         self.assertIn("no recurrence", c1.error)
+
+    def test_serial_recurrence_on_the_matrix_arrays(self):
+        """recurrent.lowering = "matrix": 3 S^2 MACs per head-token at matrix_penalty, plus the vector tail
+        (same equation as the 2026-10-03 recurrence study's shared-matrix path in explorer/engine.js)."""
+        g = self._gdn_graph()                                                   # S = 4, H = 2, T = 8
+        n = g.nodes[-1]
+
+        def cost(penalty, **over):
+            cfg = config.make_config(config.deep_merge({"recurrent": {"lowering": "matrix", "matrix_penalty": penalty}}, over))
+            return cfg, node_cost(Ctx(cfg), g, n)
+
+        cfg, c = cost(4)
+        macs = 3 * 16 * 2 * 8
+        self.assertEqual((c.pool, c.macs, c.note), ("Matrix", macs, "serial/matrix x4"))
+        m, v = cfg["matrix"], cfg["vector"]
+        f = cfg["clock_mhz"] * 1e6
+        t_mat = macs * 4 / (m["count"] * m["rows"] * m["cols"] * m["rates"]["w8"] * f * m["efficiency"])
+        t_vec = ((16 + 12) * 2 * 8 + 2 * 8 * v["special_cycles"]) / (v["count"] * v["lanes"] * f * v["efficiency"])
+        self.assertAlmostEqual(c.compute_s, t_mat + t_vec)
+        self.assertEqual(c.aux_busy, {"Vector": t_vec})                         # the tail also holds the vector side
+        # dedicated recurrence units are not used by this lowering, whatever their count
+        self.assertEqual(cost(4, recurrent={"count": 0})[1].compute_s, c.compute_s)
+        # the penalty scales only the matrix part
+        self.assertAlmostEqual(cost(16)[1].compute_s - c.compute_s, 3 * t_mat)
+        # "auto" never picks it, so existing configurations are unchanged
+        auto = node_cost(Ctx(config.make_config({"recurrent": {"matrix_penalty": 0.001}})), g, n)
+        self.assertNotIn("serial/matrix", auto.note)
+        # it needs matrix units and somewhere to run the tail
+        self.assertIn("no recurrence", cost(4, matrix={"count": 0})[1].error)
+        # unlike chunking it also covers a single token (decode)
+        one = Builder()
+        act = lambda name, shape: one.add(name, shape, op="ROPE")             # noqa: E731
+        srcs = [act(nm, s) for nm, s in (("q", [4, 2, 1]), ("k", [4, 2, 1]), ("v", [4, 2, 1]), ("g", [1, 2, 1]), ("b", [1, 2, 1]), ("s", [4, 4, 2]))]
+        one.add("gdn", [8, 5], op="GATED_DELTA_NET", src=tuple(srcs))
+        g1 = one.graph(input_tokens=1)
+        c1 = node_cost(Ctx(config.make_config({"recurrent": {"lowering": "matrix"}})), g1, g1.nodes[-1])
+        self.assertEqual((c1.pool, c1.macs), ("Matrix", 3 * 16 * 2))
 
     def test_memory_ops(self):
         b = Builder()

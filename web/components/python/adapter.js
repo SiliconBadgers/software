@@ -103,7 +103,15 @@ export async function createStudy() {
       ["auto", "Lowest estimated cost"],
       ["serial", "Token by token"],
       ["chunked", "Process chunks"],
+      ["matrix", "Token by token on matrix arrays"],
     ]),
+    numeric(
+      "recurrent.matrix_penalty",
+      "Matrix recurrence penalty · x",
+      "Compute",
+      0.25,
+      1,
+    ),
     choice("precision.weights", "Weight format", "Compute", [
       ["captured", "Captured mixed formats"],
       ["uniform_int4", "Uniform INT4"],
@@ -123,6 +131,7 @@ export async function createStudy() {
     ]),
     choice("memory.fusion", "Fusion model", "Memory", [
       ["chains", "Single-consumer chains"],
+      ["groups", "Anchored dependency-map groups"],
       ["none", "No fusion"],
     ]),
     choice("schedule.mode", "Operation scheduling", "Execution", [

@@ -12,7 +12,7 @@ import random
 from pathlib import Path
 
 from . import VERSION
-from .config import apply_sets, config_hash, deep_merge, get_path, set_path, validate
+from .config import apply_sets, config_hash, conservative, deep_merge, get_path, set_path, switch_report, validate
 from .model import evaluate
 
 BINDING = ("matrix", "vector", "recurrent", "dma", "scalar", "host", "l1", "hbm")
@@ -156,6 +156,28 @@ def ablation(workload, legacy_cfg, new_cfg, trace=None):
         loo.append({"reverted": name, "prefill_s": p, "decode_s": d, **t,
                     "prefill_delta_pct": 100 * (p / full[0] - 1), "decode_delta_pct": 100 * (d / full[1] - 1)})
     return rows, loo
+
+
+def switch_table(workload, cfg, trace=None):
+    """Three views of one design, so no modelling switch is in effect unstated: the config as given, the same
+    hardware with every bracketed switch at its pessimistic setting (config.conservative), and the effect of
+    moving each optimistic switch back on its own."""
+    def run(c):
+        r = evaluate(workload, c, trace)
+        return {"prefill_s": r["phases"]["prefill"]["seconds"], "decode_s": r["phases"]["decode"]["seconds"],
+                "config_hash": r["config_hash"], "valid": r["valid"]}
+    given, pessimistic = run(cfg), run(conservative(cfg))
+    rows = []
+    for s in switch_report(cfg):
+        row = {k: s[k] for k in ("path", "value", "explorer", "conservative", "status", "optimistic", "assumes")}
+        if s["optimistic"]:
+            alone = copy.deepcopy(cfg)
+            set_path(alone, s["path"], s["conservative"])
+            r = run(alone)
+            row["prefill_delta_pct"] = 100 * (r["prefill_s"] / given["prefill_s"] - 1)
+            row["decode_delta_pct"] = 100 * (r["decode_s"] / given["decode_s"] - 1)
+        rows.append(row)
+    return {"workload": workload.name, "given": given, "conservative": pessimistic, "rows": rows}
 
 
 # -- sensitivity ------------------------------------------------------------------------------------------------

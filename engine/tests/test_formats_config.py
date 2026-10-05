@@ -1,4 +1,5 @@
 """Storage formats agree with the capture; configs validate; profiles load; hashes are stable."""
+import copy
 import unittest
 
 from helpers import ENGINE, real_run  # noqa: F401  (sets sys.path)
@@ -41,7 +42,7 @@ class Config(unittest.TestCase):
     def test_bad_values_rejected(self):
         for over in ({"matrix": {"efficiency": 1.5}}, {"clock_mhz": 0}, {"batch": 1.5}, {"l1": {"state_reserve": 0.6, "tile_fraction": 0.5}},
                      {"memory": {"fusion": "sometimes"}}, {"precision": {"act_bits": 12}}, {"matrix": {"caps": "gemm"}},
-                     {"hbm": {"gbs": float("nan")}}):
+                     {"hbm": {"gbs": float("nan")}}, {"recurrent": {"lowering": "fast"}}, {"recurrent": {"matrix_penalty": 0}}):
             with self.assertRaises(ValueError, msg=str(over)):
                 config.make_config(over)
 
@@ -53,6 +54,37 @@ class Config(unittest.TestCase):
         self.assertEqual(cfg["matrix"]["count"], 4)                          # input untouched
         with self.assertRaises(KeyError):
             config.apply_sets(cfg, ["matrix.nope=1"])
+
+    def test_switch_register_covers_real_paths_and_valid_values(self):
+        """Every registered switch exists, and its explorer and pessimistic settings are accepted values."""
+        base = config.make_config()
+        for s in config.SWITCHES:
+            config.get_path(base, s["path"])                                    # KeyError if the path is wrong
+            for key in ("explorer", "conservative"):
+                if s[key] is not None:
+                    cfg = copy.deepcopy(base)
+                    config.set_path(cfg, s["path"], s[key])
+                    self.assertEqual(config.validate(cfg), [], s["path"])
+        self.assertEqual(len({s["path"] for s in config.SWITCHES}), len(config.SWITCHES))
+
+    def test_conservative_config_has_no_optimistic_switch(self):
+        base = config.make_config()
+        optimistic = {r["path"] for r in config.switch_report(base) if r["optimistic"]}
+        self.assertIn("recurrent.lowering", optimistic)                         # the default is "auto"
+        self.assertIn("schedule.mode", optimistic)
+        cautious = config.conservative(base)
+        self.assertEqual([r["path"] for r in config.switch_report(cautious) if r["optimistic"]], [])
+        self.assertEqual(config.validate(cautious), [])
+        self.assertEqual(base["recurrent"]["lowering"], "auto")                 # input untouched
+        restored = copy.deepcopy(cautious)                                     # only the switches moved
+        for s in config.SWITCHES:
+            config.set_path(restored, s["path"], config.get_path(base, s["path"]))
+        self.assertEqual(restored, base)
+        # the explorer-equations profile is pessimistic on every switch the explorer had
+        legacy = config.load_profile("legacy-equations")[0]
+        for r in config.switch_report(legacy):
+            if r["explorer"] is not None:
+                self.assertEqual(r["value"], r["explorer"], r["path"])
 
     def test_hash_is_stable_and_sensitive(self):
         a, b = config.make_config(), config.make_config()
