@@ -18,6 +18,7 @@ import build  # noqa: E402
 import hostinfo  # noqa: E402
 import measure  # noqa: E402
 import platform_profile  # noqa: E402
+import plot  # noqa: E402
 import validate  # noqa: E402
 
 
@@ -53,6 +54,13 @@ class CudaRunner(unittest.TestCase):
         self.assertEqual(build.source_dir(ctx, "baseline"), Path("work/llama.cpp"))
         self.assertEqual(build.source_dir(ctx, "cuda"), Path("work/llama.cpp"))
         self.assertEqual(build.source_dir(ctx, "profile"), Path("work/llama.cpp-profile"))
+
+    def test_cpu_plot_label_distinguishes_legacy_control_from_canonical_cpu(self):
+        legacy = [{"run": "cpu-baseline"}, {"run": "cuda-baseline"}]
+        split = legacy + [{"run": "cuda-cpu-baseline"}]
+        self.assertEqual(plot.cpu_label(legacy), "CPU (CUDA build)")
+        self.assertEqual(plot.cpu_label(split), "Canonical CPU")
+        self.assertEqual(plot.cpu_label([{"run": "cpu-baseline"}]), "CPU")
 
     def test_cpu_cuda_logit_comparison(self):
         experiment = {

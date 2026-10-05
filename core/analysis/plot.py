@@ -30,6 +30,17 @@ def run_names(experiment, backend):
     return [f"{backend}-{tag}" for tag in tags]
 
 
+def cpu_label(baselines):
+    """Older CUDA runs named their same-binary zero-offload control `cpu-*`.
+    Split-build runs contain `cuda-cpu-*`, which makes `cpu-*` the canonical CPU-only build."""
+    runs = {row["run"] for row in baselines}
+    has_cuda = any(name.startswith("cuda-") for name in runs)
+    has_explicit_control = any(name.startswith("cuda-cpu-") for name in runs)
+    if has_cuda and not has_explicit_control:
+        return "CPU (CUDA build)"
+    return "Canonical CPU" if has_explicit_control else "CPU"
+
+
 def subtitle_for(results_dir, override):
     if override:
         return override
@@ -42,6 +53,7 @@ def subtitle_for(results_dir, override):
 
 def draw(results_dir, out_dir, experiment, subtitle=None):
     baselines = load_json(results_dir / "summary.json")
+    cpu_legend = cpu_label(baselines)
     has_ops = exists(results_dir / "operation-summary.json")
     ops = load_json(results_dir / "operation-summary.json")["runs"] if has_ops else []
     plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 11,
@@ -70,7 +82,7 @@ def draw(results_dir, out_dir, experiment, subtitle=None):
                                       (ax2, "decode_ms", "decode_min_ms", "decode_max_ms")):
             y = np.array([r[metric] for r in data])
             err = np.array([[r[metric] - r[low] for r in data], [r[high] - r[metric] for r in data]])
-            label = {"cpu": "Canonical CPU", "metal": "Metal", "cuda-cpu": "CPU (CUDA build)",
+            label = {"cpu": cpu_legend, "metal": "Metal", "cuda-cpu": "CPU (CUDA build)",
                      "cuda": "CUDA"}[backend]
             ax.errorbar(x, y, yerr=err, marker="o", capsize=4, lw=2, color=COLORS[backend], label=label)
             offsets = {"cpu": 8, "metal": -18, "cuda-cpu": -30, "cuda": 20}
@@ -126,10 +138,10 @@ def draw(results_dir, out_dir, experiment, subtitle=None):
         notes.append("CPU operation shares do not describe GPU kernels or predict accelerator area."
                      + (" Anomalous timing shares for excluded cases omitted."
                         if any(not timing_eligible(experiment, r["prompt_tokens"]) for r in ops) else ""))
-    fig.suptitle("Qwen3.5-2B in llama.cpp", x=.08, y=.98, ha="left", fontsize=22, fontweight="bold")
-    fig.text(.08, .935, subtitle or "", fontsize=11, color="#555")
+    fig.suptitle("Qwen3.5-2B in llama.cpp", x=.08, y=.985, ha="left", fontsize=22, fontweight="bold")
+    fig.text(.08, .91, subtitle or "", fontsize=11, color="#555")
     fig.text(.08, .028, " ".join(notes[:2]) + "\n" + " ".join(notes[2:]), fontsize=9, color="#555")
-    fig.subplots_adjust(top=.86, bottom=.21 if has_ops else .18, left=.1, right=.97)
+    fig.subplots_adjust(top=.82, bottom=.21 if has_ops else .18, left=.1, right=.97)
     fig.savefig(out_dir / "profiling-summary.png", dpi=180)
     fig.savefig(out_dir / "profiling-summary.pdf")
     plt.close(fig)
