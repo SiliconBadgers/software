@@ -47,7 +47,7 @@ python -m sbengine montecarlo --designs accel-balanced accel-efficient
 python -m sbengine parity                                 # MAC accounting vs every captured summary
 python -m sbengine validate-cpu                           # held-out check against measured CPU op times
 python -m sbengine serve                                  # interactive modelling page: http://127.0.0.1:8765
-python -m unittest discover -s tests                      # 74 tests
+python -m unittest discover -s tests                      # 75 tests
 ```
 
 `serve` opens the modelling web page (`sbengine/web/index.html`). Unlike the static run browser in

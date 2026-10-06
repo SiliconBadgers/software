@@ -161,12 +161,24 @@ def ablation(workload, legacy_cfg, new_cfg, trace=None):
 def switch_table(workload, cfg, trace=None):
     """Three views of one design, so no modelling switch is in effect unstated: the config as given, the same
     hardware with every bracketed switch at its pessimistic setting (config.conservative), and the effect of
-    moving each optimistic switch back on its own."""
+    moving each optimistic switch back on its own.
+
+    Every evaluation keeps its `valid` flag and `errors`. An infeasible design times its unmapped ops at zero, so
+    its seconds are not a result: percentage deltas are only reported when both sides of a comparison are valid."""
     def run(c):
         r = evaluate(workload, c, trace)
         return {"prefill_s": r["phases"]["prefill"]["seconds"], "decode_s": r["phases"]["decode"]["seconds"],
-                "config_hash": r["config_hash"], "valid": r["valid"]}
-    given, pessimistic = run(cfg), run(conservative(cfg))
+                "config_hash": r["config_hash"], "valid": r["valid"], "errors": r["errors"]}
+
+    def compare(result):
+        if not (given["valid"] and result["valid"]):
+            return {}
+        return {"prefill_delta_pct": 100 * (result["prefill_s"] / given["prefill_s"] - 1),
+                "decode_delta_pct": 100 * (result["decode_s"] / given["decode_s"] - 1)}
+
+    given = run(cfg)
+    pessimistic = run(conservative(cfg))
+    pessimistic.update(compare(pessimistic))
     rows = []
     for s in switch_report(cfg):
         row = {k: s[k] for k in ("path", "value", "explorer", "conservative", "status", "optimistic", "assumes")}
@@ -174,8 +186,8 @@ def switch_table(workload, cfg, trace=None):
             alone = copy.deepcopy(cfg)
             set_path(alone, s["path"], s["conservative"])
             r = run(alone)
-            row["prefill_delta_pct"] = 100 * (r["prefill_s"] / given["prefill_s"] - 1)
-            row["decode_delta_pct"] = 100 * (r["decode_s"] / given["decode_s"] - 1)
+            row["alone"] = r
+            row.update(compare(r))
         rows.append(row)
     return {"workload": workload.name, "given": given, "conservative": pessimistic, "rows": rows}
 

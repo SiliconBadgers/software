@@ -146,7 +146,10 @@ Effects quote **pp512, flash attention off** (the explorer's own graph), cumulat
   time = MACs * matrix_penalty / (U rows cols rate_w8 f eff)  +  T_vec((S^2 + 3 S) H T B ops, H T B exps)
   L1   = one operand pass + state * (5 T - 1)         (state re-read 5x per token, as on the vector path)
   ```
-  The vector tail also reserves the vector pool for its duration; no matrix/vector pipelining is claimed.
+  Matrix and vector time are added serially and the per-token tail is interleaved with the products, so the op also
+  reserves the vector pool for its whole compute interval (`t_mat + t_vec`), not only the tail's length; no matrix/vector
+  pipelining is claimed. The scheduler has no explicit phases, and the reservation covers the compute interval, not any
+  extra time an L1- or HBM-bound op takes.
   `recurrent.matrix_penalty` (default 16) is W8xA16-equivalent PE cycles per 32-bit MAC and is **not established**; the
   study reports 4x and 16x. Unlike chunking, this is the algorithm llama.cpp ran in every capture, and it covers decode.
   At pp512 flash-attention-on, balanced design: prefill 869.6 ms and decode 14.73 ms at any penalty from 1x to 16x,
@@ -223,6 +226,12 @@ from moving each optimistic switch back alone. At pp512 flash-attention-on, bala
 Switches with no pessimistic setting are derived accounting changes (`matrix.tile_mode`, `memory.l1_feed`,
 `memory.residency`) or a design choice (`precision.weights`); they are listed, not bracketed. The defaults are unchanged by
 this section. A switch makes an assumption visible; it does not validate it.
+
+Every evaluation in the table keeps its validity and errors. An infeasible design times its unmapped operations at zero, so
+no percentage is reported when either side of a comparison is infeasible: the row (or the all-pessimistic line) shows
+`infeasible` and the reason instead. For example, with `lowering = matrix`, no recurrence unit, no scalar core and a vector
+unit without the `recurrent` capability, moving `recurrent.lowering` back to `serial` leaves no unit that can run the
+recurrence; it is reported as infeasible, not as a 30 % improvement.
 
 ## 3. Ablation, pp512 fa-off (`python -m sbengine ablation --graph pp512-fa-off`)
 

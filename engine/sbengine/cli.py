@@ -151,20 +151,33 @@ def cmd_switches(args):
     def show(v):
         return "-" if v is None else json.dumps(v)
 
+    def summary(label, r):
+        if not r["valid"]:      # an infeasible design times its unmapped ops at zero: its seconds are not a result
+            return f"  {label:36s} INFEASIBLE: {'; '.join(r['errors'])}   config {r['config_hash']}"
+        delta = f"   ({r['prefill_delta_pct']:+.1f}% / {r['decode_delta_pct']:+.1f}%)" if "prefill_delta_pct" in r else ""
+        return f"  {label:36s} prefill {_ms(r['prefill_s'])}  decode {_ms(r['decode_s'])}   config {r['config_hash']}{delta}"
+
     print(f"modelling switches on {w.name} (profile {doc.get('name')})")
     print()
-    print(f"  {'as configured':36s} prefill {_ms(g['prefill_s'])}  decode {_ms(g['decode_s'])}   config {g['config_hash']}")
-    print(f"  {'every bracketed switch pessimistic':36s} prefill {_ms(c['prefill_s'])}  decode {_ms(c['decode_s'])}   config {c['config_hash']}"
-          f"   ({100 * (c['prefill_s'] / g['prefill_s'] - 1):+.1f}% / {100 * (c['decode_s'] / g['decode_s'] - 1):+.1f}%)")
+    print(summary("as configured", g))
+    print(summary("every bracketed switch pessimistic", c))
     print()
     print(f"  {'switch':28s} {'value':>14s} {'pessimistic':>12s} {'explorer':>14s}  {'status':20s} alone: prefill / decode")
     for r in t["rows"]:
-        delta = f"{r['prefill_delta_pct']:+7.1f}% / {r['decode_delta_pct']:+6.1f}%" if "prefill_delta_pct" in r else ""
+        if "prefill_delta_pct" in r:
+            delta = f"{r['prefill_delta_pct']:+7.1f}% / {r['decode_delta_pct']:+6.1f}%"
+        elif "alone" in r and not r["alone"]["valid"]:
+            delta = "infeasible: " + "; ".join(r["alone"]["errors"])
+        elif "alone" in r:
+            delta = "not compared (the configured design is infeasible)"
+        else:
+            delta = ""
         mark = "*" if r["optimistic"] else " "
         print(f" {mark}{r['path']:28s} {show(r['value']):>14s} {show(r['conservative']):>12s} {show(r['explorer']):>14s}  {r['status']:20s} {delta}")
     print()
     print("  * off its pessimistic setting. 'alone' is the change from moving just that switch back. A switch with no")
     print("    pessimistic setting is a derived accounting change or a design choice (docs/EQUATIONS.md).")
+    print("  No percentage is shown for an infeasible design: its unmapped operations are timed at zero.")
     print("  Estimates under assumed hardware parameters; a switch makes an assumption visible, it does not validate it.")
 
 

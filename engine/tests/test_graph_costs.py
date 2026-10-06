@@ -8,6 +8,7 @@ from sbengine import config
 from sbengine.costs import Ctx, _candidates, _tile_plan, node_cost
 from sbengine.graph import KNOWN_OPS, METADATA_OPS, Graph, capture_path
 from sbengine.memory import fused_roots
+from sbengine.schedule import schedule
 
 
 def cfg_small(**over):
@@ -236,7 +237,13 @@ class AttentionAndRecurrence(unittest.TestCase):
         t_mat = macs * 4 / (m["count"] * m["rows"] * m["cols"] * m["rates"]["w8"] * f * m["efficiency"])
         t_vec = ((16 + 12) * 2 * 8 + 2 * 8 * v["special_cycles"]) / (v["count"] * v["lanes"] * f * v["efficiency"])
         self.assertAlmostEqual(c.compute_s, t_mat + t_vec)
-        self.assertEqual(c.aux_busy, {"Vector": t_vec})                         # the tail also holds the vector side
+        # matrix and vector time are added serially, so the vector side is held for the whole compute interval:
+        # other vector work must not slip in behind the first t_vec seconds
+        self.assertEqual(set(c.aux_busy), {"Vector"})
+        self.assertAlmostEqual(c.aux_busy["Vector"], t_mat + t_vec)
+        timeline = schedule([c.compute_s, t_vec], ["Matrix", "Vector"], [[], []], [0.0, 0.0], [0.0, 0.0], 0.0,
+                            [c.aux_busy, {}], detail=True)["operations"]
+        self.assertAlmostEqual(timeline[1]["start"], c.compute_s)               # an independent vector op waits
         # dedicated recurrence units are not used by this lowering, whatever their count
         self.assertEqual(cost(4, recurrent={"count": 0})[1].compute_s, c.compute_s)
         # the penalty scales only the matrix part

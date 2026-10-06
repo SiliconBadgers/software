@@ -90,16 +90,18 @@ Bugs the tests or checks found while building it: a schedule clip that made the 
 (ops that occupy a second pool now block it); a residency crash on an infeasible design (now flagged, not raised); an inconsistent DMA
 definition between copies and gathers; an activation-traffic undercount in the explorer's spill proxy (kept as the legacy switch).
 
-Added 2026-10-05 (74 tests in total, 3 of them skipped without local-only traces and summaries):
+Added 2026-10-05, with review fixes on 2026-10-06 (75 tests in total, 3 of them skipped without local-only traces and summaries):
 
 - Anchored fusion groups (9): the rule on synthetic graphs (parallel group, one anchor per group, no cross-layer fusion); the
   engine's loader and `groups.py` reproduce the 2026-10-02 dependency-map study's committed tables for the four 2026-09-24
   captures (same operations, same data and state-ordering edges including write-after-write, same layer, category,
   parallel-group and fusion-group for every operation); on the engine's own captures `groups` fuses a superset of `chains` and
   never adds activation traffic; each captured `FLASH_ATTN_EXT` is one attention anchor.
-- Serial recurrence on the matrix arrays (1): MACs, time and vector-tail reservation against the hand-computed equation, linear
+- Serial recurrence on the matrix arrays (1): MACs, time and the vector reservation for the whole compute interval (an
+  independent vector op cannot start inside it) against the hand-computed equation, linear
   in the penalty, independent of the dedicated-unit count, never chosen by `auto`, valid for a single token.
-- Switch register (3): every registered path and value is valid; `config.conservative` leaves no optimistic switch and moves
+- Switch register (4): infeasible designs are never turned into a percentage (the reverted evaluation keeps its validity
+  and errors); every registered path and value is valid; `config.conservative` leaves no optimistic switch and moves
   nothing else; the explorer-equations profile sits at the explorer setting of every switch; the switch table brackets the
   configured result.
 - Default results were compared before and after these changes on pp128/pp512/pp8192 flash-attention-on, pp512 and one prompt

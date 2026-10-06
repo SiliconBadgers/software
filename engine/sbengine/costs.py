@@ -415,7 +415,10 @@ def cost_gdn(ctx, g, n):
         vpool, t_vec = ctx.vec_or_scalar((S * S + 3 * S) * H * T * B, special, ("elementwise", "exp"))
         if vpool is not None:      # state re-read 5x per token through L1, as on the vector path
             options.append(("Matrix", t_mat + t_vec, state * ctx.state_b * (5 * T - 1), f"serial/matrix x{r['matrix_penalty']:g}", macs))
-            aux = {vpool: t_vec}   # the tail also holds the vector side; no matrix/vector pipelining is claimed
+            # Matrix and vector time are added serially and the per-token tail is interleaved with the products,
+            # so the vector side is held for the whole compute interval, not only its first t_vec seconds. The
+            # scheduler has no explicit phases; until it does this is the reservation that cannot be overlapped.
+            aux = {vpool: t_mat + t_vec}
     if r["lowering"] in ("serial", "auto"):
         if r["count"] > 0:
             active = min(r["count"], H * B)

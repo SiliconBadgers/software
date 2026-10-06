@@ -91,8 +91,39 @@ class Analyses(unittest.TestCase):
         self.assertAlmostEqual(rows["recurrent.lowering"]["decode_delta_pct"], 0)   # chunking never applies to one token
         # a design that is already pessimistic everywhere has nothing to state
         again = sweep.switch_table(self.w, config.conservative(base))
-        self.assertEqual(again["given"], again["conservative"])
+        self.assertEqual(again["given"]["config_hash"], again["conservative"]["config_hash"])
+        self.assertEqual(again["conservative"]["prefill_delta_pct"], 0.0)
         self.assertFalse(any(r["optimistic"] for r in again["rows"]))
+
+    def test_switch_table_does_not_compare_infeasible_designs(self):
+        """An infeasible design times its unmapped ops at zero, so its seconds must never become a percentage."""
+        base = config.load_profile("accel-balanced")[0]
+        # valid as configured: the serial update runs on the matrix arrays. Moving recurrent.lowering back to
+        # "serial" leaves no unit that can run it (no recurrence unit, no scalar core, vector lacks the capability)
+        caps = [c for c in base["vector"]["caps"] if c != "recurrent"]
+        cfg = config.make_config({"recurrent": {"lowering": "matrix", "count": 0}, "scalar": {"count": 0},
+                                  "vector": {"caps": caps}}, base=base)
+        t = sweep.switch_table(self.w, cfg)
+        self.assertTrue(t["given"]["valid"])
+        rows = {r["path"]: r for r in t["rows"]}
+        lowering = rows["recurrent.lowering"]
+        self.assertFalse(lowering["alone"]["valid"])
+        self.assertTrue(any("GATED_DELTA_NET" in e for e in lowering["alone"]["errors"]))
+        self.assertNotIn("prefill_delta_pct", lowering)
+        self.assertNotIn("decode_delta_pct", lowering)
+        self.assertFalse(t["conservative"]["valid"])                           # it contains the same reversion
+        self.assertTrue(t["conservative"]["errors"])
+        self.assertNotIn("prefill_delta_pct", t["conservative"])
+        feasible = rows["matrix.pipelined_tiles"]                              # other switches are still compared
+        self.assertTrue(feasible["alone"]["valid"])
+        self.assertIn("prefill_delta_pct", feasible)
+        # when the configured design itself is infeasible nothing is compared, even against feasible alternatives
+        broken = config.make_config({"matrix": {"count": 0}, "scalar": {"count": 0}}, base=base)
+        t = sweep.switch_table(self.w, broken)
+        self.assertFalse(t["given"]["valid"])
+        self.assertTrue(t["given"]["errors"])
+        self.assertNotIn("prefill_delta_pct", t["conservative"])
+        self.assertFalse(any("prefill_delta_pct" in r for r in t["rows"]))
 
     def test_sensitivity_direction_and_binding_flags(self):
         base, rows = sweep.sensitivity(self.w, self.cfg, ["hbm.gbs", "clock_mhz", "l1.banks"], delta=0.3)
