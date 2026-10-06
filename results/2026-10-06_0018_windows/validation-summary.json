@@ -1,0 +1,521 @@
+{
+  "note": "Local development checks, not repeated-performance evidence. Raw outputs remain under ignored work/validation-runs.",
+  "trace_smoke": {
+    "run": {
+      "name": "2026-10-06_0031_windows",
+      "started_at": "2026-10-06T05:31:11+00:00",
+      "finished_at": "2026-10-06T05:31:30+00:00",
+      "status": "complete",
+      "command": "cli.py --platform-dir windows profile --cuda on --cuda-no-host-control --metal off --smoke --no-graphs --no-prompt-graphs --no-prompt-timings --results-root work/validation-runs"
+    },
+    "config": {
+      "prompt_lengths": [
+        128
+      ],
+      "threads": 6,
+      "repetitions": 1,
+      "trace_repetitions": 1,
+      "decode_steps": 8,
+      "backends": [
+        "cpu",
+        "cuda-cpu",
+        "cuda-cpu-no-host",
+        "cuda"
+      ],
+      "trace": true,
+      "include_diagnostic_cases": false,
+      "graphs": false,
+      "smoke": true,
+      "prompts_only": false,
+      "prompt_graphs": false,
+      "prompt_timings": false
+    },
+    "builds": {
+      "build": {
+        "variant": "baseline",
+        "requested": {
+          "BUILD_SHARED_LIBS": "ON",
+          "CMAKE_BUILD_TYPE": "Release",
+          "CMAKE_CUDA_COMPILER": "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v13.4/bin/nvcc.exe",
+          "GGML_BACKEND_DL": "OFF",
+          "GGML_CPU_REPACK": "ON",
+          "GGML_CUDA": "OFF",
+          "GGML_LLAMAFILE": "ON",
+          "GGML_METAL": "OFF",
+          "GGML_NATIVE": "ON",
+          "GGML_OPENMP": "ON"
+        },
+        "build_has_trace_code": false,
+        "effective": {
+          "openmp": true,
+          "llamafile": true,
+          "march_native": false,
+          "metal": false,
+          "cuda": false
+        }
+      },
+      "cuda_build": {
+        "variant": "cuda",
+        "requested": {
+          "BUILD_SHARED_LIBS": "ON",
+          "CMAKE_BUILD_TYPE": "Release",
+          "CMAKE_CUDA_COMPILER": "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v13.4/bin/nvcc.exe",
+          "GGML_BACKEND_DL": "OFF",
+          "GGML_CPU_REPACK": "ON",
+          "GGML_CUDA": "ON",
+          "GGML_LLAMAFILE": "ON",
+          "GGML_METAL": "OFF",
+          "GGML_NATIVE": "ON",
+          "GGML_OPENMP": "ON"
+        },
+        "build_has_trace_code": false,
+        "effective": {
+          "openmp": true,
+          "llamafile": true,
+          "march_native": false,
+          "metal": false,
+          "cuda": true
+        }
+      },
+      "profile_build": {
+        "variant": "profile",
+        "requested": {
+          "BUILD_SHARED_LIBS": "ON",
+          "CMAKE_BUILD_TYPE": "Release",
+          "GGML_BACKEND_DL": "OFF",
+          "GGML_CPU_REPACK": "ON",
+          "GGML_CUDA": "OFF",
+          "GGML_LLAMAFILE": "ON",
+          "GGML_METAL": "OFF",
+          "GGML_NATIVE": "ON",
+          "GGML_OPENMP": "ON"
+        },
+        "build_has_trace_code": true,
+        "effective": {
+          "openmp": true,
+          "llamafile": true,
+          "march_native": false,
+          "metal": false,
+          "cuda": false
+        }
+      }
+    },
+    "analysis": {
+      "decode_curves": 4,
+      "backend_speedups": 3,
+      "profile_checks": 2,
+      "profile_bit_identical": true,
+      "backend_checks": 6,
+      "backend_checks_by_backend": {
+        "metal": 0,
+        "cuda-cpu": 2,
+        "cuda-cpu-no-host": 2,
+        "cuda": 2
+      },
+      "backend_reference_role": "cpu_reference",
+      "missing_optional_diagnostic_profile": []
+    },
+    "checks": [
+      {
+        "run": "cpu-profile",
+        "prompt_tokens": 128,
+        "phase": "prefill",
+        "bit_identical": true,
+        "max_abs_difference": 0
+      },
+      {
+        "run": "cpu-profile",
+        "prompt_tokens": 128,
+        "phase": "decode",
+        "bit_identical": true,
+        "max_abs_difference": 0
+      }
+    ]
+  },
+  "cpu_fallback_negative": {
+    "run": {
+      "name": "2026-10-06_0032_windows",
+      "started_at": "2026-10-06T05:32:09+00:00",
+      "finished_at": "2026-10-06T05:32:14+00:00",
+      "status": "failed",
+      "command": "cli.py --platform-dir windows profile --cuda only --smoke --results-root work/validation-runs"
+    },
+    "environment": {
+      "CUDA_VISIBLE_DEVICES": "-1"
+    },
+    "error": "ValueError: Accelerator request fell back to CPU: cuda",
+    "datasets": [
+      {
+        "name": "cuda",
+        "role": "accelerated_execution",
+        "build": "cuda",
+        "requested_ngl": 99,
+        "no_host": false,
+        "cases": [
+          {
+            "file": "cuda-baseline.jsonl",
+            "actual": {
+              "requested_ngl": 99,
+              "no_host": false,
+              "accelerator_model_bytes": 0,
+              "actual_accelerator": false,
+              "cpu_fallback": true,
+              "model_buffers": [
+                {
+                  "buffer_type": "CPU_REPACK",
+                  "device": "CPU",
+                  "device_description": "Intel(R) Core(TM) Ultra 7 270K Plus",
+                  "backend_name": "CPU",
+                  "device_type": "cpu",
+                  "host": false,
+                  "model_bytes": 514326528
+                },
+                {
+                  "buffer_type": "CPU_Mapped",
+                  "device": "unknown",
+                  "device_description": "unknown",
+                  "backend_name": "unknown",
+                  "device_type": "unknown",
+                  "host": true,
+                  "model_bytes": 1269873920
+                }
+              ]
+            }
+          }
+        ],
+        "cpu_fallback": true
+      }
+    ],
+    "analysis": null
+  },
+  "cuda_only_smoke": {
+    "run": {
+      "name": "2026-10-06_0033_windows",
+      "started_at": "2026-10-06T05:33:21+00:00",
+      "finished_at": "2026-10-06T05:33:26+00:00",
+      "status": "complete",
+      "command": "cli.py --platform-dir windows profile --cuda only --smoke --results-root work/validation-runs"
+    },
+    "config": {
+      "prompt_lengths": [
+        128
+      ],
+      "threads": 6,
+      "repetitions": 1,
+      "trace_repetitions": 1,
+      "decode_steps": 8,
+      "backends": [
+        "cuda"
+      ],
+      "trace": false,
+      "include_diagnostic_cases": false,
+      "graphs": false,
+      "smoke": true,
+      "prompts_only": false,
+      "prompt_graphs": false,
+      "prompt_timings": false
+    },
+    "datasets": [
+      {
+        "name": "cuda",
+        "role": "accelerated_execution",
+        "build": "cuda",
+        "requested_ngl": 99,
+        "no_host": false,
+        "cases": [
+          {
+            "file": "cuda-baseline.jsonl",
+            "actual": {
+              "requested_ngl": 99,
+              "no_host": false,
+              "accelerator_model_bytes": 1269876224,
+              "actual_accelerator": true,
+              "cpu_fallback": false,
+              "model_buffers": [
+                {
+                  "buffer_type": "CUDA0",
+                  "device": "CUDA0",
+                  "device_description": "NVIDIA GeForce RTX 5070 Ti",
+                  "backend_name": "CUDA",
+                  "device_type": "gpu",
+                  "host": false,
+                  "model_bytes": 1269876224
+                },
+                {
+                  "buffer_type": "CPU_Mapped",
+                  "device": "unknown",
+                  "device_description": "unknown",
+                  "backend_name": "unknown",
+                  "device_type": "unknown",
+                  "host": true,
+                  "model_bytes": 417177600
+                }
+              ]
+            }
+          }
+        ],
+        "cpu_fallback": false
+      }
+    ],
+    "analysis": {
+      "decode_curves": 1,
+      "backend_speedups": 0,
+      "profile_checks": 0,
+      "profile_bit_identical": null,
+      "backend_checks": 0,
+      "backend_checks_by_backend": {
+        "metal": 0
+      },
+      "backend_reference_role": null,
+      "missing_optional_diagnostic_profile": []
+    }
+  },
+  "prompt_smoke": {
+    "run": {
+      "name": "2026-10-06_0035_windows",
+      "started_at": "2026-10-06T05:35:22+00:00",
+      "finished_at": "2026-10-06T05:35:38+00:00",
+      "status": "complete",
+      "command": "cli.py --platform-dir windows profile --cuda on --cuda-no-host-control --metal off --smoke --prompts-only --prompt-set work/qa/pr18-prompts.json --results-root work/validation-runs"
+    },
+    "prompt_id": "repetitive",
+    "prompt_tokens": 71,
+    "prompt_sha256": "cf428c75cbbad68bda229788589af70a40fecff71a09803c9d1681f1244e26f0",
+    "config": {
+      "threads": 6,
+      "flash_attention": "on",
+      "n_ubatch": 512,
+      "layers": 24,
+      "untraced_repetitions": 1
+    },
+    "continuation": {
+      "mode": "teacher_forced_shared_continuation",
+      "steps": 8,
+      "source": "core/prompts/continuation.txt",
+      "source_sha256": "f958377c12459590af0cc2ec4166d3b392e1cc909491f0fe324cf95a49f1874e"
+    },
+    "checks": {
+      "traced_vs_untraced_logits_bit_identical": true,
+      "cpu_vs_metal": [],
+      "cpu_vs_cuda_build_cpu": [
+        {
+          "prompt_tokens": 71,
+          "phase": "prefill",
+          "elements": 248320,
+          "both_finite": true,
+          "max_abs_difference": 0.5235099792480469,
+          "mean_abs_difference": 0.0887676253914833,
+          "cpu_top_token": 588,
+          "cuda-cpu_top_token": 588,
+          "top10_overlap": 10,
+          "bit_identical": false
+        },
+        {
+          "prompt_tokens": 71,
+          "phase": "decode",
+          "elements": 248320,
+          "both_finite": true,
+          "max_abs_difference": 0.5720372200012207,
+          "mean_abs_difference": 0.08222785592079163,
+          "cpu_top_token": 20843,
+          "cuda-cpu_top_token": 20843,
+          "top10_overlap": 9,
+          "bit_identical": false
+        }
+      ],
+      "cpu_vs_cuda_build_no_host": [
+        {
+          "prompt_tokens": 71,
+          "phase": "prefill",
+          "elements": 248320,
+          "both_finite": true,
+          "max_abs_difference": 0,
+          "mean_abs_difference": 0,
+          "cpu_top_token": 588,
+          "cuda-cpu-no-host_top_token": 588,
+          "top10_overlap": 10,
+          "bit_identical": true
+        },
+        {
+          "prompt_tokens": 71,
+          "phase": "decode",
+          "elements": 248320,
+          "both_finite": true,
+          "max_abs_difference": 0,
+          "mean_abs_difference": 0,
+          "cpu_top_token": 20843,
+          "cuda-cpu-no-host_top_token": 20843,
+          "top10_overlap": 10,
+          "bit_identical": true
+        }
+      ],
+      "cpu_vs_cuda": [
+        {
+          "prompt_tokens": 71,
+          "phase": "prefill",
+          "elements": 248320,
+          "both_finite": true,
+          "max_abs_difference": 0.6927924156188965,
+          "mean_abs_difference": 0.11715065687894821,
+          "cpu_top_token": 588,
+          "cuda_top_token": 588,
+          "top10_overlap": 9
+        },
+        {
+          "prompt_tokens": 71,
+          "phase": "decode",
+          "elements": 248320,
+          "both_finite": true,
+          "max_abs_difference": 0.4800877571105957,
+          "mean_abs_difference": 0.07188497483730316,
+          "cpu_top_token": 20843,
+          "cuda_top_token": 20843,
+          "top10_overlap": 9
+        }
+      ]
+    },
+    "actual_placements": [
+      {
+        "file": "prompts/repetitive/cpu-baseline.jsonl",
+        "actual": {
+          "requested_ngl": 0,
+          "no_host": false,
+          "accelerator_model_bytes": 0,
+          "actual_accelerator": false,
+          "cpu_fallback": false,
+          "model_buffers": [
+            {
+              "buffer_type": "CPU_REPACK",
+              "device": "CPU",
+              "device_description": "Intel(R) Core(TM) Ultra 7 270K Plus",
+              "backend_name": "CPU",
+              "device_type": "cpu",
+              "host": false,
+              "model_bytes": 514326528
+            },
+            {
+              "buffer_type": "CPU_Mapped",
+              "device": "unknown",
+              "device_description": "unknown",
+              "backend_name": "unknown",
+              "device_type": "unknown",
+              "host": true,
+              "model_bytes": 1269873920
+            }
+          ]
+        }
+      },
+      {
+        "file": "prompts/repetitive/cuda-cpu-baseline.jsonl",
+        "actual": {
+          "requested_ngl": 0,
+          "no_host": false,
+          "accelerator_model_bytes": 0,
+          "actual_accelerator": false,
+          "cpu_fallback": false,
+          "model_buffers": [
+            {
+              "buffer_type": "CPU_Mapped",
+              "device": "unknown",
+              "device_description": "unknown",
+              "backend_name": "unknown",
+              "device_type": "unknown",
+              "host": true,
+              "model_bytes": 1269873920
+            }
+          ]
+        }
+      },
+      {
+        "file": "prompts/repetitive/cuda-cpu-no-host-baseline.jsonl",
+        "actual": {
+          "requested_ngl": 0,
+          "no_host": true,
+          "accelerator_model_bytes": 0,
+          "actual_accelerator": false,
+          "cpu_fallback": false,
+          "model_buffers": [
+            {
+              "buffer_type": "CPU_REPACK",
+              "device": "CPU",
+              "device_description": "Intel(R) Core(TM) Ultra 7 270K Plus",
+              "backend_name": "CPU",
+              "device_type": "cpu",
+              "host": false,
+              "model_bytes": 514326528
+            },
+            {
+              "buffer_type": "CPU_Mapped",
+              "device": "unknown",
+              "device_description": "unknown",
+              "backend_name": "unknown",
+              "device_type": "unknown",
+              "host": true,
+              "model_bytes": 1269873920
+            }
+          ]
+        }
+      },
+      {
+        "file": "prompts/repetitive/cuda-baseline.jsonl",
+        "actual": {
+          "requested_ngl": 99,
+          "no_host": false,
+          "accelerator_model_bytes": 1269876224,
+          "actual_accelerator": true,
+          "cpu_fallback": false,
+          "model_buffers": [
+            {
+              "buffer_type": "CUDA0",
+              "device": "CUDA0",
+              "device_description": "NVIDIA GeForce RTX 5070 Ti",
+              "backend_name": "CUDA",
+              "device_type": "gpu",
+              "host": false,
+              "model_bytes": 1269876224
+            },
+            {
+              "buffer_type": "CPU_Mapped",
+              "device": "unknown",
+              "device_description": "unknown",
+              "backend_name": "unknown",
+              "device_type": "unknown",
+              "host": true,
+              "model_bytes": 417177600
+            }
+          ]
+        }
+      },
+      {
+        "file": "prompts/repetitive/cpu-profile.jsonl",
+        "actual": {
+          "requested_ngl": 0,
+          "no_host": false,
+          "accelerator_model_bytes": 0,
+          "actual_accelerator": false,
+          "cpu_fallback": false,
+          "model_buffers": [
+            {
+              "buffer_type": "CPU_REPACK",
+              "device": "CPU",
+              "device_description": "Intel(R) Core(TM) Ultra 7 270K Plus",
+              "backend_name": "CPU",
+              "device_type": "cpu",
+              "host": false,
+              "model_bytes": 514326528
+            },
+            {
+              "buffer_type": "CPU_Mapped",
+              "device": "unknown",
+              "device_description": "unknown",
+              "backend_name": "unknown",
+              "device_type": "unknown",
+              "host": true,
+              "model_bytes": 1269873920
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

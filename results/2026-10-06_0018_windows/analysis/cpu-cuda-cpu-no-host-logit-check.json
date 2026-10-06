@@ -1,0 +1,98 @@
+[
+  {
+    "prompt_tokens": 128,
+    "phase": "prefill",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 0.0,
+    "mean_abs_difference": 0.0,
+    "cpu_top_token": 9064,
+    "cuda-cpu-no-host_top_token": 9064,
+    "top10_overlap": 10,
+    "bit_identical": true
+  },
+  {
+    "prompt_tokens": 128,
+    "phase": "decode",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 0.0,
+    "mean_abs_difference": 0.0,
+    "cpu_top_token": 7896,
+    "cuda-cpu-no-host_top_token": 7896,
+    "top10_overlap": 10,
+    "bit_identical": true
+  },
+  {
+    "prompt_tokens": 512,
+    "phase": "prefill",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 0.0,
+    "mean_abs_difference": 0.0,
+    "cpu_top_token": 11,
+    "cuda-cpu-no-host_top_token": 11,
+    "top10_overlap": 10,
+    "bit_identical": true
+  },
+  {
+    "prompt_tokens": 512,
+    "phase": "decode",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 0.0,
+    "mean_abs_difference": 0.0,
+    "cpu_top_token": 11036,
+    "cuda-cpu-no-host_top_token": 11036,
+    "top10_overlap": 10,
+    "bit_identical": true
+  },
+  {
+    "prompt_tokens": 2048,
+    "phase": "prefill",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 0.0,
+    "mean_abs_difference": 0.0,
+    "cpu_top_token": 279,
+    "cuda-cpu-no-host_top_token": 279,
+    "top10_overlap": 10,
+    "bit_identical": true
+  },
+  {
+    "prompt_tokens": 2048,
+    "phase": "decode",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 0.0,
+    "mean_abs_difference": 0.0,
+    "cpu_top_token": 20934,
+    "cuda-cpu-no-host_top_token": 20934,
+    "top10_overlap": 10,
+    "bit_identical": true
+  },
+  {
+    "prompt_tokens": 8192,
+    "phase": "prefill",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 0.0,
+    "mean_abs_difference": 0.0,
+    "cpu_top_token": 61911,
+    "cuda-cpu-no-host_top_token": 61911,
+    "top10_overlap": 10,
+    "bit_identical": true
+  },
+  {
+    "prompt_tokens": 8192,
+    "phase": "decode",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 0.0,
+    "mean_abs_difference": 0.0,
+    "cpu_top_token": 1558,
+    "cuda-cpu-no-host_top_token": 1558,
+    "top10_overlap": 10,
+    "bit_identical": true
+  }
+]

@@ -50,6 +50,9 @@ def logits(directory, prefix, value=0.0, tweak=False):
 
 
 def make_prompt_dir(run, prompt_id, traced=True, tweak=False):
+    (run / "run-manifest.json").write_text(json.dumps({
+        "config": {"backends": ["cpu"]}, "build": {"requested": {"GGML_CUDA": "OFF"}}
+    }), encoding="utf-8")
     directory = run / "prompts" / prompt_id
     directory.mkdir(parents=True)
     timings(directory, "cpu-baseline", 2)
@@ -117,6 +120,12 @@ class PromptProfiles(unittest.TestCase):
 
     def test_optional_cuda_timing_and_numerical_check(self):
         directory = make_prompt_dir(self.run, "alpha", traced=False)
+        (self.run / "run-manifest.json").write_text(json.dumps({
+            "build": {"requested": {"GGML_CUDA": "OFF"}}, "datasets": [
+            {"name": "cpu", "role": "cpu_reference", "build": "baseline"},
+            {"name": "cuda-cpu", "role": "cuda_build_cpu_control", "build": "cuda"},
+            {"name": "cuda", "role": "accelerated_execution", "build": "cuda"},
+        ]}), encoding="utf-8")
         timings(directory, "cuda-cpu-baseline", 2)
         logits(directory, "cuda-cpu-baseline")
         timings(directory, "cuda-baseline", 2)

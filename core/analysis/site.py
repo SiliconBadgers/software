@@ -11,6 +11,7 @@ import json
 import re
 from pathlib import Path
 
+import datasets
 from result_io import load_json, write_text
 
 PHASES = ("prefill", "decode")
@@ -113,13 +114,19 @@ def order_key(graph):
     return (graph["prompt"] is not None, graph["tokens"], graph["prompt"] or "", graph["fa"] != "on")
 
 
-def performance_rows(run_dir):
+def performance_rows(run_dir, dataset_rows):
     path = run_dir / "analysis" / "summary.csv"
     if not path.is_file():
         return []
     keep = ("run", "prompt_tokens", "prefill_tps", "decode_ms", "decode_tps")
     with path.open(encoding="utf-8", newline="") as stream:
-        return [{k: row[k] for k in keep} for row in csv.DictReader(stream)]
+        rows = [{k: row[k] for k in keep} for row in csv.DictReader(stream)]
+    for row in rows:
+        dataset = datasets.for_run(dataset_rows, row["run"])
+        row["dataset_role"] = dataset.get("role") if dataset else "unknown"
+        row["dataset_label"] = datasets.label(dataset)
+        row["build"] = dataset.get("build") if dataset else "unknown"
+    return rows
 
 
 def build(run_dir, out_path, raw_links=True):
@@ -129,14 +136,21 @@ def build(run_dir, out_path, raw_links=True):
     graphs = [graph_entry(d, run_rel, strings, raw_links) for d in sorted((run_dir / "graphs").glob("*"))
               if GRAPH_RE.match(d.name) and (d / "prefill.summary.json").is_file() and (d / "decode.summary.json").is_file()]
     graphs.sort(key=order_key)
+    if not graphs:
+        raise ValueError("No derived graph summaries found; refusing to write an empty graph dashboard. "
+                         "Restore the omitted graph analysis files before rebuilding this page.")
     manifest = json.loads((run_dir / "run-manifest.json").read_text(encoding="utf-8"))
+    dataset_rows = datasets.read(run_dir)
     research = run_dir / "research" / "compute-mapping.md"
     figures = {name: f"{run_rel}/analysis/{name}" for name in ("profiling-summary.png", "decode-curve.png")
                if (run_dir / "analysis" / name).is_file()}
     data = {
         "run": {"name": run_rel, **manifest["run"]}, "host": manifest["host"], "config": manifest["config"],
         "comparability": manifest.get("comparability"), "subtitle": manifest.get("plot_subtitle"),
-        "performance": performance_rows(run_dir), "figures": figures,
+        "performance": performance_rows(run_dir, dataset_rows), "figures": figures,
+        "datasets": dataset_rows,
+        "builds": {"baseline": manifest.get("build"), "cuda": manifest.get("cuda_build"),
+                   "profile": manifest.get("profile_build")},
         "prompt_comparison": (run_dir / "graphs" / "prompt-comparison.md").read_text(encoding="utf-8")
         if (run_dir / "graphs" / "prompt-comparison.md").is_file() else None,
         "research": research.read_text(encoding="utf-8") if research.is_file() else None,

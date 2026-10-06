@@ -1,0 +1,110 @@
+[
+  {
+    "reference_dataset": "cpu",
+    "reference_role": "cpu_reference",
+    "accelerated_dataset": "cuda",
+    "prompt_tokens": 128,
+    "timing_eligible_for_report": true,
+    "prefill_speedup": 40.00312315416421,
+    "decode_speedup": 9.761239937232268
+  },
+  {
+    "reference_dataset": "cpu",
+    "reference_role": "cpu_reference",
+    "accelerated_dataset": "cuda",
+    "prompt_tokens": 512,
+    "timing_eligible_for_report": true,
+    "prefill_speedup": 74.00301586082287,
+    "decode_speedup": 9.209572597859498
+  },
+  {
+    "reference_dataset": "cpu",
+    "reference_role": "cpu_reference",
+    "accelerated_dataset": "cuda",
+    "prompt_tokens": 2048,
+    "timing_eligible_for_report": true,
+    "prefill_speedup": 77.79395063370711,
+    "decode_speedup": 9.16138421901432
+  },
+  {
+    "reference_dataset": "cpu",
+    "reference_role": "cpu_reference",
+    "accelerated_dataset": "cuda",
+    "prompt_tokens": 8192,
+    "timing_eligible_for_report": false,
+    "prefill_speedup": 82.91994808466292,
+    "decode_speedup": 11.291105886039563
+  },
+  {
+    "reference_dataset": "cuda-cpu",
+    "reference_role": "cuda_build_cpu_control",
+    "accelerated_dataset": "cuda",
+    "prompt_tokens": 128,
+    "timing_eligible_for_report": true,
+    "prefill_speedup": 48.99445510927348,
+    "decode_speedup": 8.538574812306253
+  },
+  {
+    "reference_dataset": "cuda-cpu",
+    "reference_role": "cuda_build_cpu_control",
+    "accelerated_dataset": "cuda",
+    "prompt_tokens": 512,
+    "timing_eligible_for_report": true,
+    "prefill_speedup": 93.95270475624297,
+    "decode_speedup": 8.292419181159863
+  },
+  {
+    "reference_dataset": "cuda-cpu",
+    "reference_role": "cuda_build_cpu_control",
+    "accelerated_dataset": "cuda",
+    "prompt_tokens": 2048,
+    "timing_eligible_for_report": true,
+    "prefill_speedup": 98.45422762679577,
+    "decode_speedup": 8.530739826515704
+  },
+  {
+    "reference_dataset": "cuda-cpu",
+    "reference_role": "cuda_build_cpu_control",
+    "accelerated_dataset": "cuda",
+    "prompt_tokens": 8192,
+    "timing_eligible_for_report": false,
+    "prefill_speedup": 104.32350586231992,
+    "decode_speedup": 10.118240593018566
+  },
+  {
+    "reference_dataset": "cuda-cpu-no-host",
+    "reference_role": "cuda_build_cpu_no_host_control",
+    "accelerated_dataset": "cuda",
+    "prompt_tokens": 128,
+    "timing_eligible_for_report": true,
+    "prefill_speedup": 39.39434435912581,
+    "decode_speedup": 9.3347443993855
+  },
+  {
+    "reference_dataset": "cuda-cpu-no-host",
+    "reference_role": "cuda_build_cpu_no_host_control",
+    "accelerated_dataset": "cuda",
+    "prompt_tokens": 512,
+    "timing_eligible_for_report": true,
+    "prefill_speedup": 75.40768226253017,
+    "decode_speedup": 9.242295739518038
+  },
+  {
+    "reference_dataset": "cuda-cpu-no-host",
+    "reference_role": "cuda_build_cpu_no_host_control",
+    "accelerated_dataset": "cuda",
+    "prompt_tokens": 2048,
+    "timing_eligible_for_report": true,
+    "prefill_speedup": 80.6432877126812,
+    "decode_speedup": 9.35611945971262
+  },
+  {
+    "reference_dataset": "cuda-cpu-no-host",
+    "reference_role": "cuda_build_cpu_no_host_control",
+    "accelerated_dataset": "cuda",
+    "prompt_tokens": 8192,
+    "timing_eligible_for_report": false,
+    "prefill_speedup": 87.456702800679,
+    "decode_speedup": 10.887290901564802
+  }
+]

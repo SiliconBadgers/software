@@ -4,6 +4,7 @@ import json
 
 import numpy as np
 
+import datasets
 from policy import case_prefix, is_diagnostic, load_experiment, profile_prefixes, DEFAULT_EXPERIMENT
 from result_io import add_paths, exists, open_result, output_dir, write_json
 
@@ -17,11 +18,12 @@ def read_logits(path, vocabulary):
 
 
 def compare_backend(results_dir, experiment, lengths, backend):
-    """Compare an uninstrumented backend with CPU without requiring bit identity."""
+    """Compare a backend with the explicitly identified CPU reference without requiring bit identity."""
     vocabulary = experiment["model"]["vocabulary_size"]
+    reference = datasets.cpu_reference(results_dir)["name"]
     checks = []
     for n in lengths:
-        cpu_prefix = case_prefix(experiment, "cpu", n)
+        cpu_prefix = case_prefix(experiment, reference, n)
         other_prefix = case_prefix(experiment, backend, n)
         for phase in ("prefill", "decode"):
             suffix = f"-p{n}-{phase}.f32"
@@ -33,17 +35,20 @@ def compare_backend(results_dir, experiment, lengths, backend):
                 mean_abs_difference=float(np.mean(np.abs(cpu - other))),
                 cpu_top_token=int(cpu.argmax()), **{f"{backend}_top_token": int(other.argmax())},
                 top10_overlap=len(set(cpu.argsort()[-10:]) & set(other.argsort()[-10:]))))
+            if backend in ("cuda-cpu", "cuda-cpu-no-host"):
+                checks[-1]["bit_identical"] = cpu.tobytes() == other.tobytes()
     return checks
 
 
 def validate(results_dir, experiment, lengths, skip_metal, require_profile=True):
     vocabulary = experiment["model"]["vocabulary_size"]
+    reference = datasets.cpu_reference(results_dir)["name"]
     profile_checks, backend_checks, missing_profile = [], [], []
     metal_checks = {} if skip_metal else {
         (row["prompt_tokens"], row["phase"]): row
         for row in compare_backend(results_dir, experiment, lengths, "metal")}
     for n in lengths:
-        cpu_prefix = case_prefix(experiment, "cpu", n)
+        cpu_prefix = case_prefix(experiment, reference, n)
         for phase in ("prefill", "decode"):
             suffix = f"-p{n}-{phase}.f32"
             cpu = read_logits(results_dir / (cpu_prefix + suffix), vocabulary)

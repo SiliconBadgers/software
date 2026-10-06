@@ -1,5 +1,6 @@
 #include "llama.h"
 #include "ggml-backend.h"
+#include "backend_metadata.h"
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -38,12 +39,13 @@ static void logits(llama_context*c,int nv,const std::string &path){
 }
 int main(int argc,char**argv){
     if(argc<8){
-        std::cerr<<"profile MODEL N_GPU_LAYERS THREADS REPETITIONS DECODE_STEPS LENGTHS_CSV OUTPUT_PREFIX\n";
+        std::cerr<<"profile MODEL N_GPU_LAYERS THREADS REPETITIONS DECODE_STEPS LENGTHS_CSV OUTPUT_PREFIX [NO_HOST]\n";
         return 1;
     }
     const std::string modelpath=argv[1], out=argv[7];
 
     int ngl=atoi(argv[2]),threads=atoi(argv[3]),reps=atoi(argv[4]),steps=atoi(argv[5]);
+    const bool no_host=argc>8&&atoi(argv[8])!=0;
     std::vector<int>lengths;
     std::stringstream ss(argv[6]);
     std::string seg;while(std::getline(ss,seg,','))lengths.push_back(std::stoi(seg));
@@ -51,6 +53,7 @@ int main(int argc,char**argv){
     llama_backend_init();
     auto mp=llama_model_default_params();
     mp.n_gpu_layers=ngl;
+    mp.no_host=no_host;
     auto start=Clock::now();
     llama_model*m=llama_model_load_from_file(modelpath.c_str(),mp);
     if(!m)return 2;
@@ -82,7 +85,7 @@ int main(int argc,char**argv){
     tf<<"[";
     for(int i=0;i<nt;i++){if(i)tf<<",";tf<<tokens[i];}tf<<"]\n";
     std::cout<<std::setprecision(10);
-    std::cout<<"{\"kind\":\"metadata\",\"ngl\":"<<ngl<<",\"threads\":"<<threads<<",\"reps\":"<<reps<<",\"decode_steps\":"<<steps<<",\"layers\":"<<llama_model_n_layer(m)<<",\"vocabulary\":"<<nv<<",\"load_us\":"<<load_us<<",\"mode\":\"teacher_forced_text_continuation\",\"n_ubatch\":512,\"flash_attention\":\"on\"}\n"<<std::flush;
+    bool metadata_written=false;
     for(int n:lengths){
         auto cp=llama_context_default_params();
         cp.n_ctx=n+steps+256;
@@ -97,6 +100,12 @@ int main(int argc,char**argv){
         cp.offload_kqv=ngl>0;
         llama_context*c=llama_init_from_model(m,cp);
         if(!c)return 2;
+        if(!metadata_written){
+            std::cout<<"{\"kind\":\"metadata\",\"ngl\":"<<ngl<<",\"threads\":"<<threads<<",\"reps\":"<<reps<<",\"decode_steps\":"<<steps<<",\"layers\":"<<llama_model_n_layer(m)<<",\"vocabulary\":"<<nv<<",\"load_us\":"<<load_us<<",\"mode\":\"teacher_forced_text_continuation\",\"n_ubatch\":512,\"flash_attention\":\"on\"";
+            sb_write_backend_metadata(std::cout,c,ngl,no_host);
+            std::cout<<"}\n"<<std::flush;
+            metadata_written=true;
+        }
         phase("warmup");
         check(llama_decode(c,llama_batch_get_one(tokens.data(),n)));
         llama_synchronize(c);

@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 
 import decode_curve
+import datasets
 import ops
 import summarize
 import validate
@@ -107,6 +108,7 @@ def build_row(run_dir, experiment, entry, prompt_dir, prompt_set_dir):
     has_trace = exists(prompt_dir / "cpu-op-trace.jsonl")
     has_metal = exists(prompt_dir / "metal-baseline.jsonl")
     has_cuda_cpu = exists(prompt_dir / "cuda-cpu-baseline.jsonl")
+    has_cuda_cpu_no_host = exists(prompt_dir / "cuda-cpu-no-host-baseline.jsonl")
     has_cuda = exists(prompt_dir / "cuda-baseline.jsonl")
     profile_checks, backend_checks, _ = [], [], None
     check = {}
@@ -118,6 +120,10 @@ def build_row(run_dir, experiment, entry, prompt_dir, prompt_set_dir):
         check["traced_vs_untraced_logits_bit_identical"] = False
         check["error"] = str(error)
     check["cpu_vs_metal"] = backend_checks
+    check["cpu_vs_cuda_build_cpu"] = validate.compare_backend(
+        prompt_dir, experiment, [n], "cuda-cpu") if has_cuda_cpu else []
+    check["cpu_vs_cuda_build_no_host"] = validate.compare_backend(
+        prompt_dir, experiment, [n], "cuda-cpu-no-host") if has_cuda_cpu_no_host else []
     check["cpu_vs_cuda"] = validate.compare_backend(prompt_dir, experiment, [n], "cuda") if has_cuda else []
     prefix = f"prompts/{prompt_id}/"
     trace_file = "cpu-op-trace.jsonl.gz" if (prompt_dir / "cpu-op-trace.jsonl.gz").is_file() else "cpu-op-trace.jsonl"
@@ -140,10 +146,21 @@ def build_row(run_dir, experiment, entry, prompt_dir, prompt_set_dir):
     if has_cuda_cpu:
         row["timing"]["cuda_build_cpu"] = _timing(
             summaries["cuda-cpu-baseline"], prompt_dir / "cuda-cpu-baseline.jsonl", n)
+    if has_cuda_cpu_no_host:
+        row["timing"]["cuda_build_cpu_no_host"] = _timing(
+            summaries["cuda-cpu-no-host-baseline"], prompt_dir / "cuda-cpu-no-host-baseline.jsonl", n)
     if has_cuda:
         row["timing"]["cuda"] = _timing(summaries["cuda-baseline"], prompt_dir / "cuda-baseline.jsonl", n)
     if has_trace:
         row["trace"]["repetitions_traced"] = row["trace"]["prefill"]["repetitions"]
+    identities = datasets.read(prompt_dir)
+    names = {"cpu": "cpu", "metal": "metal", "cuda_build_cpu": "cuda-cpu",
+             "cuda_build_cpu_no_host": "cuda-cpu-no-host", "cuda": "cuda"}
+    for key, timing in row["timing"].items():
+        name = names[key]
+        identity = next((item for item in identities if item["name"] == name), None)
+        timing["dataset"] = identity
+        timing["actual_backend"] = _metadata(prompt_dir / f"{name}-baseline.jsonl").get("backend")
     return row
 
 
@@ -158,8 +175,8 @@ def build(run_dir, experiment=None, prompt_set=None):
         prompt_dir = run_dir / "prompts" / entry["id"]
         if exists(prompt_dir / "cpu-baseline.jsonl"):
             rows.append(build_row(run_dir, experiment, entry, prompt_dir, prompt_set.parent))
-    return {"schema_version": 1,
-            "note": "One row per prompt. Timings are CPU wall-clock medians; trace shares are CPU operation intervals. "
+    return {"schema_version": 1, "datasets": datasets.read(run_dir),
+            "note": "One row per prompt. Timings are host wall-clock medians for each execution dataset; trace shares are CPU operation intervals. "
                     "Neither is accelerator area, bandwidth or speedup, and results from different hosts are not comparable.",
             "prompts": rows}
 

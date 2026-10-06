@@ -47,6 +47,8 @@ def build_parser():
     p.add_argument("--skip-metal", action="store_true")
     p.add_argument("--cuda", choices=["off", "on", "only"], default="off",
                    help="off: CPU reference; on: CPU reference + CUDA-build CPU control + CUDA; only: fast CUDA timing only")
+    p.add_argument("--cuda-no-host-control", action="store_true",
+                   help="With --cuda on, also run a zero-offload CUDA build with llama.cpp no_host=true")
     p.add_argument("--no-trace", action="store_true", help="Skip the patched runtime and operation traces")
     p.add_argument("--no-graphs", action="store_true", help="Skip scheduled-graph capture")
     p.add_argument("--include-diagnostic", action="store_true",
@@ -90,6 +92,8 @@ def make_context(args):
     cuda_only = args.cuda == "only"
     if cuda_only and args.prompts_only:
         sys.exit("error: --cuda only is the fixed-length fast path and cannot be combined with --prompts-only")
+    if args.cuda_no_host_control and args.cuda != "on":
+        sys.exit("error: --cuda-no-host-control requires --cuda on")
     ctx = Context(
         experiment=exp, platform=profile, os_label=os_label, work=args.work_dir.resolve(),
         run_dir=runpaths.create_run_dir(args.results_root, os_label, create=False),
@@ -97,6 +101,7 @@ def make_context(args):
         trace_repetitions=args.trace_repetitions or (1 if args.smoke else work["trace_repetitions"]),
         decode_steps=steps,
         graph_lengths=graph_lengths, jobs=args.jobs, metal=args.metal, skip_metal=args.skip_metal, cuda=args.cuda,
+        cuda_no_host_control=args.cuda_no_host_control,
         run_trace=not args.no_trace and not cuda_only,
         run_graphs=not args.no_graphs and not cuda_only, include_diagnostic=args.include_diagnostic,
         model_override=args.model, dry_run=args.dry_run, smoke=args.smoke,

@@ -12,6 +12,7 @@
 // repetition, on stdout. Logits of repetition 0 are saved after prefill and after the last decode step.
 #include "llama.h"
 #include "ggml-backend.h"
+#include "backend_metadata.h"
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -77,7 +78,7 @@ static void save_logits(llama_context * ctx, int vocab_size, const std::string &
 
 int main(int argc, char ** argv) {
     if (argc < 9) {
-        std::cerr << "profile-prompt MODEL N_GPU_LAYERS THREADS REPETITIONS DECODE_STEPS PROMPT_FILE CONTINUATION_FILE OUTPUT_PREFIX\n";
+        std::cerr << "profile-prompt MODEL N_GPU_LAYERS THREADS REPETITIONS DECODE_STEPS PROMPT_FILE CONTINUATION_FILE OUTPUT_PREFIX [NO_HOST]\n";
         return 1;
     }
     const std::string model_path = argv[1];
@@ -88,12 +89,14 @@ int main(int argc, char ** argv) {
     const std::string prompt_file = argv[6];
     const std::string continuation_file = argv[7];
     const std::string out = argv[8];
+    const bool no_host = argc > 9 && std::atoi(argv[9]) != 0;
     const int warmup_steps = 8;
 
     ggml_backend_load_all();
     llama_backend_init();
     auto model_params = llama_model_default_params();
     model_params.n_gpu_layers = n_gpu_layers;
+    model_params.no_host = no_host;
     auto load_start = Clock::now();
     llama_model * model = llama_model_load_from_file(model_path.c_str(), model_params);
     if (!model) {
@@ -123,14 +126,6 @@ int main(int argc, char ** argv) {
     tokens_out << "]}\n";
     tokens_out.close();
 
-    std::cout << std::setprecision(10);
-    std::cout << "{\"kind\":\"metadata\",\"ngl\":" << n_gpu_layers << ",\"threads\":" << threads
-              << ",\"reps\":" << repetitions << ",\"decode_steps\":" << steps
-              << ",\"layers\":" << llama_model_n_layer(model) << ",\"vocabulary\":" << vocab_size
-              << ",\"load_us\":" << load_us << ",\"mode\":\"teacher_forced_shared_continuation\""
-              << ",\"n_ubatch\":512,\"flash_attention\":\"on\",\"prompt_tokens\":" << n
-              << ",\"continuation_tokens\":" << steps << "}\n" << std::flush;
-
     auto context_params = llama_context_default_params();
     context_params.n_ctx = n + steps + 256;
     context_params.n_batch = n;
@@ -146,6 +141,16 @@ int main(int argc, char ** argv) {
     if (!ctx) {
         return 2;
     }
+
+    std::cout << std::setprecision(10);
+    std::cout << "{\"kind\":\"metadata\",\"ngl\":" << n_gpu_layers << ",\"threads\":" << threads
+              << ",\"reps\":" << repetitions << ",\"decode_steps\":" << steps
+              << ",\"layers\":" << llama_model_n_layer(model) << ",\"vocabulary\":" << vocab_size
+              << ",\"load_us\":" << load_us << ",\"mode\":\"teacher_forced_shared_continuation\""
+              << ",\"n_ubatch\":512,\"flash_attention\":\"on\",\"prompt_tokens\":" << n
+              << ",\"continuation_tokens\":" << steps;
+    sb_write_backend_metadata(std::cout, ctx, n_gpu_layers, no_host);
+    std::cout << "}\n" << std::flush;
 
     // Warm-up: one full prefill and a few decode steps, then start each repetition from an empty cache.
     set_phase("warmup");

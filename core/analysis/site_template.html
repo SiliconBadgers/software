@@ -187,7 +187,7 @@ function renderOverview() {
     ${kv("Command", `<code>${esc(r.command)}</code>`)}
   </div>
   <p class="note">${esc(D.comparability || "")}</p>
-  <p class="note">CPU timing, logical bytes and MAC counts here are not ASIC area/bandwidth measurements or model-quality evaluations.
+  <p class="note">Host timing, logical bytes and MAC counts here are not ASIC area/bandwidth measurements or model-quality evaluations.
   pp128/pp512/pp8192 graphs are one prefill + one decode step at the prompt length; “prompt …” graphs use each prompt's natural token count.
   Each graph is one run; the diff shows structure, not timing variance.</p></div></section>`;
 
@@ -208,12 +208,12 @@ function renderOverview() {
   html += `</table></div></div></section>`;
 
   if (D.performance.length) {
-    html += `<section><h2>CPU timing (this host)</h2><div class="body"><div class="scroll-x"><table><tr><th>Run</th><th class="n">Prompt tokens</th>
+    html += `<section><h2>Performance timing (this host)</h2><div class="body"><div class="scroll-x"><table><tr><th>Run</th><th>Dataset role</th><th>Build</th><th class="n">Prompt tokens</th>
     <th class="n">Prefill tok/s</th><th class="n">Decode ms/token</th><th class="n">Decode tok/s</th></tr>` +
-      D.performance.map(r => `<tr><td>${esc(r.run)}</td><td class="n">${r.prompt_tokens}</td><td class="n">${(+r.prefill_tps).toFixed(2)}</td>
+      D.performance.map(r => `<tr><td>${esc(r.run)}</td><td>${esc(r.dataset_label)}<br><span class="dim">${esc(r.dataset_role)}</span></td><td>${esc(r.build)}</td><td class="n">${r.prompt_tokens}</td><td class="n">${(+r.prefill_tps).toFixed(2)}</td>
       <td class="n">${(+r.decode_ms).toFixed(2)}</td><td class="n">${(+r.decode_tps).toFixed(2)}</td></tr>`).join("") + `</table></div>`;
     for (const [n, src] of Object.entries(D.figures)) html += `<p><img src="${esc(src)}" alt="${esc(n)}" style="max-width:100%;border:1px solid var(--line);border-radius:6px"></p>`;
-    html += `</div></section>`;
+    html += `<details><summary>Build configurations and dataset placement</summary><pre style="white-space:pre-wrap;max-height:420px;overflow:auto">${esc(JSON.stringify({builds:D.builds,datasets:D.datasets}, null, 2))}</pre></details></div></section>`;
   }
   if (D.prompt_comparison) html += `<section><h2>Per-prompt graph comparison</h2><div class="body">${md(D.prompt_comparison)}</div></section>`;
   if (D.research) html += `<section><h2>Compute mapping write-up</h2><div class="body">${md(D.research)}</div></section>`;

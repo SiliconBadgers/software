@@ -2,6 +2,7 @@
 from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
+import json
 import os
 import sys
 import tempfile
@@ -19,6 +20,7 @@ import hostinfo  # noqa: E402
 import measure  # noqa: E402
 import platform_profile  # noqa: E402
 import plot  # noqa: E402
+import datasets  # noqa: E402
 import validate  # noqa: E402
 
 
@@ -27,23 +29,23 @@ class CudaRunner(unittest.TestCase):
         args = cli.build_parser().parse_args(["profile", "--smoke"])
         self.assertEqual(args.cuda, "off")
         ctx = SimpleNamespace(state={"metal": False, "cuda_mode": "off"}, skip_metal=False)
-        self.assertEqual(measure.backends(ctx), [("cpu", "baseline", 0)])
+        self.assertEqual(measure.backends(ctx), [("cpu", "baseline", 0, False, "cpu_reference")])
 
     def test_cuda_compare_separates_reference_and_cuda_builds(self):
         args = cli.build_parser().parse_args(["profile", "--cuda", "on", "--smoke"])
         self.assertEqual(args.cuda, "on")
         ctx = SimpleNamespace(state={"metal": False, "cuda_mode": "on"}, skip_metal=False)
         self.assertEqual(measure.backends(ctx), [
-            ("cpu", "baseline", 0),
-            ("cuda-cpu", "cuda", 0),
-            ("cuda", "cuda", 99),
+            ("cpu", "baseline", 0, False, "cpu_reference"),
+            ("cuda-cpu", "cuda", 0, False, "cuda_build_cpu_control"),
+            ("cuda", "cuda", 99, False, "accelerated_execution"),
         ])
 
     def test_cuda_only_is_a_gpu_only_fast_path(self):
         args = cli.build_parser().parse_args(["profile", "--cuda", "only", "--smoke", "--dry-run"])
         ctx = cli.make_context(args)
         ctx.state["cuda_mode"] = ctx.cuda
-        self.assertEqual(measure.backends(ctx), [("cuda", "cuda", 99)])
+        self.assertEqual(measure.backends(ctx), [("cuda", "cuda", 99, False, "accelerated_execution")])
         self.assertFalse(ctx.run_trace)
         self.assertFalse(ctx.run_graphs)
         self.assertFalse(ctx.run_prompt_graphs)
@@ -55,12 +57,25 @@ class CudaRunner(unittest.TestCase):
         self.assertEqual(build.source_dir(ctx, "cuda"), Path("work/llama.cpp"))
         self.assertEqual(build.source_dir(ctx, "profile"), Path("work/llama.cpp-profile"))
 
+    def test_no_host_control_is_explicit_and_keeps_cuda_execution(self):
+        ctx = SimpleNamespace(state={"metal": False, "cuda_mode": "on"}, skip_metal=False,
+                              cuda_no_host_control=True)
+        self.assertEqual([row[0] for row in measure.backends(ctx)],
+                         ["cpu", "cuda-cpu", "cuda-cpu-no-host", "cuda"])
+        self.assertEqual(measure.backends(ctx)[2][2:4], (0, True))
+
+    def test_metal_is_enabled_only_for_the_baseline_build(self):
+        ctx = SimpleNamespace(state={"metal": True})
+        self.assertEqual(build.backend_options(ctx, "baseline"), {"GGML_METAL": "ON", "GGML_CUDA": "OFF"})
+        self.assertEqual(build.backend_options(ctx, "profile"), {"GGML_METAL": "OFF", "GGML_CUDA": "OFF"})
+        self.assertEqual(build.backend_options(ctx, "cuda"), {"GGML_METAL": "OFF", "GGML_CUDA": "ON"})
+
     def test_cpu_plot_label_distinguishes_legacy_control_from_cpu_reference(self):
         legacy = [{"run": "cpu-baseline"}, {"run": "cuda-baseline"}]
         split = legacy + [{"run": "cuda-cpu-baseline"}]
-        self.assertEqual(plot.cpu_label(legacy), "CPU (CUDA build)")
-        self.assertEqual(plot.cpu_label(split), "CPU reference")
-        self.assertEqual(plot.cpu_label([{"run": "cpu-baseline"}]), "CPU")
+        self.assertEqual(plot.cpu_label(legacy), "CPU (build not identified)")
+        self.assertEqual(plot.cpu_label(split), "CPU (build not identified)")
+        self.assertEqual(plot.cpu_label([{"run": "cpu-baseline"}]), "CPU (build not identified)")
 
     def test_cpu_cuda_logit_comparison(self):
         experiment = {
@@ -69,6 +84,12 @@ class CudaRunner(unittest.TestCase):
         }
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
+            (root / "run-manifest.json").write_text(json.dumps({
+                "build": {"requested": {"GGML_CUDA": "OFF"}},
+                "datasets": [
+                    {"name": "cpu", "role": "cpu_reference", "build": "baseline"},
+                    {"name": "cuda", "role": "accelerated_execution", "build": "cuda"},
+                ]}), encoding="utf-8")
             cpu = np.array([0, 1, 2, 3, 4], dtype="<f4")
             cuda = np.array([0, 1, 2, 3.25, 4], dtype="<f4")
             for phase in ("prefill", "decode"):
@@ -79,6 +100,19 @@ class CudaRunner(unittest.TestCase):
         self.assertTrue(all(row["both_finite"] for row in checks))
         self.assertTrue(all(row["cpu_top_token"] == row["cuda_top_token"] == 4 for row in checks))
         self.assertTrue(all(row["max_abs_difference"] == 0.25 for row in checks))
+
+    def test_historical_cuda_build_cpu_is_not_mislabeled_as_reference(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            (root / "run-manifest.json").write_text(json.dumps({
+                "config": {"backends": ["cpu", "cuda"]},
+                "build": {"requested": {"GGML_CUDA": "ON"}},
+                "cuda_build": None,
+            }), encoding="utf-8")
+            rows = datasets.read(root)
+            self.assertEqual(rows[0]["role"], "cuda_build_cpu_control")
+            with self.assertRaisesRegex(ValueError, "refusing to guess"):
+                datasets.cpu_reference(root)
 
     def test_host_manifest_omits_cuda_when_not_requested(self):
         host = hostinfo.collect("test", {"c": None, "cxx": None})

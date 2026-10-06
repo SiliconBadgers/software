@@ -49,6 +49,14 @@ def source_dir(ctx, variant):
     return ctx.work / ("llama.cpp-profile" if variant == "profile" else "llama.cpp")
 
 
+def backend_options(ctx, variant):
+    """Backend CMake switches by build role; traced/profile builds intentionally stay CPU-only."""
+    return {
+        "GGML_METAL": "ON" if bool(ctx.state.get("metal")) and variant == "baseline" else "OFF",
+        "GGML_CUDA": "ON" if variant == "cuda" else "OFF",
+    }
+
+
 def build_variant(ctx, variant, targets, compile=True):
     """Build baseline, CUDA, or patched-profile variant. compile=False only configures."""
     source = source_dir(ctx, variant)
@@ -57,12 +65,12 @@ def build_variant(ctx, variant, targets, compile=True):
     env = dict(os.environ)
     env["PATH"] = str(Path(sys.executable).parent) + os.pathsep + env.get("PATH", "")
     # CMake writes these values into generated files verbatim, so Windows backslashes would be read as escapes.
-    use_cuda = variant == "cuda"
-    use_metal = bool(ctx.state.get("metal")) and variant == "baseline"
+    options = backend_options(ctx, variant)
+    use_cuda = options["GGML_CUDA"] == "ON"
     configure = [tool("cmake"), "-S", HARNESS, "-B", directory, "-G", ctx.platform["cmake_generator"],
                  "-DCMAKE_BUILD_TYPE=Release", f"-DLLAMA_CPP_SOURCE={Path(source).as_posix()}", "-DGGML_NATIVE=ON",
-                 "-DGGML_METAL=" + ("ON" if use_metal else "OFF"),
-                 "-DGGML_CUDA=" + ("ON" if use_cuda else "OFF")]
+                 "-DGGML_METAL=" + options["GGML_METAL"],
+                 "-DGGML_CUDA=" + options["GGML_CUDA"]]
     if use_cuda:
         import platform_profile
         configure.append(f"-DCMAKE_CUDA_COMPILER={Path(platform_profile.cuda_compiler()).as_posix()}")

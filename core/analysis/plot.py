@@ -8,10 +8,13 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
+import datasets
 from policy import load_experiment, timing_eligible, DEFAULT_EXPERIMENT
 from result_io import exists, load_json, output_dir
 
-COLORS = {"cpu": "#275DAD", "metal": "#148271", "cuda-cpu": "#A66A3F", "cuda": "#6B4C9A"}
+COLORS = {"cpu": "#275DAD", "metal": "#148271", "cuda-cpu": "#A66A3F",
+          "cuda-cpu-no-host": "#D18C55", "cuda": "#6B4C9A"}
+MARKERS = {"cpu": "o", "metal": "P", "cuda-cpu": "s", "cuda-cpu-no-host": "D", "cuda": "^"}
 GROUPS = ["MLP projections", "Attention/DeltaNet projections", "Vocabulary output head",
           "Attention QK/softmax/AV", "DeltaNet recurrence", "Copies/gather/state movement",
           "Vector/norm/activation/other", "Convolution"]
@@ -30,15 +33,13 @@ def run_names(experiment, backend):
     return [f"{backend}-{tag}" for tag in tags]
 
 
-def cpu_label(baselines):
-    """Older CUDA runs named their same-binary zero-offload control `cpu-*`.
-    Split-build runs contain `cuda-cpu-*`, which makes `cpu-*` the current CPU reference build."""
-    runs = {row["run"] for row in baselines}
-    has_cuda = any(name.startswith("cuda-") for name in runs)
-    has_explicit_control = any(name.startswith("cuda-cpu-") for name in runs)
-    if has_cuda and not has_explicit_control:
-        return "CPU (CUDA build)"
-    return "CPU reference" if has_explicit_control else "CPU"
+def cpu_label(baselines, dataset_rows=None):
+    """Use role/build evidence; filenames alone cannot identify a CPU-reference build."""
+    if dataset_rows:
+        row = next((item for item in dataset_rows if item["name"] == "cpu"), None)
+        if row:
+            return datasets.label(row)
+    return "CPU (build not identified)"
 
 
 def subtitle_for(results_dir, override):
@@ -53,7 +54,9 @@ def subtitle_for(results_dir, override):
 
 def draw(results_dir, out_dir, experiment, subtitle=None):
     baselines = load_json(results_dir / "summary.json")
-    cpu_legend = cpu_label(baselines)
+    dataset_rows = datasets.read(results_dir)
+    cpu_legend = cpu_label(baselines, dataset_rows)
+    show_point_labels = not any(r["run"].startswith("cuda-cpu-no-host-") for r in baselines)
     has_ops = exists(results_dir / "operation-summary.json")
     ops = load_json(results_dir / "operation-summary.json")["runs"] if has_ops else []
     plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 11,
@@ -66,7 +69,7 @@ def draw(results_dir, out_dir, experiment, subtitle=None):
         grid = fig.add_gridspec(1, 2, wspace=0.27)
         ax1, ax2 = fig.add_subplot(grid[0, 0]), fig.add_subplot(grid[0, 1])
     plotted, decode_hi, prefill_lo, prefill_hi, repetitions, decode_steps = [], 0, 1e9, 0, 0, 0
-    for backend in ("cpu", "metal", "cuda-cpu", "cuda"):
+    for backend in ("cpu", "metal", "cuda-cpu", "cuda-cpu-no-host", "cuda"):
         data = sorted([r for r in baselines if r["run"] in run_names(experiment, backend)],
                       key=lambda r: r["prompt_tokens"])
         if not data:
@@ -82,14 +85,21 @@ def draw(results_dir, out_dir, experiment, subtitle=None):
                                       (ax2, "decode_ms", "decode_min_ms", "decode_max_ms")):
             y = np.array([r[metric] for r in data])
             err = np.array([[r[metric] - r[low] for r in data], [r[high] - r[metric] for r in data]])
-            label = {"cpu": cpu_legend, "metal": "Metal", "cuda-cpu": "CPU (CUDA build)",
-                     "cuda": "CUDA"}[backend]
-            ax.errorbar(x, y, yerr=err, marker="o", capsize=4, lw=2, color=COLORS[backend], label=label)
-            offsets = {"cpu": 8, "metal": -18, "cuda-cpu": -30, "cuda": 20}
-            for xi, yi in zip(x, y):
-                ax.annotate(f"{yi:.2f}", (xi, yi), xytext=(0, offsets[backend]),
-                            textcoords="offset points", ha="center", fontsize=9, color=COLORS[backend])
-            ax.set_xticks(x, [f"{r['prompt_tokens']:,}" for r in data])
+            dataset = next((row for row in dataset_rows if row["name"] == backend), None)
+            label = cpu_legend if backend == "cpu" else datasets.label(dataset) if dataset else {
+                "metal": "Metal", "cuda-cpu": "CPU (CUDA build)",
+                "cuda-cpu-no-host": "CPU (CUDA build, no_host)", "cuda": "CUDA"}[backend]
+            ax.errorbar(x, y, yerr=err, marker=MARKERS[backend], capsize=4, lw=2,
+                        color=COLORS[backend], label=label)
+            offsets = ({"cpu": 14, "metal": -18, "cuda-cpu": -24, "cuda-cpu-no-host": -46, "cuda": 18}
+                       if metric == "prefill_seconds" else
+                       {"cpu": 14, "metal": -18, "cuda-cpu": -18, "cuda-cpu-no-host": -52, "cuda": 18})
+            if show_point_labels:
+                for xi, yi in zip(x, y):
+                    ax.annotate(f"{yi:.2f}", (xi, yi), xytext=(0, offsets[backend]),
+                                textcoords="offset points", ha="center", fontsize=9, color=COLORS[backend])
+            ax.set_xticks(x, [f"{r['prompt_tokens']:,}" + ("*" if not timing_eligible(experiment, r["prompt_tokens"]) else "")
+                             for r in data])
             ax.set_xlabel(f"Prompt tokens before {decode_steps} decode steps")
             ax.grid(axis="y", alpha=.16)
     if not plotted:
@@ -101,9 +111,13 @@ def draw(results_dir, out_dir, experiment, subtitle=None):
     ax2.set_ylim(0, decode_hi * 1.25)
     ax2.set_ylabel("Decode ms / token")
     ax2.set_title("Cached single-token processing", loc="left", fontweight="bold")
-    ax1.legend(frameon=False)
+    ax1.legend(frameon=False, loc="upper left", fontsize=9)
     plural = lambda n, word: f"{n} {word}" + ("" if n == 1 else "s")
     notes = [f"Top: uninstrumented medians of {plural(repetitions, 'run')}; whiskers show min–max."]
+    if not show_point_labels:
+        notes[0] += " Exact values are in summary.csv."
+    if any(not timing_eligible(experiment, row["prompt_tokens"]) for row in baselines):
+        notes[0] += " * Diagnostic; excluded from primary conclusions."
     if has_ops:
         report_n = experiment["policy"]["report_prompt_tokens"]
         eligible = sorted({r["prompt_tokens"] for r in ops if r.get("timing_eligible_for_report", True)})

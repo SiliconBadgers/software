@@ -1,0 +1,90 @@
+[
+  {
+    "prompt_tokens": 128,
+    "phase": "prefill",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 0.7344717979431152,
+    "mean_abs_difference": 0.11705262959003448,
+    "cpu_top_token": 9064,
+    "cuda_top_token": 9064,
+    "top10_overlap": 10
+  },
+  {
+    "prompt_tokens": 128,
+    "phase": "decode",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 0.8858728408813477,
+    "mean_abs_difference": 0.1356905847787857,
+    "cpu_top_token": 7896,
+    "cuda_top_token": 7896,
+    "top10_overlap": 9
+  },
+  {
+    "prompt_tokens": 512,
+    "phase": "prefill",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 1.0244226455688477,
+    "mean_abs_difference": 0.14549897611141205,
+    "cpu_top_token": 11,
+    "cuda_top_token": 11,
+    "top10_overlap": 10
+  },
+  {
+    "prompt_tokens": 512,
+    "phase": "decode",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 0.9007673263549805,
+    "mean_abs_difference": 0.14864258468151093,
+    "cpu_top_token": 11036,
+    "cuda_top_token": 11036,
+    "top10_overlap": 10
+  },
+  {
+    "prompt_tokens": 2048,
+    "phase": "prefill",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 0.8765597343444824,
+    "mean_abs_difference": 0.17587752640247345,
+    "cpu_top_token": 279,
+    "cuda_top_token": 279,
+    "top10_overlap": 10
+  },
+  {
+    "prompt_tokens": 2048,
+    "phase": "decode",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 0.6445131301879883,
+    "mean_abs_difference": 0.11293294280767441,
+    "cpu_top_token": 20934,
+    "cuda_top_token": 20934,
+    "top10_overlap": 10
+  },
+  {
+    "prompt_tokens": 8192,
+    "phase": "prefill",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 0.7256412506103516,
+    "mean_abs_difference": 0.11403042823076248,
+    "cpu_top_token": 61911,
+    "cuda_top_token": 61911,
+    "top10_overlap": 9
+  },
+  {
+    "prompt_tokens": 8192,
+    "phase": "decode",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 0.8979874849319458,
+    "mean_abs_difference": 0.13216158747673035,
+    "cpu_top_token": 1558,
+    "cuda_top_token": 1558,
+    "top10_overlap": 10
+  }
+]

@@ -31,6 +31,7 @@ class Context:
     metal: str = "auto"              # auto | on | off
     skip_metal: bool = False
     cuda: str = "off"                # off | on (matched study) | only (fast exploratory run)
+    cuda_no_host_control: bool = False
     run_trace: bool = True
     run_graphs: bool = True
     include_diagnostic: bool = False

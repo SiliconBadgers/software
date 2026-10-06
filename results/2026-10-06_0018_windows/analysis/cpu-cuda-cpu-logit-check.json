@@ -1,0 +1,98 @@
+[
+  {
+    "prompt_tokens": 128,
+    "phase": "prefill",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 0.7221174240112305,
+    "mean_abs_difference": 0.1057044044137001,
+    "cpu_top_token": 9064,
+    "cuda-cpu_top_token": 9064,
+    "top10_overlap": 9,
+    "bit_identical": false
+  },
+  {
+    "prompt_tokens": 128,
+    "phase": "decode",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 0.8115253448486328,
+    "mean_abs_difference": 0.10440000891685486,
+    "cpu_top_token": 7896,
+    "cuda-cpu_top_token": 7896,
+    "top10_overlap": 9,
+    "bit_identical": false
+  },
+  {
+    "prompt_tokens": 512,
+    "phase": "prefill",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 0.9213376045227051,
+    "mean_abs_difference": 0.1269761174917221,
+    "cpu_top_token": 11,
+    "cuda-cpu_top_token": 11,
+    "top10_overlap": 9,
+    "bit_identical": false
+  },
+  {
+    "prompt_tokens": 512,
+    "phase": "decode",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 0.8330206871032715,
+    "mean_abs_difference": 0.15223711729049683,
+    "cpu_top_token": 11036,
+    "cuda-cpu_top_token": 11036,
+    "top10_overlap": 10,
+    "bit_identical": false
+  },
+  {
+    "prompt_tokens": 2048,
+    "phase": "prefill",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 0.6803231239318848,
+    "mean_abs_difference": 0.11793719977140427,
+    "cpu_top_token": 279,
+    "cuda-cpu_top_token": 279,
+    "top10_overlap": 10,
+    "bit_identical": false
+  },
+  {
+    "prompt_tokens": 2048,
+    "phase": "decode",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 0.560348629951477,
+    "mean_abs_difference": 0.0850510373711586,
+    "cpu_top_token": 20934,
+    "cuda-cpu_top_token": 20934,
+    "top10_overlap": 10,
+    "bit_identical": false
+  },
+  {
+    "prompt_tokens": 8192,
+    "phase": "prefill",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 0.4990248680114746,
+    "mean_abs_difference": 0.09365921467542648,
+    "cpu_top_token": 61911,
+    "cuda-cpu_top_token": 61911,
+    "top10_overlap": 9,
+    "bit_identical": false
+  },
+  {
+    "prompt_tokens": 8192,
+    "phase": "decode",
+    "elements": 248320,
+    "both_finite": true,
+    "max_abs_difference": 0.7982101440429688,
+    "mean_abs_difference": 0.1256633847951889,
+    "cpu_top_token": 1558,
+    "cuda-cpu_top_token": 1558,
+    "top10_overlap": 10,
+    "bit_identical": false
+  }
+]

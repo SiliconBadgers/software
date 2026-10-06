@@ -10,6 +10,7 @@ results/2026-09-25_1430_macos/      <date>_<HHMM>_<os>   os = macos | linux | wi
   cpu-profile*.jsonl, cpu-op-trace.jsonl.gz     instrumented CPU run and operation trace
   metal-baseline*                   only on macOS/arm64
   cuda-cpu-baseline*                zero-offload matched control from the CUDA build (`--cuda on`)
+  cuda-cpu-no-host-baseline*        optional zero-offload repacking control (`--cuda-no-host-control`)
   cuda-baseline*                    CUDA execution (`--cuda on` or the fast `--cuda only` path)
   analysis/                         summary.json, operation-summary.json, validation JSONs, profiling-summary.png/.pdf,
                                     decode-curve.json/.csv/.png (decode ms per token vs tokens in the KV cache)
@@ -31,6 +32,9 @@ The raw file names match the recorded `experiments/llama-cpp/2026-09-22/results/
   existing run; anything else added later must be listed in that run's `EVIDENCE.md`.
 - `run-manifest.json` is the provenance. The folder name is only a label; read the manifest for the
   host, compiler, pinned llama.cpp commit, model hash and exact command.
+- `datasets` associates each result series with its role, build and measured placement for each case.
+  Use `core/analysis/datasets.py` when reading historical or split-build runs; filenames alone do not
+  prove CPU-reference identity. `analysis/backend-speedups.{json,csv}` names every speedup denominator.
 - **Runs from different hosts are not comparable** to each other or to the recorded Apple M5 Pro
   baseline. CPU operation shares do not describe accelerator area, bandwidth or speedup.
 - Model weights never go here (they live in the gitignored `work/`).

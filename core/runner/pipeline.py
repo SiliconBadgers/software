@@ -22,8 +22,9 @@ def _now():
 
 def _subtitle(host, experiment, threads, backends):
     parts = [host["cpu_model"], experiment["model"]["label"], f"{threads} CPU threads"]
+    controls = ("cpu", "cuda-cpu", "cuda-cpu-no-host")
     accelerated = [name.upper() if name == "cuda" else name.title()
-                   for name in backends if name not in ("cpu", "cuda-cpu")]
+                   for name in backends if name not in controls]
     if accelerated:
         parts.append(" + ".join(accelerated) + " measured")
     parts.append("one sequence")
@@ -47,13 +48,18 @@ def compress(ctx):
 def analyze_run(run_dir, experiment, lengths, has_trace, backends, subtitle):
     """Write summaries, validation and the figure into run_dir/analysis. Raw files are only read."""
     import decode_curve
+    import backend_speedup
+    import datasets
     import ops
     import plot
     import summarize
     import validate
     out = run_dir / "analysis"
     out.mkdir(exist_ok=True)
-    summarize.write_outputs(out, summarize.summarize(run_dir, experiment))
+    summaries = summarize.summarize(run_dir, experiment)
+    summarize.write_outputs(out, summaries)
+    speedups = backend_speedup.compare(summaries, datasets.read(run_dir), experiment=experiment)
+    backend_speedup.write_outputs(out, speedups)
     curves = decode_curve.summarize_run(run_dir, experiment)
     decode_curve.write_outputs(out, curves)
     decode_curve.plot(out, curves)
@@ -66,15 +72,19 @@ def analyze_run(run_dir, experiment, lengths, has_trace, backends, subtitle):
     else:
         profile_checks, backend_checks, missing = [], [], []
     validate.write_outputs(out, profile_checks, backend_checks)
-    cuda_checks = validate.compare_backend(run_dir, experiment, lengths, "cuda") if has_cpu and "cuda" in backends else []
-    if cuda_checks:
-        validate.write_backend_output(out, "cuda", cuda_checks)
+    optional_checks = {}
+    for backend in ("cuda-cpu", "cuda-cpu-no-host", "cuda"):
+        if has_cpu and backend in backends:
+            optional_checks[backend] = validate.compare_backend(run_dir, experiment, lengths, backend)
+            validate.write_backend_output(out, backend, optional_checks[backend])
     plot.draw(out, out, experiment, subtitle)
-    return {"decode_curves": len(curves), "profile_checks": len(profile_checks),
+    return {"decode_curves": len(curves), "backend_speedups": len(speedups),
+            "profile_checks": len(profile_checks),
             "profile_bit_identical": all(c["bit_identical"] for c in profile_checks) if has_trace else None,
-            "backend_checks": len(backend_checks) + len(cuda_checks),
-            "backend_checks_by_backend": {"metal": len(backend_checks), "cuda": len(cuda_checks)},
-            "cuda_reference": "current cpu reference" if cuda_checks else None,
+            "backend_checks": len(backend_checks) + sum(map(len, optional_checks.values())),
+            "backend_checks_by_backend": {"metal": len(backend_checks),
+                                          **{name: len(rows) for name, rows in optional_checks.items()}},
+            "backend_reference_role": "cpu_reference" if optional_checks or backend_checks else None,
             "missing_optional_diagnostic_profile": missing}
 
 
@@ -163,7 +173,7 @@ def run_profile(ctx, argv):
         raise ValueError("CUDA requested but nvcc was not found; install the CUDA Toolkit or use --cuda off")
     ctx.state["metal"] = metal_ok if ctx.metal == "auto" else ctx.metal == "on"
     ctx.state["cuda_mode"] = ctx.cuda
-    backends = [name for name, _, _ in measure.backends(ctx)]
+    backends = [plan[0] for plan in measure.backends(ctx)]
     compilers = build.find_compilers(ctx)
     host = hostinfo.collect(ctx.os_label, compilers, cuda_compiler if ctx.cuda != "off" else None)
     manifest = {
@@ -184,6 +194,7 @@ def run_profile(ctx, argv):
                          "2026-09-22 Apple M5 Pro baseline. CPU operation shares do not describe accelerator "
                          "area, bandwidth or speedup.",
         "graphs": [], "analysis": None, "build": None, "cuda_build": None, "profile_build": None,
+        "datasets": measure.dataset_specs(ctx),
     }
     manifest["config"]["smoke"] = ctx.smoke
     manifest["config"]["prompts_only"] = ctx.prompts_only
@@ -209,9 +220,16 @@ def run_profile(ctx, argv):
         if ctx.cuda != "off":
             print("\n== build: separate pristine CUDA runtime")
             build.ensure_cuda(ctx)
+        manifest["build"] = build.build_config(ctx, "baseline") if ctx.cuda != "only" else None
+        manifest["cuda_build"] = build.build_config(ctx, "cuda") if ctx.cuda != "off" else None
+        _write_manifest(ctx, manifest)
         if not ctx.prompts_only:
             print("\n== baseline: uninstrumented timings and saved logits")
-            measure.baseline(ctx, model)
+            manifest["datasets"] = measure.baseline(ctx, model)
+            _write_manifest(ctx, manifest)
+            fallbacks = [row["name"] for row in manifest["datasets"] if row.get("cpu_fallback")]
+            if fallbacks:
+                raise ValueError("Accelerator request fell back to CPU for dataset(s): " + ", ".join(fallbacks))
             if ctx.run_trace:
                 print("\n== trace: patched runtime, CPU operation traces")
                 if ctx.decode_steps > 64:
@@ -234,6 +252,7 @@ def run_profile(ctx, argv):
         manifest["build"] = build.build_config(ctx, "baseline") if ctx.cuda != "only" else None
         manifest["cuda_build"] = build.build_config(ctx, "cuda") if ctx.cuda != "off" else None
         manifest["profile_build"] = build.build_config(ctx, "profile") if ctx.run_trace else None
+        _write_manifest(ctx, manifest)
         compress(ctx)
         if ctx.run_prompt_timings and not ctx.dry_run:
             manifest["prompt_profiles"] = {"file": "prompt-profiles.json",
@@ -249,6 +268,10 @@ def run_profile(ctx, argv):
         manifest["run"]["error"] = traceback.format_exc(limit=3)
         raise
     finally:
+        if "datasets" in ctx.state:
+            manifest["datasets"] = ctx.state["datasets"]
+        if "prompt_backend_placements" in ctx.state:
+            manifest["prompt_backend_placements"] = ctx.state["prompt_backend_placements"]
         manifest["run"]["finished_at"] = _now()
         _write_manifest(ctx, manifest)
     print("\nRun folder:", ctx.run_dir)

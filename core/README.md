@@ -19,6 +19,7 @@ windows\run.ps1 doctor
 windows\run.ps1 profile [--smoke] [--dry-run]
 windows\run.ps1 profile --cuda only                 # fast exploratory CUDA timing
 windows\run.ps1 profile --cuda on --smoke           # matched CPU/CUDA validation smoke
+windows\run.ps1 profile --cuda on --cuda-no-host-control  # also test CPU weight repacking in the CUDA build
 ```
 
 `profile` runs: **ensure** (pinned llama.cpp + verified model, both cached in the gitignored `work/`) ->
@@ -36,6 +37,21 @@ It does not produce a CPU numerical comparison, so candidates selected this way 
 against the current CPU reference. `--cuda on` is the freeze/comparison path: it runs the current CPU-reference
 build, a zero-offload CPU control inside the separate CUDA-enabled build (`cuda-cpu-*`), and CUDA. The CPU
 reference row validates the CPU-only trace; the CUDA-build CPU row is the matched control for backend speedup.
+
+`--cuda-no-host-control` adds `cuda-cpu-no-host-*` in comparison mode, with zero offload and llama.cpp's
+`no_host=true`. It is a separate control for host-buffer/CPU-repacking sensitivity. All other workload and
+thread settings stay fixed. `analysis/backend-speedups.{json,csv}` reports CUDA versus every CPU dataset;
+the comparison identifies its denominator by dataset name and role.
+
+Each manifest's `datasets` records a role and build key for each series. The harness also emits actual model
+buffer types, bytes, device descriptions and backend names, separately from requested `ngl`.
+The runner rejects a requested accelerator run with no accelerator model buffers and records the CPU fallback
+in its failed manifest. Placement records describe loaded model buffers, not the fraction of operations or
+layers that ran on a device. The metadata helper uses the pinned llama.cpp staging memory-query API;
+changes to the source revision should recheck that API. Metal shared buffers remain GPU placement even though
+they are CPU-accessible. Historical CUDA-build CPU controls cannot be selected as CPU references by the shared
+reader; runs without enough build provenance remain unclassified. The immutable first package is read through
+its existing `baseline_backends` manifest.
 
 The traced build stays CPU-only, and graph capture hard-codes CPU placement, so GPU kernel selection is never
 presented as accelerator-architecture evidence. When both the current CPU reference and CUDA are present, analysis writes
@@ -63,7 +79,7 @@ comparison reports exactly that. `--prompts-only` runs just the per-prompt stage
 the graphs, `--prompt-set FILE` uses another prompt list.
 
 **Per-prompt timings and traces.** For each prompt, `sb-profile-prompt` (same measurement loop as `profile.cpp`)
-runs a canonical untraced CPU run and a traced CPU run (plus Metal on macOS/arm64, or the CUDA-build CPU control
+runs a reference untraced CPU run and a traced CPU run (plus Metal on macOS/arm64, or the CUDA-build CPU control
 and CUDA in comparison mode) into `prompts/<id>/`, and
 `prompt-profiles.json` gets one row per prompt: prompt hash and token count, prefill and decode timings, the
 operation-trace breakdown per phase (share by group and by operation, call counts, matrix MACs), the
@@ -78,7 +94,7 @@ skips this stage.
 | Path | Contents |
 |---|---|
 | `experiments/*.json` | Everything an experiment fixes: llama.cpp commit, model revision/hash, workload, timing-exclusion policy, graph settings. A new experiment is a new JSON file. |
-| `harness/` | `profile.cpp` (the same program as the 2026-09-22 harness, reformatted; `tests/test_harness_equivalence.py` fails if anything but layout, comments and string splitting changes) and `sb-cpu-profile.patch` (byte-identical to the original), `capture_graph.cpp` (Zeb Taylor's, see its header), `compat_win.h` (`setenv` shim, force-included so `profile.cpp` needs no Windows-specific code), `CMakeLists.txt`. |
+| `harness/` | `profile.cpp` preserves the 2026-09-22 measurement loop with added placement metadata and an optional `NO_HOST` argument. `tests/test_harness_equivalence.py` compares the logit writer, inputs, context settings and timed loop against the recorded program and checks mutation detection. `backend_metadata.h` is shared by the two timing harnesses; `sb-cpu-profile.patch` remains byte-identical to the original. `capture_graph.cpp` (Zeb Taylor's, see its header), `compat_win.h` (`setenv` shim), and `CMakeLists.txt` complete the harness. |
 | `prompts/` | `prompts.json` and the 8 prompt texts (narrative, code, math, JSON records, dialogue, hardware prose, multilingual, repetitive). Add a prompt by adding a file and a line in `prompts.json`. |
 | `runner/` | `cli.py` and the pipeline: `fetch`, `build`, `measure`, `capture`, `hostinfo`, `runpaths`, `platform_profile`. |
 | `analysis/` | `summarize`, `ops`, `validate`, `plot`, `graph`; `result_io` writes LF-only files so outputs are byte-stable across OSes. Recorded `experiments/` is write-protected. `fusion`, `offload` and `compute_mapping` derive operation-sharing and boundary evidence from an existing run's graphs and traces (`python core/analysis/compute_mapping.py results/<run>`); they never re-run the model. `site` builds `results/index.html`, a self-contained browser over one run's graphs (`--no-raw-links` for the committed copy). |
