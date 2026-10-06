@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "run": {
-    "name": "2026-10-05_0954_windows",
-    "started_at": "2026-10-05T14:54:04+00:00",
-    "finished_at": "2026-10-05T14:58:37+00:00",
+    "name": "2026-10-05_2035_windows",
+    "started_at": "2026-10-06T01:35:49+00:00",
+    "finished_at": "2026-10-06T01:43:59+00:00",
     "status": "complete",
     "command": "cli.py --platform-dir windows profile --cuda on --metal off --no-trace --no-graphs --no-prompt-graphs --no-prompt-timings",
     "dry_run": false
@@ -80,9 +80,11 @@
       "summary_runs": [
         "cpu-baseline",
         "metal-baseline",
+        "cuda-cpu-baseline",
         "cuda-baseline",
         "cpu-8k",
         "metal-8k",
+        "cuda-cpu-8k",
         "cuda-8k",
         "cpu-profile",
         "cpu-control",
@@ -110,6 +112,7 @@
     "decode_steps": 32,
     "backends": [
       "cpu",
+      "cuda-cpu",
       "cuda"
     ],
     "trace": false,
@@ -123,17 +126,42 @@
   "comparability": "Results from different hosts are not comparable to each other or to the recorded 2026-09-22 Apple M5 Pro baseline. CPU operation shares do not describe accelerator area, bandwidth or speedup.",
   "graphs": [],
   "analysis": {
-    "decode_curves": 8,
+    "decode_curves": 12,
     "profile_checks": 0,
-    "profile_bit_identical": true,
+    "profile_bit_identical": null,
     "backend_checks": 8,
     "backend_checks_by_backend": {
       "metal": 0,
       "cuda": 8
     },
+    "cuda_reference": "current cpu reference",
     "missing_optional_diagnostic_profile": []
   },
   "build": {
+    "variant": "baseline",
+    "requested": {
+      "BUILD_SHARED_LIBS": "ON",
+      "CMAKE_BUILD_TYPE": "Release",
+      "CMAKE_CUDA_COMPILER": "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v13.4/bin/nvcc.exe",
+      "GGML_BACKEND_DL": "OFF",
+      "GGML_CPU_REPACK": "ON",
+      "GGML_CUDA": "OFF",
+      "GGML_LLAMAFILE": "ON",
+      "GGML_METAL": "OFF",
+      "GGML_NATIVE": "ON",
+      "GGML_OPENMP": "ON"
+    },
+    "build_has_trace_code": false,
+    "effective": {
+      "openmp": true,
+      "llamafile": true,
+      "march_native": false,
+      "metal": false,
+      "cuda": false
+    }
+  },
+  "cuda_build": {
+    "variant": "cuda",
     "requested": {
       "BUILD_SHARED_LIBS": "ON",
       "CMAKE_BUILD_TYPE": "Release",
@@ -146,8 +174,7 @@
       "GGML_NATIVE": "ON",
       "GGML_OPENMP": "ON"
     },
-    "baseline_build_has_trace_code": false,
-    "traced_build_has_trace_code": null,
+    "build_has_trace_code": false,
     "effective": {
       "openmp": true,
       "llamafile": true,
@@ -156,6 +183,7 @@
       "cuda": true
     }
   },
+  "profile_build": null,
   "prompt_graphs": [],
   "prompt_profiles": null
 }
