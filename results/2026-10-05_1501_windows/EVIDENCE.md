@@ -45,6 +45,7 @@ A two-minute `--smoke` run on the same host preceded this one (`2026-10-05_1454_
 |---|---|---|
 | `EVIDENCE.md` | 2026-10-05 | Written from `run-manifest.json` and the `analysis/` files |
 | `omitted-files.sha256` | 2026-10-05 | SHA-256 of every file in the folder that `.gitignore` excludes, sorted by path |
+| `engine/validate-cpu.md` | 2026-10-06 | `python -m sbengine validate-cpu --run results/2026-10-05_1501_windows --report results/2026-10-05_1501_windows/engine/validate-cpu.md`, run in `engine/` with the local traces and graphs present. Added at review; it reads the run, it does not change it |
 
 Nothing else in the folder was added, edited or regenerated.
 
@@ -55,6 +56,7 @@ Nothing else in the folder was added, edited or regenerated.
 | `run-manifest.json`, `prompt-profiles.json` | saved logits `*.f32.gz` (46 files) |
 | measured timing records `cpu-baseline.jsonl`, `cpu-profile.jsonl`, `cpu-8k.jsonl`, `prompts/*/cpu-*.jsonl` | CPU operation traces `cpu-op-trace.jsonl.gz`, `prompts/*/cpu-op-trace.jsonl.gz` (9 files) |
 | `analysis/` summaries, CSVs, `decode-curve.png`, `profiling-summary.png`, `matrix-weight-inventory.json` | `analysis/operator-shapes.json`, `profiling-summary.pdf` (same figure as the PNG) |
+| `engine/validate-cpu.md` (added 2026-10-06) | |
 | | all of `graphs/` (332 files): captured graph JSON, `*.ops.csv`, `*.summary.json`, `*.dot`, per-graph `index.html` and reports, `prompt-comparison.*` |
 | | `*.log`, `*-prompt.txt`, `*-tokens.json` |
 
@@ -112,7 +114,9 @@ Things to keep in mind when reading these:
   on this run (it needs the local traces): held-out prefill mean error 16.8% (max 21.4%, n = 7), decode 1.3%
   (max 6.2%, n = 8), against 2.2% and 7.1% reported for the 2026-09-27 run in `engine/docs/VALIDATION.md`. The
   prefill error is the `CONCAT` non-linearity above; a linear fit through 128 and 512 tokens over-predicts the
-  prompts in between.
+  prompts in between. [`engine/validate-cpu.md`](engine/validate-cpu.md) has the measured and predicted time per
+  operation class: summed over the 7 held-out prefill graphs, `concat` is over-predicted by 1,435 ms of a total
+  1,511 ms over-prediction (measured 9,539 ms), and no other class is off by more than 62 ms.
 
 ## Regenerating the derived files
 

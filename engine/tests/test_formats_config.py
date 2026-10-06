@@ -60,12 +60,30 @@ class Config(unittest.TestCase):
         base = config.make_config()
         for s in config.SWITCHES:
             config.get_path(base, s["path"])                                    # KeyError if the path is wrong
-            for key in ("explorer", "conservative"):
-                if s[key] is not None:
+            for key in ("explorer", "conservative", "alternative"):
+                if s.get(key) is not None:
                     cfg = copy.deepcopy(base)
                     config.set_path(cfg, s["path"], s[key])
                     self.assertEqual(config.validate(cfg), [], s["path"])
         self.assertEqual(len({s["path"] for s in config.SWITCHES}), len(config.SWITCHES))
+
+    def test_register_covers_kv_padding_and_reports_the_unbracketed_overlap(self):
+        by_path = {s["path"]: s for s in config.SWITCHES}
+        self.assertEqual(by_path["attention.kv_padding"]["conservative"], "captured")
+        base = config.make_config()
+        exact = config.make_config({"attention": {"kv_padding": "exact"}})
+        self.assertNotIn("attention.kv_padding", [r["path"] for r in config.switch_report(base) if r["optimistic"]])
+        self.assertIn("attention.kv_padding", [r["path"] for r in config.switch_report(exact) if r["optimistic"]])
+        self.assertEqual(config.conservative(exact)["attention"]["kv_padding"], "captured")
+        # within-op overlap is the explorer's node-duration rule: not bracketed, but its alternative is on record
+        overlap = by_path["schedule.within_op_overlap"]
+        self.assertIsNone(overlap["conservative"])
+        self.assertIs(overlap["alternative"], False)
+        self.assertIn("not bracketed", overlap["assumes"])
+        row = {r["path"]: r for r in config.switch_report(base)}["schedule.within_op_overlap"]
+        self.assertEqual((row["optimistic"], row["informational"]), (False, True))
+        self.assertTrue(config.conservative(base)["schedule"]["within_op_overlap"])
+        self.assertFalse(config.conservative(base, upper_bound=True)["schedule"]["within_op_overlap"])
 
     def test_conservative_config_has_no_optimistic_switch(self):
         base = config.make_config()

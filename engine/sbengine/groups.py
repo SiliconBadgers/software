@@ -16,6 +16,11 @@ group assignment on the four 2026-09-24 captures.
 FLASH_ATTN_EXT is treated as an attention-core anchor; the original study only covered flash-attention-off
 graphs, so that case is an extension of its rule, not a reproduction.
 
+This module is the maintained implementation of the rule: change the rule here. build_map.py and its tables are the
+dated 2026-10-02 study, kept unchanged so that study can be reproduced; they are not a second place to evolve it.
+tests/test_groups.py pins this module to those tables, so a deliberate change to the rule has to say so and update
+that test (and regenerate tables in a new dated study, not in the old one).
+
 Groups are candidates the dependencies allow. They do not claim that a kernel or hardware unit implements them.
 """
 import re

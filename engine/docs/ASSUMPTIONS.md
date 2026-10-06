@@ -74,15 +74,16 @@ HBM setting). Sensitivity: `via_l1` decode / prefill, then `direct` decode where
 | `attention.overlap_softmax` | true | softmax hides behind the matrix work |
 | `attention.kv_tile` | 128 | 0.00 |
 | `attention.capacity_tokens` | graph's | rescales the KV footprint |
-| `schedule.mode`, `within_op_overlap` | `pools`, true | `serial` is the explorer's sum |
+| `schedule.mode`, `within_op_overlap` | `pools`, true | `serial` is the explorer's sum. Overlap off charges compute, L1 and HBM in sequence: +52 % prefill, +39 % decode at pp512; reported as an upper bound, not bracketed (`EQUATIONS.md` 2.14) |
 
 **The recurrence lowering is the single largest assumption in the engine.** With `lowering = serial` the gated-delta-net op costs
 315.7 ms at pp512 (8.4x the chunked form at every length) and prefill is 38 % slower. Chunked lowering assumes the matrix units
 run the chunk GEMMs at `matrix.efficiency` and that software can lower the operation that way; neither is demonstrated.
 
 `lowering = matrix` runs the captured serial update on the matrix arrays at `recurrent.matrix_penalty` instead. It needs no new
-software lowering and covers decode, but its penalty is unmeasured and its result here is set by the assumed five state passes per
-token through shared L1 (`EQUATIONS.md` 2.8). `python -m sbengine switches` lists every switch above with its pessimistic setting
+software lowering and covers decode, but it needs the `gemm` capability, its penalty is unmeasured, and its result here is set by
+the assumed state traffic through shared L1: five reads and two writes of the state per token, as on the vector path
+(`EQUATIONS.md` 2.8). `python -m sbengine switches` lists every switch above with its pessimistic setting
 and what each one is worth for a given design.
 
 ## Resource and cost proxies (unitless, unchanged coefficients except two new ones)

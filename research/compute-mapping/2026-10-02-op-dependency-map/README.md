@@ -11,6 +11,13 @@ candidates for the captured llama.cpp graphs.
 > the dependencies, not a claim that a given kernel or hardware unit implements
 > them.
 
+> [!NOTE]
+> **Frozen study.** The grouping rule is maintained in
+> [`engine/sbengine/groups.py`](../../../engine/sbengine/groups.py) (`python -m sbengine groups`,
+> `memory.fusion = "groups"`), which a test pins to the tables in `out/`. `build_map.py` and those tables stay as they
+> were on 2026-10-02 so this study can be reproduced; changes to the rule go into the engine module and a new dated
+> study, not here.
+
 ## Inputs
 
 The four graphs from the [2026-09-24 Qwen3.5-2B capture](../../../experiments/llama-cpp/2026-09-24-qwen35-2b/README.md)

@@ -85,8 +85,16 @@ class Analyses(unittest.TestCase):
         self.assertGreater(cautious["decode_s"], given["decode_s"])
         rows = {r["path"]: r for r in t["rows"]}
         self.assertEqual(set(rows), {s["path"] for s in config.SWITCHES})
-        for r in rows.values():                                                # only optimistic switches get a delta
-            self.assertEqual("prefill_delta_pct" in r, r["optimistic"], r["path"])
+        for r in rows.values():                                # only optimistic or informational switches get a delta
+            self.assertEqual("prefill_delta_pct" in r, r["optimistic"] or r["informational"], r["path"])
+        # within-op overlap is left out of the pessimistic line and reported on its own and as an upper bound
+        overlap = rows["schedule.within_op_overlap"]
+        self.assertEqual((overlap["optimistic"], overlap["informational"]), (False, True))
+        self.assertGreater(overlap["prefill_delta_pct"], 0)
+        upper = t["upper_bound"]
+        self.assertGreater(upper["prefill_s"], cautious["prefill_s"])
+        self.assertGreater(upper["decode_s"], cautious["decode_s"])
+        self.assertNotEqual(upper["config_hash"], cautious["config_hash"])
         self.assertGreater(rows["recurrent.lowering"]["prefill_delta_pct"], 20)
         self.assertAlmostEqual(rows["recurrent.lowering"]["decode_delta_pct"], 0)   # chunking never applies to one token
         # a design that is already pessimistic everywhere has nothing to state

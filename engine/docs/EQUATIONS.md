@@ -139,24 +139,32 @@ Effects quote **pp512, flash attention off** (the explorer's own graph), cumulat
   it presumes the matrix units can run the chunk GEMMs at `matrix.efficiency` and that the software can lower the op this way.
 
 - `lowering = matrix` (added 2026-10-05) is a third option that `auto` never selects: the **captured serial update**
-  on the matrix arrays, as in the [2026-10-03 recurrence study](../../research/compute-mapping/2026-10-03-recurrence-multiplier-sensitivity/REPORT.md)
-  (`explorer/engine.js`, same equation):
+  on the matrix arrays. Compute follows the shared-matrix path of the
+  [2026-10-03 recurrence study](../../research/compute-mapping/2026-10-03-recurrence-multiplier-sensitivity/REPORT.md)
+  (`explorer/engine.js`); state traffic does not (see below):
   ```
   MACs = 3 S^2 H T B                                  (state*k, outer-product update, state*q per head-token)
   time = MACs * matrix_penalty / (U rows cols rate_w8 f eff)  +  T_vec((S^2 + 3 S) H T B ops, H T B exps)
-  L1   = one operand pass + state * (5 T - 1)         (state re-read 5x per token, as on the vector path)
+  L1   = one operand pass + state * (5 T - 1) + 2 state T    (state read 5x and written 2x per token)
   ```
+  It needs matrix units with the `gemm` capability, like the chunked lowering, and a vector or scalar unit for the tail;
+  otherwise the op has no implementation and the design is infeasible.
+  **State traffic is the vector path's.** The arrays have no local state storage in this model, so each token's state is read
+  five times and written back twice through L1, exactly as when the recurrence runs on the vector units. Only a dedicated
+  recurrence unit whose scratch holds the state avoids that. The study's `engine.js` path charges the five reads but not the two
+  writes; this engine charges both, because nothing in the shared-matrix dataflow keeps the updated state out of L1.
   Matrix and vector time are added serially and the per-token tail is interleaved with the products, so the op also
   reserves the vector pool for its whole compute interval (`t_mat + t_vec`), not only the tail's length; no matrix/vector
   pipelining is claimed. The scheduler has no explicit phases, and the reservation covers the compute interval, not any
   extra time an L1- or HBM-bound op takes.
   `recurrent.matrix_penalty` (default 16) is W8xA16-equivalent PE cycles per 32-bit MAC and is **not established**; the
   study reports 4x and 16x. Unlike chunking, this is the algorithm llama.cpp ran in every capture, and it covers decode.
-  At pp512 flash-attention-on, balanced design: prefill 869.6 ms and decode 14.73 ms at any penalty from 1x to 16x,
-  because with 64 L1 banks the op is **L1-bound** (13.5 ms per layer of state re-reads) and the arithmetic never binds.
-  With 256 banks the penalty shows: prefill 722.6 / 746.2 / 840.6 / 966.4 ms at 1x / 4x / 16x / 32x. For comparison at
-  64 banks: serial on 2 dedicated units 923.5 ms, serial on vector 1,239.1 ms, chunked 663.7 ms. So on this design the
-  state traffic assumption, not the multiplier penalty, decides the shared-matrix result.
+  At pp512 flash-attention-on, balanced design: prefill **966.4 ms** and decode 14.92 ms at any penalty from 1x to 16x,
+  because with 64 L1 banks the op is **L1-bound** (18.9 ms per layer of state traffic) and the arithmetic never binds.
+  With 256 banks it is compute-bound and the penalty shows: prefill 722.6 / 746.2 / 840.6 / 966.4 ms at 1x / 4x / 16x / 32x.
+  For comparison at 64 banks: serial on 2 dedicated units 923.5 ms, serial on vector 1,239.1 ms, chunked 663.7 ms. So on
+  this design the shared-matrix path is slower than two dedicated units, and the state traffic assumption, not the multiplier
+  penalty, decides the result. (Charging the reads only, as first committed, gave 869.6 ms and the opposite ordering.)
 
 ### 2.9 Whole-graph time: bounds and a dependency-aware schedule  (`schedule.mode`)  [derived + assumption]
 - Explorer: sum of op durations in captured order (no overlap between ops).
@@ -215,6 +223,7 @@ from moving each optimistic switch back alone. At pp512 flash-attention-on, bala
 |---|---:|---:|
 | As configured (defaults) | 663.7 ms | 14.38 ms |
 | Every bracketed switch pessimistic | 987.3 ms (+48.8 %) | 15.96 ms (+11.0 %) |
+| ...and no overlap inside an op (upper bound) | 1,354.9 ms (+104.1 %) | 22.02 ms (+53.1 %) |
 | `recurrent.lowering` back to `serial`, alone | +39.1 % | 0 |
 | `schedule.mode` back to `serial`, alone | +1.8 % | +10.7 % |
 | `matrix.pipelined_tiles` off, alone | +3.1 % | 0 |
@@ -222,9 +231,18 @@ from moving each optimistic switch back alone. At pp512 flash-attention-on, bala
 | `attention.overlap_softmax` off, alone | +0.5 % | 0 |
 | `memory.fusion` back to `none`, alone | +0.2 % | 0 |
 | `attention.mask_onchip` off, alone | 0 | 0 |
+| `schedule.within_op_overlap` off, alone (not bracketed) | +52.1 % | +39.2 % |
 
 Switches with no pessimistic setting are derived accounting changes (`matrix.tile_mode`, `memory.l1_feed`,
-`memory.residency`) or a design choice (`precision.weights`); they are listed, not bracketed. The defaults are unchanged by
+`memory.residency`) or a design choice (`precision.weights`); they are listed, not bracketed. `attention.kv_padding` is
+bracketed at `captured` (the padded KV length in the capture), which is also the default, so it only shows when set to `exact`.
+
+**Why `schedule.within_op_overlap` is not bracketed.** A node lasts `max(compute, L1 service, HBM service) + launch`. That is
+the explorer's own duration rule and the baseline of every sensitivity study in `research/compute-mapping/`, not something this
+engine added, so the pessimistic line keeps it and stays comparable with those results. Turning it off charges the three in
+sequence, as if a unit could not compute while its operands stream. That is an upper bound on the whole model rather than a
+bracket around this engine's changes, and it is large, so it is reported separately instead of hidden: the table shows its
+effect alone, and a third line gives the pessimistic design with no overlap. The defaults are unchanged by
 this section. A switch makes an assumption visible; it does not validate it.
 
 Every evaluation in the table keeps its validity and errors. An infeasible design times its unmapped operations at zero, so

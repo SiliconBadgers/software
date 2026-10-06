@@ -159,9 +159,9 @@ def ablation(workload, legacy_cfg, new_cfg, trace=None):
 
 
 def switch_table(workload, cfg, trace=None):
-    """Three views of one design, so no modelling switch is in effect unstated: the config as given, the same
-    hardware with every bracketed switch at its pessimistic setting (config.conservative), and the effect of
-    moving each optimistic switch back on its own.
+    """Views of one design, so no modelling switch is in effect unstated: the config as given, the same hardware
+    with every bracketed switch at its pessimistic setting (config.conservative), that plus the unbracketed
+    alternatives as an upper bound, and the effect of moving each optimistic or informational switch on its own.
 
     Every evaluation keeps its `valid` flag and `errors`. An infeasible design times its unmapped ops at zero, so
     its seconds are not a result: percentage deltas are only reported when both sides of a comparison are valid."""
@@ -179,17 +179,21 @@ def switch_table(workload, cfg, trace=None):
     given = run(cfg)
     pessimistic = run(conservative(cfg))
     pessimistic.update(compare(pessimistic))
+    upper = run(conservative(cfg, upper_bound=True))
+    upper.update(compare(upper))
     rows = []
     for s in switch_report(cfg):
-        row = {k: s[k] for k in ("path", "value", "explorer", "conservative", "status", "optimistic", "assumes")}
-        if s["optimistic"]:
+        row = {k: s[k] for k in ("path", "value", "explorer", "conservative", "alternative", "status", "optimistic",
+                                 "informational", "assumes")}
+        target = s["conservative"] if s["optimistic"] else s["alternative"] if s["informational"] else None
+        if target is not None:
             alone = copy.deepcopy(cfg)
-            set_path(alone, s["path"], s["conservative"])
+            set_path(alone, s["path"], target)
             r = run(alone)
             row["alone"] = r
             row.update(compare(r))
         rows.append(row)
-    return {"workload": workload.name, "given": given, "conservative": pessimistic, "rows": rows}
+    return {"workload": workload.name, "given": given, "conservative": pessimistic, "upper_bound": upper, "rows": rows}
 
 
 # -- sensitivity ------------------------------------------------------------------------------------------------

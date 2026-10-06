@@ -152,5 +152,30 @@ class CpuValidation(unittest.TestCase):
         self.assertNotIn(("prompt-json_records-fa-on", "prefill"), {(r["workload"], r["phase"]) for r in res["heldout"]})
 
 
+class CpuValidationReport(unittest.TestCase):
+    def test_report_lists_measured_and_predicted_time_per_operation_class(self):
+        """The Markdown report needs no traces to test: it only formats run()'s result."""
+        def row(workload, phase, tokens, classes):
+            measured, predicted = sum(m for m, _ in classes.values()), sum(p for _, p in classes.values())
+            return {"workload": workload, "phase": phase, "tokens": tokens, "measured_s": measured, "predicted_s": predicted,
+                    "error_pct": 100 * (predicted / measured - 1),
+                    "by_class": {k: {"measured_s": m, "predicted_s": p} for k, (m, p) in classes.items()}}
+        res = {"train": ["pp128-fa-on", "pp512-fa-on"],
+               "train_fit": [row("pp128-fa-on", "prefill", 128, {"concat": (0.080, 0.219), "matmul[q4_K]": (0.500, 0.500)})],
+               "heldout": [row("prompt-a-fa-on", "prefill", 200, {"concat": (0.100, 0.300), "matmul[q4_K]": (0.900, 0.900)}),
+                           row("prompt-b-fa-on", "prefill", 300, {"concat": (0.200, 0.400), "matmul[q4_K]": (1.800, 1.700)}),
+                           row("prompt-a-fa-on", "decode", 200, {"matmul[q4_K]": (0.030, 0.031)})]}
+        text = cpu_validate.report_markdown(res, "some-run", top=1)
+        self.assertIn("# CPU accounting check: some-run", text)
+        self.assertIn("| held out | prompt-b-fa-on | prefill | 300 | 2,000.0 | 2,100.0 | +5.0% |", text)
+        # classes are summed over the held-out graphs and ordered by the size of the difference
+        self.assertIn("| `concat` | 300.0 | 700.0 | +400.0 | +13.3% |", text)
+        self.assertIn("| 1 other classes | 2,700.0 | 2,600.0 | -100.0 | -3.3% |", text)
+        self.assertIn("| **All** | **3,000.0** | **3,300.0** | **+300.0** | **+10.0%** |", text)
+        self.assertIn("Held-out prefill: mean absolute error 12.5%, max 20.0% (n = 2).", text)
+        self.assertIn("## Training graph pp128-fa-on, prefill, by operation class", text)
+        self.assertIn("| `concat` | 80.0 | 219.0 | +139.0 |", text)
+
+
 if __name__ == "__main__":
     unittest.main()

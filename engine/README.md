@@ -45,9 +45,9 @@ python -m sbengine groups --graph pp512-fa-off            # dependency-map paral
 python -m sbengine sensitivity --graph pp512-fa-on        # which assumptions decide the answer
 python -m sbengine montecarlo --designs accel-balanced accel-efficient
 python -m sbengine parity                                 # MAC accounting vs every captured summary
-python -m sbengine validate-cpu                           # held-out check against measured CPU op times
+python -m sbengine validate-cpu                           # held-out check against measured CPU op times (--report writes per-class tables)
 python -m sbengine serve                                  # interactive modelling page: http://127.0.0.1:8765
-python -m unittest discover -s tests                      # 75 tests
+python -m unittest discover -s tests                      # 79 tests
 ```
 
 `serve` opens the modelling web page (`sbengine/web/index.html`). Unlike the static run browser in

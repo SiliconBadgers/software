@@ -33,7 +33,8 @@ DEFAULTS = {
                "caps": ["elementwise", "reduce", "exp", "rope", "quant", "recurrent", "conv"]},
     "recurrent": {"count": 2, "lanes": 128, "efficiency": 0.7, "scratch_kib": 64,
                   # "serial" | "chunked" | "auto" (cheaper of serial and chunked) | "matrix" (the captured serial
-                  # update run on the matrix arrays at matrix_penalty; never chosen by "auto")
+                  # update run on the matrix arrays at matrix_penalty; needs the gemm capability; never chosen
+                  # by "auto")
                   "lowering": "auto",
                   "chunk": 64,
                   # W8xA16-equivalent PE cycles per 32-bit recurrence MAC for lowering = "matrix". Not established
@@ -88,7 +89,8 @@ _FRACTIONS = [("matrix", "efficiency"), ("vector", "efficiency"), ("recurrent", 
 
 # Every modelling switch. `explorer` is the 2026-09-24 explorer's behaviour (None: it had no equivalent).
 # `conservative` is the pessimistic bracket, or None when neither setting is the cautious one (a derived
-# accounting change or a design choice). `status` follows docs/EQUATIONS.md.
+# accounting change or a design choice). `status` follows docs/EQUATIONS.md. `alternative` marks a switch that
+# is deliberately left out of the bracket but whose other setting is still reported, alone and as an upper bound.
 SWITCHES = [
     {"path": "precision.weights", "explorer": "uniform_int8", "conservative": None, "status": "design choice",
      "assumes": "captured: weight bytes are the mixed Q4_K_M sizes in the capture; per-format MAC rates are assumed"},
@@ -113,30 +115,46 @@ SWITCHES = [
      "assumes": "true: softmax runs on the vector units behind the matrix work instead of after it"},
     {"path": "attention.mask_onchip", "explorer": None, "conservative": False, "status": "assumption",
      "assumes": "true: the causal mask is generated on-chip instead of read from HBM"},
+    {"path": "attention.kv_padding", "explorer": None, "conservative": "captured", "status": "assumption",
+     "assumes": "exact: fused attention reads only the live keys instead of the capture's padded KV length"},
     {"path": "schedule.mode", "explorer": "serial", "conservative": "serial", "status": "derived + assumption",
      "assumes": "pools: ops on different unit pools overlap once their captured dependencies are met"},
-    {"path": "schedule.within_op_overlap", "explorer": True, "conservative": None, "status": "assumption",
-     "assumes": "true: compute, L1 and HBM service overlap inside one op (shared with the explorer)"},
+    # Not bracketed: max(compute, L1, HBM) is the explorer's own node-duration rule and the baseline of every
+    # sensitivity study in research/compute-mapping, so the pessimistic comparison keeps it to stay comparable with
+    # them. Off, the three are charged in sequence, as if a unit could not compute while its operands stream. That
+    # is an upper bound rather than a bracket around this engine's changes, so it is reported separately.
+    {"path": "schedule.within_op_overlap", "explorer": True, "conservative": None, "alternative": False,
+     "status": "assumption",
+     "assumes": "true: compute, L1 and HBM service overlap inside one op. This is the explorer's node-duration rule "
+                "and every study's baseline, so it is not bracketed; false (the three in sequence) is reported "
+                "separately as an upper bound"},
 ]
 
 
 def switch_report(cfg):
     """Where each modelling switch stands in this config. `optimistic` marks a switch that is off its pessimistic
-    bracket, i.e. one whose assumption the reported numbers depend on."""
+    bracket, i.e. one whose assumption the reported numbers depend on. `informational` marks an unbracketed switch
+    whose alternative setting is still worth reporting (see SWITCHES)."""
     rows = []
     for s in SWITCHES:
         value = get_path(cfg, s["path"])
-        rows.append({**s, "value": value, "differs_from_explorer": s["explorer"] is not None and value != s["explorer"],
-                     "optimistic": s["conservative"] is not None and value != s["conservative"]})
+        alternative = s.get("alternative")
+        rows.append({**s, "alternative": alternative, "value": value,
+                     "differs_from_explorer": s["explorer"] is not None and value != s["explorer"],
+                     "optimistic": s["conservative"] is not None and value != s["conservative"],
+                     "informational": alternative is not None and value != alternative})
     return rows
 
 
-def conservative(cfg):
-    """A copy of cfg with every switch that has a pessimistic bracket set to it. Hardware parameters are untouched."""
+def conservative(cfg, upper_bound=False):
+    """A copy of cfg with every switch that has a pessimistic bracket set to it. Hardware parameters are untouched.
+    With upper_bound, the unbracketed switches that have an `alternative` are moved to it as well."""
     out = copy.deepcopy(cfg)
     for s in SWITCHES:
         if s["conservative"] is not None:
             set_path(out, s["path"], s["conservative"])
+        elif upper_bound and s.get("alternative") is not None:
+            set_path(out, s["path"], s["alternative"])
     return out
 
 

@@ -146,7 +146,7 @@ def cmd_switches(args):
     t = sweep.switch_table(w, cfg, trace)
     if args.json:
         Path(args.json).write_text(json.dumps(t, indent=2) + "\n", encoding="utf-8")
-    g, c = t["given"], t["conservative"]
+    g, c, u = t["given"], t["conservative"], t["upper_bound"]
 
     def show(v):
         return "-" if v is None else json.dumps(v)
@@ -161,6 +161,7 @@ def cmd_switches(args):
     print()
     print(summary("as configured", g))
     print(summary("every bracketed switch pessimistic", c))
+    print(summary("...and no overlap inside an op", u))
     print()
     print(f"  {'switch':28s} {'value':>14s} {'pessimistic':>12s} {'explorer':>14s}  {'status':20s} alone: prefill / decode")
     for r in t["rows"]:
@@ -172,11 +173,14 @@ def cmd_switches(args):
             delta = "not compared (the configured design is infeasible)"
         else:
             delta = ""
-        mark = "*" if r["optimistic"] else " "
-        print(f" {mark}{r['path']:28s} {show(r['value']):>14s} {show(r['conservative']):>12s} {show(r['explorer']):>14s}  {r['status']:20s} {delta}")
+        mark = "*" if r["optimistic"] else "~" if r["informational"] else " "
+        bracket = f"({show(r['alternative'])})" if r["conservative"] is None and r["alternative"] is not None else show(r["conservative"])
+        print(f" {mark}{r['path']:28s} {show(r['value']):>14s} {bracket:>12s} {show(r['explorer']):>14s}  {r['status']:20s} {delta}")
     print()
     print("  * off its pessimistic setting. 'alone' is the change from moving just that switch back. A switch with no")
     print("    pessimistic setting is a derived accounting change or a design choice (docs/EQUATIONS.md).")
+    print("  ~ not bracketed: the explorer's own node-duration rule and every study's baseline. Its other setting, in")
+    print("    parentheses, is shown alone and in the upper-bound line, not in the pessimistic line.")
     print("  No percentage is shown for an infeasible design: its unmapped operations are timed at zero.")
     print("  Estimates under assumed hardware parameters; a switch makes an assumption visible, it does not validate it.")
 
@@ -251,6 +255,9 @@ def cmd_validate_cpu(args):
     res = cpu_validate.run(run)
     if args.json:
         Path(args.json).write_text(json.dumps(res, indent=2, default=str) + "\n", encoding="utf-8")
+    if args.report:
+        Path(args.report).parent.mkdir(parents=True, exist_ok=True)
+        Path(args.report).write_bytes(cpu_validate.report_markdown(res, run.name).encode("utf-8"))
     print(f"train on {res['train']}; predict {len(res['test'])} held-out per-prompt graphs (only phases with a comparable trace)")
     for label, rows in (("training fit", res["train_fit"]), ("HELD-OUT", res["heldout"])):
         print(f"\n{label}")
@@ -285,7 +292,9 @@ def main(argv=None):
     p.add_argument("--delta", type=float, default=0.3); p.add_argument("--samples", type=int, default=100); p.add_argument("--seed", type=int, default=0)
     p.set_defaults(fn=cmd_montecarlo)
     p = sub.add_parser("parity"); p.add_argument("--run"); p.set_defaults(fn=cmd_parity)
-    p = sub.add_parser("validate-cpu"); p.add_argument("--run"); p.add_argument("--json"); p.set_defaults(fn=cmd_validate_cpu)
+    p = sub.add_parser("validate-cpu"); p.add_argument("--run"); p.add_argument("--json")
+    p.add_argument("--report", help="write a Markdown report with per-operation-class measured and predicted times")
+    p.set_defaults(fn=cmd_validate_cpu)
     p = sub.add_parser("serve"); p.add_argument("--run"); p.add_argument("--host", default="127.0.0.1")
     p.add_argument("--port", type=int, default=8765); p.add_argument("--open", action="store_true", help="open the page in a browser")
     p.set_defaults(fn=cmd_serve)

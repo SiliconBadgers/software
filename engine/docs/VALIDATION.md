@@ -90,7 +90,7 @@ Bugs the tests or checks found while building it: a schedule clip that made the 
 (ops that occupy a second pool now block it); a residency crash on an infeasible design (now flagged, not raised); an inconsistent DMA
 definition between copies and gathers; an activation-traffic undercount in the explorer's spill proxy (kept as the legacy switch).
 
-Added 2026-10-05, with review fixes on 2026-10-06 (75 tests in total, 3 of them skipped without local-only traces and summaries):
+Added 2026-10-05, with review fixes on 2026-10-06 (79 tests in total, 3 of them skipped without local-only traces and summaries):
 
 - Anchored fusion groups (9): the rule on synthetic graphs (parallel group, one anchor per group, no cross-layer fusion); the
   engine's loader and `groups.py` reproduce the 2026-10-02 dependency-map study's committed tables for the four 2026-09-24
@@ -100,7 +100,12 @@ Added 2026-10-05, with review fixes on 2026-10-06 (75 tests in total, 3 of them 
 - Serial recurrence on the matrix arrays (1): MACs, time and the vector reservation for the whole compute interval (an
   independent vector op cannot start inside it) against the hand-computed equation, linear
   in the penalty, independent of the dedicated-unit count, never chosen by `auto`, valid for a single token.
-- Switch register (4): infeasible designs are never turned into a percentage (the reverted evaluation keeps its validity
+- Matrix recurrence feasibility and traffic (2): on a recurrence-only workload with no recurrence unit and no scalar core,
+  matrix units without the `gemm` capability leave the design infeasible; the matrix path's L1 state traffic equals the vector
+  path's (39 re-reads and 16 writes of the state for 8 tokens), where a dedicated unit with scratch has none.
+- CPU validation report (1): the Markdown report sums measured and predicted time per operation class over the held-out graphs.
+- Switch register (5): `attention.kv_padding` is bracketed at `captured`; `schedule.within_op_overlap` is unbracketed with its
+  alternative reported alone and as an upper bound; infeasible designs are never turned into a percentage (the reverted evaluation keeps its validity
   and errors); every registered path and value is valid; `config.conservative` leaves no optimistic switch and moves
   nothing else; the explorer-equations profile sits at the explorer setting of every switch; the switch table brackets the
   configured result.
@@ -112,7 +117,8 @@ Added 2026-10-05, with review fixes on 2026-10-06 (75 tests in total, 3 of them 
 
 - The accelerator timing equations (matrix cycles, L1/HBM service, scheduling): analytical, uncalibrated.
 - Serial recurrence on the matrix arrays: the penalty is a swept placeholder, and neither array fill/drain per token nor the wait
-  for one token's state update before the next is charged separately. The five state passes per token through L1 are assumed.
+  for one token's state update before the next is charged separately. The five state reads and two state writes per token
+  through L1 are assumed (the same as the vector path); no array-local state storage is modelled.
 - Anchored fusion groups: structural candidates. Nothing shows that a unit can apply a whole group in place.
 - Chunked recurrence lowering: MAC counts derived here from the chunkwise structure, not compared with an implementation. It changes
   prefill by 25-29 % (`EQUATIONS.md` 2.8).
