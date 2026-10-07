@@ -37,9 +37,24 @@ class CudaRunner(unittest.TestCase):
         ctx = SimpleNamespace(state={"metal": False, "cuda_mode": "on"}, skip_metal=False)
         self.assertEqual(measure.backends(ctx), [
             ("cpu", "baseline", 0, False, "cpu_reference"),
-            ("cuda-cpu", "cuda", 0, False, "cuda_build_cpu_control"),
             ("cuda", "cuda", 99, False, "accelerated_execution"),
         ])
+
+    def test_cuda_control_is_diagnostic_opt_in(self):
+        args = cli.build_parser().parse_args(["profile", "--cuda", "on", "--cuda-controls", "--smoke"])
+        ctx = cli.make_context(args)
+        ctx.state.update(metal=False, cuda_mode=ctx.cuda)
+        self.assertEqual([row[0] for row in measure.backends(ctx)], ["cpu", "cuda-cpu", "cuda"])
+        self.assertTrue(ctx.run_trace)
+        self.assertTrue(ctx.run_graphs)
+
+    def test_diagnostic_flags_require_cpu_cuda_comparison(self):
+        for flag in ("--cuda-controls", "--cuda-no-host-control"):
+            for mode in ("off", "only"):
+                with self.subTest(flag=flag, mode=mode):
+                    args = cli.build_parser().parse_args(["profile", "--cuda", mode, flag, "--smoke"])
+                    with self.assertRaisesRegex(SystemExit, "requires --cuda on"):
+                        cli.make_context(args)
 
     def test_cuda_only_is_a_gpu_only_fast_path(self):
         args = cli.build_parser().parse_args(["profile", "--cuda", "only", "--smoke", "--dry-run"])

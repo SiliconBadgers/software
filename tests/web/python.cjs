@@ -223,14 +223,7 @@ const close = (a, b, label) =>
     await page
       .getByRole("button", { name: "Compare recurrence designs" })
       .click();
-    await page.waitForFunction(() => {
-      const target = document.querySelector("#saved-study-panel");
-      return (
-        location.hash === "#work/recurrence" &&
-        document.body.dataset.view === "work" &&
-        target?.getBoundingClientRect().top < 50
-      );
-    });
+    await page.waitForFunction(() => location.hash === "#work/recurrence");
     assert.equal(await page.locator("body").getAttribute("data-view"), "work");
     assert(
       (await page.locator("#saved-study-panel").boundingBox()).y < 50,

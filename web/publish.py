@@ -68,11 +68,9 @@ def run(*args, cwd=None):
 
 def authentication_environment(header, url="https://github.com/"):
     key = f"http.{url}.extraheader"
-    # extraheader is multi-valued: reset the checkout's value before forwarding it. Disable credential helpers
-    # for this non-interactive operation so a rejected header fails instead of opening a desktop prompt.
-    return {"GIT_CONFIG_COUNT": "3", "GIT_CONFIG_KEY_0": key, "GIT_CONFIG_VALUE_0": "",
-            "GIT_CONFIG_KEY_1": key, "GIT_CONFIG_VALUE_1": header,
-            "GIT_CONFIG_KEY_2": "credential.helper", "GIT_CONFIG_VALUE_2": ""}
+    # extraheader is multi-valued: reset the checkout's value before forwarding it.
+    return {"GIT_CONFIG_COUNT": "2", "GIT_CONFIG_KEY_0": key, "GIT_CONFIG_VALUE_0": "",
+            "GIT_CONFIG_KEY_1": key, "GIT_CONFIG_VALUE_1": header}
 
 
 def publish(build, ref):

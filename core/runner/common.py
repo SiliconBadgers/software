@@ -30,7 +30,8 @@ class Context:
     jobs: int = 6
     metal: str = "auto"              # auto | on | off
     skip_metal: bool = False
-    cuda: str = "off"                # off | on (matched study) | only (fast exploratory run)
+    cuda: str = "off"                # off | on (CPU reference + CUDA) | only (fast exploratory run)
+    cuda_controls: bool = False
     cuda_no_host_control: bool = False
     run_trace: bool = True
     run_graphs: bool = True

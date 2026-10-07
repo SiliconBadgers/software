@@ -9,16 +9,17 @@ FIELDS = ["reference_dataset", "reference_role", "accelerated_dataset", "prompt_
           "timing_eligible_for_report", "prefill_speedup", "decode_speedup"]
 
 
-def compare(summaries, dataset_rows, accelerated="cuda", experiment=None):
+def compare(summaries, dataset_rows, accelerated="cuda", experiment=None, *, include_controls=False):
     accelerated_rows = {}
     for row in summaries:
         dataset = datasets.for_run(dataset_rows, row["run"])
         if (dataset and dataset["name"] == accelerated
                 and dataset.get("role") == "accelerated_execution" and not datasets.is_fallback(dataset)):
             accelerated_rows[row["prompt_tokens"]] = row
-    baselines = [row for row in dataset_rows if row.get("role") in {
-        "cpu_reference", "cuda_build_cpu_control", "cuda_build_cpu_no_host_control"}
-        and not datasets.is_fallback(row)]
+    roles = {"cpu_reference"}
+    if include_controls:
+        roles.update({"cuda_build_cpu_control", "cuda_build_cpu_no_host_control"})
+    baselines = [row for row in dataset_rows if row.get("role") in roles and not datasets.is_fallback(row)]
     output = []
     for baseline in baselines:
         for row in summaries:

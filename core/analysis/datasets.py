@@ -100,6 +100,15 @@ def _cuda_enabled(build):
     return None if effective is not None and enabled != effective else enabled
 
 
+def controls_requested(directory):
+    """Control reporting is a recorded diagnostic choice, not implied by old filenames."""
+    path = _manifest_path(directory)
+    if path is None:
+        return False
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    return bool((manifest.get("config") or {}).get("cuda_controls", False))
+
+
 def _inferred(manifest):
     names = list((manifest.get("config") or {}).get("backends") or [])
     legacy = manifest.get("baseline_backends")

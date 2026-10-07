@@ -18,6 +18,9 @@ import measure
 import validate
 import cli
 import plot
+import pipeline
+import decode_curve
+import summarize
 from policy import load_experiment
 import numpy as np
 import importlib.util
@@ -102,10 +105,12 @@ class Provenance(unittest.TestCase):
                      for name, pre, dec in [("cpu-baseline", 8, 6), ("cuda-cpu-baseline", 10, 4),
                                             ("cuda-cpu-no-host-baseline", 9, 5),
                                             ("cuda-baseline", 2, 1), ("cpu-profile", 100, 100)]]
-        result = backend_speedup.compare(summaries, rows)
+        result = backend_speedup.compare(summaries, rows, include_controls=True)
         self.assertEqual(len(result), 3)
         self.assertEqual([(r["prefill_speedup"], r["decode_speedup"]) for r in result],
                          [(4, 6), (5, 4), (4.5, 5)])
+        ordinary = backend_speedup.compare(summaries, rows)
+        self.assertEqual([row["reference_role"] for row in ordinary], ["cpu_reference"])
 
     def test_dashboard_keeps_roles_and_builds_for_historical_run(self):
         self.manifest({"config": {"backends": ["cpu", "cuda"]},
@@ -237,6 +242,29 @@ class Provenance(unittest.TestCase):
         manifest = json.loads((self.root / "run-manifest.json").read_text())
         self.assertEqual(manifest["run"]["status"], "failed")
         self.assertEqual(manifest["analysis"]["backend_speedups"], 0)
+
+    def test_control_reports_are_opt_in_and_stale_derived_checks_are_removed(self):
+        self.manifest({"build": {"requested": {"GGML_CUDA": "OFF"}}, "datasets": [
+            {"name": "cpu", "role": "cpu_reference", "build": "baseline"},
+            {"name": "cuda-cpu", "role": "cuda_build_cpu_control", "build": "cuda"},
+            {"name": "cuda", "role": "accelerated_execution", "build": "cuda"}]})
+        summaries = [{"run": name + "-baseline", "prompt_tokens": 128,
+                      "prefill_seconds": pre, "decode_ms": pre}
+                     for name, pre in (("cpu", 4), ("cuda-cpu", 5), ("cuda", 1))]
+        for enabled in (True, False):
+            with self.subTest(include_controls=enabled), \
+                 patch.object(summarize, "summarize", return_value=summaries), \
+                 patch.object(decode_curve, "summarize_run", return_value=[]), \
+                 patch.object(decode_curve, "plot"), patch.object(plot, "draw") as draw, \
+                 patch.object(validate, "validate", return_value=([], [], [])), \
+                 patch.object(validate, "compare_backend", return_value=[]) as compare:
+                result = pipeline.analyze_run(self.root, load_experiment(), [128], False,
+                                              ["cpu", "cuda-cpu", "cuda"], "Host", include_controls=enabled)
+                self.assertEqual([call.args[3] for call in compare.call_args_list],
+                                 ["cuda-cpu", "cuda"] if enabled else ["cuda"])
+                self.assertEqual(draw.call_args.kwargs["include_controls"], enabled)
+                self.assertEqual(result["backend_speedups"], 2 if enabled else 1)
+                self.assertEqual((self.root / "analysis/cpu-cuda-cpu-logit-check.json").exists(), enabled)
 
     def test_baseline_preserves_actual_placement_when_fallback_raises(self):
         ctx = SimpleNamespace(state={}, repetitions=1)

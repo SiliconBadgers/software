@@ -47,7 +47,8 @@ def backends(ctx):
     plans = [("cpu", "baseline", 0, False, "cpu_reference")]
     plans += ([("metal", "baseline", 99, False, "accelerated_execution")] if metal else [])
     if cuda_mode == "on":
-        plans.append(("cuda-cpu", "cuda", 0, False, "cuda_build_cpu_control"))
+        if getattr(ctx, "cuda_controls", False) or getattr(ctx, "cuda_no_host_control", False):
+            plans.append(("cuda-cpu", "cuda", 0, False, "cuda_build_cpu_control"))
         if getattr(ctx, "cuda_no_host_control", False):
             plans.append(("cuda-cpu-no-host", "cuda", 0, True, "cuda_build_cpu_no_host_control"))
         plans.append(("cuda", "cuda", 99, False, "accelerated_execution"))

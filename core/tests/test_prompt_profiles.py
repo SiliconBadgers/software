@@ -121,7 +121,7 @@ class PromptProfiles(unittest.TestCase):
     def test_optional_cuda_timing_and_numerical_check(self):
         directory = make_prompt_dir(self.run, "alpha", traced=False)
         (self.run / "run-manifest.json").write_text(json.dumps({
-            "build": {"requested": {"GGML_CUDA": "OFF"}}, "datasets": [
+            "config": {"cuda_controls": True}, "build": {"requested": {"GGML_CUDA": "OFF"}}, "datasets": [
             {"name": "cpu", "role": "cpu_reference", "build": "baseline"},
             {"name": "cuda-cpu", "role": "cuda_build_cpu_control", "build": "cuda"},
             {"name": "cuda", "role": "accelerated_execution", "build": "cuda"},
@@ -135,6 +135,15 @@ class PromptProfiles(unittest.TestCase):
         self.assertAlmostEqual(row["timing"]["cuda"]["prefill_seconds"], 2.1)
         self.assertEqual(len(row["checks"]["cpu_vs_cuda"]), 2)
         self.assertTrue(all(check["max_abs_difference"] == 0 for check in row["checks"]["cpu_vs_cuda"]))
+        # Old control files remain readable/labeled, but no control-specific prompt reports
+        # appear without a recorded diagnostic request.
+        manifest_path = self.run / "run-manifest.json"
+        manifest = json.loads(manifest_path.read_text())
+        manifest["config"]["cuda_controls"] = False
+        manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+        row, = prompts.build(self.run, prompt_set=make_prompt_set(Path(self.tmp.name) / "set", ["alpha"]))["prompts"]
+        self.assertNotIn("cuda_build_cpu", row["timing"])
+        self.assertEqual(row["checks"]["cpu_vs_cuda_build_cpu"], [])
 
     def test_saved_prompt_fallback_is_not_labeled_as_cuda_execution(self):
         directory = make_prompt_dir(self.run, "alpha", traced=False)

@@ -52,12 +52,14 @@ def subtitle_for(results_dir, override):
     return "host not recorded for this data"
 
 
-def draw(results_dir, out_dir, experiment, subtitle=None):
+def draw(results_dir, out_dir, experiment, subtitle=None, *, include_controls=None):
     baselines = load_json(results_dir / "summary.json")
     dataset_rows = datasets.read(results_dir)
+    if include_controls is None:
+        include_controls = datasets.controls_requested(results_dir)
     fallbacks = [row for row in dataset_rows if datasets.is_fallback(row)]
     cpu_legend = cpu_label(baselines, dataset_rows)
-    show_point_labels = not any(r["run"].startswith("cuda-cpu-no-host-") for r in baselines)
+    show_point_labels = not (include_controls and any(r["run"].startswith("cuda-cpu-no-host-") for r in baselines))
     has_ops = exists(results_dir / "operation-summary.json")
     ops = load_json(results_dir / "operation-summary.json")["runs"] if has_ops else []
     plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 11,
@@ -71,6 +73,8 @@ def draw(results_dir, out_dir, experiment, subtitle=None):
         ax1, ax2 = fig.add_subplot(grid[0, 0]), fig.add_subplot(grid[0, 1])
     plotted, decode_hi, prefill_lo, prefill_hi, repetitions, decode_steps = [], 0, 1e9, 0, 0, 0
     for backend in ("cpu", "metal", "cuda-cpu", "cuda-cpu-no-host", "cuda"):
+        if backend in ("cuda-cpu", "cuda-cpu-no-host") and not include_controls:
+            continue
         data = sorted([r for r in baselines if r["run"] in run_names(experiment, backend)],
                       key=lambda r: r["prompt_tokens"])
         if not data:

@@ -107,8 +107,9 @@ def build_row(run_dir, experiment, entry, prompt_dir, prompt_set_dir):
     baseline = summaries["cpu-baseline"]
     has_trace = exists(prompt_dir / "cpu-op-trace.jsonl")
     has_metal = exists(prompt_dir / "metal-baseline.jsonl")
-    has_cuda_cpu = exists(prompt_dir / "cuda-cpu-baseline.jsonl")
-    has_cuda_cpu_no_host = exists(prompt_dir / "cuda-cpu-no-host-baseline.jsonl")
+    controls = datasets.controls_requested(prompt_dir)
+    has_cuda_cpu = controls and exists(prompt_dir / "cuda-cpu-baseline.jsonl")
+    has_cuda_cpu_no_host = controls and exists(prompt_dir / "cuda-cpu-no-host-baseline.jsonl")
     has_cuda = exists(prompt_dir / "cuda-baseline.jsonl")
     profile_checks, backend_checks, _ = [], [], None
     check = {}

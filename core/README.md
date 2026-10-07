@@ -19,7 +19,8 @@ windows\run.ps1 doctor
 windows\run.ps1 profile [--smoke] [--dry-run]
 windows\run.ps1 profile --cuda only                 # fast exploratory CUDA timing
 windows\run.ps1 profile --cuda on --smoke           # matched CPU/CUDA validation smoke
-windows\run.ps1 profile --cuda on --cuda-no-host-control  # also test CPU weight repacking in the CUDA build
+windows\run.ps1 profile --cuda on --cuda-controls        # opt-in CUDA-build CPU diagnostic
+windows\run.ps1 profile --cuda on --cuda-no-host-control # opt-in host-buffer/repacking diagnostics
 ```
 
 `profile` runs: **ensure** (pinned llama.cpp + verified model, both cached in the gitignored `work/`) ->
@@ -35,13 +36,18 @@ CPU build for its reference baseline, trace validation and graph capture. `--cud
 path: it builds/runs CUDA only and automatically skips CPU timing, traces, graph capture and per-prompt stages.
 It does not produce a CPU numerical comparison, so candidates selected this way should later be checked
 against the current CPU reference. `--cuda on` is the freeze/comparison path: it runs the current CPU-reference
-build, a zero-offload CPU control inside the separate CUDA-enabled build (`cuda-cpu-*`), and CUDA. The CPU
-reference row validates the CPU-only trace; the CUDA-build CPU row is the matched control for backend speedup.
+build and CUDA, without the additional CUDA-build CPU controls. The CPU-reference row validates the
+CPU-only trace. Existing profiling and graph capture stay on CPU.
 
-`--cuda-no-host-control` adds `cuda-cpu-no-host-*` in comparison mode, with zero offload and llama.cpp's
-`no_host=true`. It is a separate control for host-buffer/CPU-repacking sensitivity. All other workload and
-thread settings stay fixed. `analysis/backend-speedups.{json,csv}` reports CUDA versus every CPU dataset;
-the comparison identifies its denominator by dataset name and role.
+**Diagnostic controls are opt-in.** `--cuda-controls` adds a zero-offload CUDA-build CPU control
+(`cuda-cpu-*`). `--cuda-no-host-control` requests that control plus `cuda-cpu-no-host-*`, with llama.cpp's
+`no_host=true`. Use them when investigating a CPU-reference mismatch or host-buffer/repacking behavior,
+not for ordinary CUDA iteration. Both require `--cuda on`; neither changes the default CPU workflow.
+The manifest records the diagnostic choice. Ordinary speedup exports use only the CPU reference;
+control-specific ratios and checkpoint comparisons are generated only when diagnostics were requested.
+Historical control datasets retain their distinct labels and never become CPU references by filename.
+
+The concise [CUDA verification note](../docs/cuda-verification.md) records smoke commands and limitations.
 
 Each manifest's `datasets` records a role and build key for each series. The harness also emits actual model
 buffer types, bytes, device descriptions and backend names, separately from requested `ngl`.
@@ -86,8 +92,8 @@ comparison reports exactly that. `--prompts-only` runs just the per-prompt stage
 the graphs, `--prompt-set FILE` uses another prompt list.
 
 **Per-prompt timings and traces.** For each prompt, `sb-profile-prompt` (same measurement loop as `profile.cpp`)
-runs a reference untraced CPU run and a traced CPU run (plus Metal on macOS/arm64, or the CUDA-build CPU control
-and CUDA in comparison mode) into `prompts/<id>/`, and
+runs a reference untraced CPU run and a traced CPU run (plus Metal on macOS/arm64 or CUDA when requested,
+with CUDA-build CPU controls only under the diagnostic flags) into `prompts/<id>/`, and
 `prompt-profiles.json` gets one row per prompt: prompt hash and token count, prefill and decode timings, the
 operation-trace breakdown per phase (share by group and by operation, call counts, matrix MACs), the
 profiler-overhead ratio, the traced-vs-untraced logit check, and pointers to that prompt's graphs. The

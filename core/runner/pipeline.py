@@ -45,7 +45,7 @@ def compress(ctx):
             gzip_in_place(path)
 
 
-def analyze_run(run_dir, experiment, lengths, has_trace, backends, subtitle):
+def analyze_run(run_dir, experiment, lengths, has_trace, backends, subtitle, *, include_controls=False):
     """Write summaries, validation and the figure into run_dir/analysis. Raw files are only read."""
     import decode_curve
     import backend_speedup
@@ -58,7 +58,8 @@ def analyze_run(run_dir, experiment, lengths, has_trace, backends, subtitle):
     out.mkdir(exist_ok=True)
     summaries = summarize.summarize(run_dir, experiment)
     summarize.write_outputs(out, summaries)
-    speedups = backend_speedup.compare(summaries, datasets.read(run_dir), experiment=experiment)
+    speedups = backend_speedup.compare(summaries, datasets.read(run_dir), experiment=experiment,
+                                      include_controls=include_controls)
     backend_speedup.write_outputs(out, speedups)
     curves = decode_curve.summarize_run(run_dir, experiment)
     decode_curve.write_outputs(out, curves)
@@ -74,10 +75,14 @@ def analyze_run(run_dir, experiment, lengths, has_trace, backends, subtitle):
     validate.write_outputs(out, profile_checks, backend_checks)
     optional_checks = {}
     for backend in ("cuda-cpu", "cuda-cpu-no-host", "cuda"):
-        if has_cpu and backend in backends:
+        if backend != "cuda" and not include_controls:
+            # These are derived reports, not captured evidence. Do not leave stale diagnostics
+            # visible when an older run is reanalyzed without an explicit diagnostic request.
+            (out / f"cpu-{backend}-logit-check.json").unlink(missing_ok=True)
+        if has_cpu and backend in backends and (backend == "cuda" or include_controls):
             optional_checks[backend] = validate.compare_backend(run_dir, experiment, lengths, backend)
             validate.write_backend_output(out, backend, optional_checks[backend])
-    plot.draw(out, out, experiment, subtitle)
+    plot.draw(out, out, experiment, subtitle, include_controls=include_controls)
     return {"decode_curves": len(curves), "backend_speedups": len(speedups),
             "profile_checks": len(profile_checks),
             "profile_bit_identical": all(c["bit_identical"] for c in profile_checks) if has_trace else None,
@@ -187,6 +192,7 @@ def run_profile(ctx, argv):
         "config": {"prompt_lengths": ctx.lengths, "threads": ctx.threads, "repetitions": ctx.repetitions,
                    "trace_repetitions": ctx.trace_repetitions, "decode_steps": ctx.decode_steps,
                    "backends": backends, "trace": ctx.run_trace,
+                   "cuda_controls": ctx.cuda_controls or ctx.cuda_no_host_control,
                    "include_diagnostic_cases": ctx.include_diagnostic,
                    "graphs": ctx.run_graphs and {"prompt_lengths": ctx.graph_lengths,
                                                   "flash_attention": exp["graphs"]["flash_attention"]}},
@@ -261,7 +267,8 @@ def run_profile(ctx, argv):
             print("\n== analyze")
             if not ctx.dry_run:
                 manifest["analysis"] = analyze_run(ctx.run_dir, exp, ctx.lengths, ctx.run_trace, backends,
-                                                   manifest["plot_subtitle"])
+                                                   manifest["plot_subtitle"],
+                                                   include_controls=manifest["config"]["cuda_controls"])
         manifest["run"]["status"] = "dry-run" if ctx.dry_run else "complete"
     except BaseException:
         manifest["run"]["status"] = "failed"
