@@ -1,9 +1,8 @@
-"""core/harness/profile.cpp may be reformatted and commented, but must stay the same program as the
-harness that produced the recorded 2026-09-22 baseline.
+"""Preserve the recorded measurement semantics while allowing backend metadata/CLI extensions.
 
-Whitespace, comments and how string literals are split are ignored; every other character,
-including each brace, must match. (A formatter once moved a single brace in logits() so that the
-logits file was rewritten 248,320 times per checkpoint; this test exists to catch that class of edit.)
+Compare the logit writer, tokenization/output, context configuration and timed loop with the
+immutable harness, including every brace. A historical formatting bug wrote logits once per
+vocabulary element; mutations below confirm this gate still detects that class of regression.
 """
 import ast
 from pathlib import Path
@@ -22,6 +21,19 @@ def significant(source):
     return re.sub(r"\s+", "", source)
 
 
+def measurement_regions(source):
+    text = significant(source)
+    def region(start, end=None):
+        first = text.index(start)
+        return text[first:text.index(end, first) + len(end)] if end else text[first:]
+    return {
+        "logit_writer": region("staticvoidlogits(", "intmain("),
+        "tokenization_and_outputs": region("intnt=-llama_tokenize(", "std::cout<<std::setprecision(10);"),
+        "context_configuration": region("for(intn:lengths){", "if(!c)return2;"),
+        "warmup_and_measurement": region('phase("warmup");'),
+    }
+
+
 def paragraph(source):
     match = re.search(r"std::string paragraph\s*=\s*((?:\s*" + STRING + r")+)\s*;", source)
     pieces = re.findall(r'"((?:[^"\\]|\\.)*)"', match.group(1))
@@ -37,8 +49,18 @@ class HarnessEquivalence(unittest.TestCase):
     def test_prompt_paragraph_is_unchanged(self):
         self.assertEqual(paragraph(self.current), paragraph(self.original))
 
-    def test_program_text_is_unchanged_apart_from_layout(self):
-        self.assertEqual(significant(self.current), significant(self.original))
+    def test_measurement_regions_match_recorded_program(self):
+        self.assertEqual(measurement_regions(self.current), measurement_regions(self.original))
+
+    def test_gate_catches_per_element_logit_write_regression(self):
+        mutated = self.current.replace('if(!path.empty()){', 'for(int i=0;i<nv;i++)if(!path.empty()){')
+        self.assertNotEqual(measurement_regions(mutated), measurement_regions(self.original))
+
+    def test_gate_catches_context_and_timing_changes(self):
+        for old, new in (("cp.n_ubatch=512;", "cp.n_ubatch=128;"),
+                         ("llama_synchronize(c);", "/* synchronization removed */")):
+            self.assertNotEqual(measurement_regions(self.current.replace(old, new)),
+                                measurement_regions(self.original))
 
     def test_lf_line_endings(self):
         self.assertNotIn(b"\r", CURRENT.read_bytes())

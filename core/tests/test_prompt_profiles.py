@@ -50,6 +50,9 @@ def logits(directory, prefix, value=0.0, tweak=False):
 
 
 def make_prompt_dir(run, prompt_id, traced=True, tweak=False):
+    (run / "run-manifest.json").write_text(json.dumps({
+        "config": {"backends": ["cpu"]}, "build": {"requested": {"GGML_CUDA": "OFF"}}
+    }), encoding="utf-8")
     directory = run / "prompts" / prompt_id
     directory.mkdir(parents=True)
     timings(directory, "cpu-baseline", 2)
@@ -114,6 +117,46 @@ class PromptProfiles(unittest.TestCase):
         (row,) = prompts.build(self.run, prompt_set=make_prompt_set(Path(self.tmp.name) / "set", ["alpha"]))["prompts"]
         self.assertIsNone(row["trace"])
         self.assertIsNone(row["checks"]["traced_vs_untraced_logits_bit_identical"])
+
+    def test_optional_cuda_timing_and_numerical_check(self):
+        directory = make_prompt_dir(self.run, "alpha", traced=False)
+        (self.run / "run-manifest.json").write_text(json.dumps({
+            "config": {"cuda_controls": True}, "build": {"requested": {"GGML_CUDA": "OFF"}}, "datasets": [
+            {"name": "cpu", "role": "cpu_reference", "build": "baseline"},
+            {"name": "cuda-cpu", "role": "cuda_build_cpu_control", "build": "cuda"},
+            {"name": "cuda", "role": "accelerated_execution", "build": "cuda"},
+        ]}), encoding="utf-8")
+        timings(directory, "cuda-cpu-baseline", 2)
+        logits(directory, "cuda-cpu-baseline")
+        timings(directory, "cuda-baseline", 2)
+        logits(directory, "cuda-baseline")
+        (row,) = prompts.build(self.run, prompt_set=make_prompt_set(Path(self.tmp.name) / "set", ["alpha"]))["prompts"]
+        self.assertAlmostEqual(row["timing"]["cuda_build_cpu"]["prefill_seconds"], 2.1)
+        self.assertAlmostEqual(row["timing"]["cuda"]["prefill_seconds"], 2.1)
+        self.assertEqual(len(row["checks"]["cpu_vs_cuda"]), 2)
+        self.assertTrue(all(check["max_abs_difference"] == 0 for check in row["checks"]["cpu_vs_cuda"]))
+        # Old control files remain readable/labeled, but no control-specific prompt reports
+        # appear without a recorded diagnostic request.
+        manifest_path = self.run / "run-manifest.json"
+        manifest = json.loads(manifest_path.read_text())
+        manifest["config"]["cuda_controls"] = False
+        manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+        row, = prompts.build(self.run, prompt_set=make_prompt_set(Path(self.tmp.name) / "set", ["alpha"]))["prompts"]
+        self.assertNotIn("cuda_build_cpu", row["timing"])
+        self.assertEqual(row["checks"]["cpu_vs_cuda_build_cpu"], [])
+
+    def test_saved_prompt_fallback_is_not_labeled_as_cuda_execution(self):
+        directory = make_prompt_dir(self.run, "alpha", traced=False)
+        timings(directory, "cuda-baseline", 2)
+        logits(directory, "cuda-baseline")
+        (self.run / "run-manifest.json").write_text(json.dumps({
+            "config": {"backends": ["cpu", "cuda"]}, "build": {"requested": {"GGML_CUDA": "OFF"}},
+            "prompt_backend_placements": [{"file": "prompts/alpha/cuda-baseline.jsonl",
+                                           "actual": {"cpu_fallback": True}}]}), encoding="utf-8")
+        row, = prompts.build(self.run, prompt_set=make_prompt_set(Path(self.tmp.name) / "set", ["alpha"]))["prompts"]
+        self.assertEqual(row["timing"]["cuda"]["dataset"]["role"], "cpu_fallback")
+        self.assertEqual(row["timing"]["cuda"]["dataset_label"], "CPU fallback (CUDA requested)")
+        self.assertTrue(all(check["cpu_fallback"] for check in row["checks"]["cpu_vs_cuda"]))
 
     def test_one_row_per_prompt_in_prompt_set_order_skipping_missing(self):
         make_prompt_dir(self.run, "beta")

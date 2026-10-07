@@ -25,6 +25,10 @@ jobs:
           for script in test_sensitivity test_scheduler test_joint_resources test_recurrence_penalty; do
             node "experiments/llama-cpp/2026-09-24-qwen35-2b/scripts/$script.cjs"
           done
+      - name: Profiler core checks
+        run: |
+          python3 -m pip install matplotlib==3.11.2
+          python3 -m unittest discover -s core/tests -v
       - name: Workspace and publication checks
         run: python3 -m unittest discover -s tests/web -v
       - name: Build workspace

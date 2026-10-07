@@ -8,10 +8,13 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
+import datasets
 from policy import load_experiment, timing_eligible, DEFAULT_EXPERIMENT
 from result_io import exists, load_json, output_dir
 
-COLORS = {"cpu": "#275DAD", "metal": "#148271"}
+COLORS = {"cpu": "#275DAD", "metal": "#148271", "cuda-cpu": "#A66A3F",
+          "cuda-cpu-no-host": "#D18C55", "cuda": "#6B4C9A"}
+MARKERS = {"cpu": "o", "metal": "P", "cuda-cpu": "s", "cuda-cpu-no-host": "D", "cuda": "^"}
 GROUPS = ["MLP projections", "Attention/DeltaNet projections", "Vocabulary output head",
           "Attention QK/softmax/AV", "DeltaNet recurrence", "Copies/gather/state movement",
           "Vector/norm/activation/other", "Convolution"]
@@ -30,6 +33,15 @@ def run_names(experiment, backend):
     return [f"{backend}-{tag}" for tag in tags]
 
 
+def cpu_label(baselines, dataset_rows=None):
+    """Use role/build evidence; filenames alone cannot identify a CPU-reference build."""
+    if dataset_rows:
+        row = next((item for item in dataset_rows if item["name"] == "cpu"), None)
+        if row:
+            return datasets.label(row)
+    return "CPU (build not identified)"
+
+
 def subtitle_for(results_dir, override):
     if override:
         return override
@@ -40,8 +52,14 @@ def subtitle_for(results_dir, override):
     return "host not recorded for this data"
 
 
-def draw(results_dir, out_dir, experiment, subtitle=None):
+def draw(results_dir, out_dir, experiment, subtitle=None, *, include_controls=None):
     baselines = load_json(results_dir / "summary.json")
+    dataset_rows = datasets.read(results_dir)
+    if include_controls is None:
+        include_controls = datasets.controls_requested(results_dir)
+    fallbacks = [row for row in dataset_rows if datasets.is_fallback(row)]
+    cpu_legend = cpu_label(baselines, dataset_rows)
+    show_point_labels = not (include_controls and any(r["run"].startswith("cuda-cpu-no-host-") for r in baselines))
     has_ops = exists(results_dir / "operation-summary.json")
     ops = load_json(results_dir / "operation-summary.json")["runs"] if has_ops else []
     plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 11,
@@ -54,7 +72,9 @@ def draw(results_dir, out_dir, experiment, subtitle=None):
         grid = fig.add_gridspec(1, 2, wspace=0.27)
         ax1, ax2 = fig.add_subplot(grid[0, 0]), fig.add_subplot(grid[0, 1])
     plotted, decode_hi, prefill_lo, prefill_hi, repetitions, decode_steps = [], 0, 1e9, 0, 0, 0
-    for backend in ("cpu", "metal"):
+    for backend in ("cpu", "metal", "cuda-cpu", "cuda-cpu-no-host", "cuda"):
+        if backend in ("cuda-cpu", "cuda-cpu-no-host") and not include_controls:
+            continue
         data = sorted([r for r in baselines if r["run"] in run_names(experiment, backend)],
                       key=lambda r: r["prompt_tokens"])
         if not data:
@@ -70,12 +90,21 @@ def draw(results_dir, out_dir, experiment, subtitle=None):
                                       (ax2, "decode_ms", "decode_min_ms", "decode_max_ms")):
             y = np.array([r[metric] for r in data])
             err = np.array([[r[metric] - r[low] for r in data], [r[high] - r[metric] for r in data]])
-            label = "CPU" if backend == "cpu" else "Metal"
-            ax.errorbar(x, y, yerr=err, marker="o", capsize=4, lw=2, color=COLORS[backend], label=label)
-            for xi, yi in zip(x, y):
-                ax.annotate(f"{yi:.2f}", (xi, yi), xytext=(0, 8 if backend == "cpu" else -18),
-                            textcoords="offset points", ha="center", fontsize=9, color=COLORS[backend])
-            ax.set_xticks(x, [f"{r['prompt_tokens']:,}" for r in data])
+            dataset = next((row for row in dataset_rows if row["name"] == backend), None)
+            label = cpu_legend if backend == "cpu" else datasets.label(dataset) if dataset else {
+                "metal": "Metal", "cuda-cpu": "CPU (CUDA build)",
+                "cuda-cpu-no-host": "CPU (CUDA build, no_host)", "cuda": "CUDA"}[backend]
+            ax.errorbar(x, y, yerr=err, marker=MARKERS[backend], capsize=4, lw=2,
+                        color=COLORS[backend], label=label)
+            offsets = ({"cpu": 14, "metal": -18, "cuda-cpu": -24, "cuda-cpu-no-host": -46, "cuda": 18}
+                       if metric == "prefill_seconds" else
+                       {"cpu": 14, "metal": -18, "cuda-cpu": -18, "cuda-cpu-no-host": -52, "cuda": 18})
+            if show_point_labels:
+                for xi, yi in zip(x, y):
+                    ax.annotate(f"{yi:.2f}", (xi, yi), xytext=(0, offsets[backend]),
+                                textcoords="offset points", ha="center", fontsize=9, color=COLORS[backend])
+            ax.set_xticks(x, [f"{r['prompt_tokens']:,}" + ("*" if not timing_eligible(experiment, r["prompt_tokens"]) else "")
+                             for r in data])
             ax.set_xlabel(f"Prompt tokens before {decode_steps} decode steps")
             ax.grid(axis="y", alpha=.16)
     if not plotted:
@@ -87,9 +116,15 @@ def draw(results_dir, out_dir, experiment, subtitle=None):
     ax2.set_ylim(0, decode_hi * 1.25)
     ax2.set_ylabel("Decode ms / token")
     ax2.set_title("Cached single-token processing", loc="left", fontweight="bold")
-    ax1.legend(frameon=False)
+    ax1.legend(frameon=False, loc="upper left", fontsize=9)
     plural = lambda n, word: f"{n} {word}" + ("" if n == 1 else "s")
     notes = [f"Top: uninstrumented medians of {plural(repetitions, 'run')}; whiskers show min–max."]
+    if not show_point_labels:
+        notes[0] += " Exact values are in summary.csv."
+    if fallbacks:
+        notes.append("CPU fallback timings retained; excluded from accelerated speedups.")
+    if any(not timing_eligible(experiment, row["prompt_tokens"]) for row in baselines):
+        notes[0] += " * Diagnostic; excluded from primary conclusions."
     if has_ops:
         report_n = experiment["policy"]["report_prompt_tokens"]
         eligible = sorted({r["prompt_tokens"] for r in ops if r.get("timing_eligible_for_report", True)})
@@ -121,13 +156,13 @@ def draw(results_dir, out_dir, experiment, subtitle=None):
         ax3.legend(ncol=4, frameon=False, loc="upper center", bbox_to_anchor=(.5, -.28), fontsize=9, columnspacing=1.5)
         trace_reps = max(r["rep"] for r in ops) + 1
         notes.append(f"Bottom: {plural(trace_reps, 'CPU trace')}, {plural(decode_steps, 'decode step')} each.")
-        notes.append("CPU operation shares do not describe Metal kernels or predict accelerator area."
+        notes.append("CPU operation shares do not describe GPU kernels or predict accelerator area."
                      + (" Anomalous timing shares for excluded cases omitted."
                         if any(not timing_eligible(experiment, r["prompt_tokens"]) for r in ops) else ""))
-    fig.suptitle("Qwen3.5-2B in llama.cpp", x=.08, y=.98, ha="left", fontsize=22, fontweight="bold")
-    fig.text(.08, .935, subtitle or "", fontsize=11, color="#555")
+    fig.suptitle("Qwen3.5-2B in llama.cpp", x=.08, y=.985, ha="left", fontsize=22, fontweight="bold")
+    fig.text(.08, .91, datasets.report_subtitle(dataset_rows, subtitle) or "", fontsize=11, color="#555")
     fig.text(.08, .028, " ".join(notes[:2]) + "\n" + " ".join(notes[2:]), fontsize=9, color="#555")
-    fig.subplots_adjust(top=.86, bottom=.21 if has_ops else .18, left=.1, right=.97)
+    fig.subplots_adjust(top=.82, bottom=.21 if has_ops else .18, left=.1, right=.97)
     fig.savefig(out_dir / "profiling-summary.png", dpi=180)
     fig.savefig(out_dir / "profiling-summary.pdf")
     plt.close(fig)

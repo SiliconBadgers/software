@@ -10,6 +10,8 @@ import csv
 import json
 import statistics
 
+import datasets
+
 from result_io import exists, open_csv, open_result, write_json
 
 MAX_BINS = 16
@@ -90,6 +92,7 @@ def curves_for_file(path):
 def summarize_run(results_dir, experiment):
     """Curves for every untraced measurement file listed in the experiment's summary_runs."""
     found = []
+    dataset_rows = datasets.read(results_dir)
     for name in experiment["policy"]["summary_runs"]:
         if "profile" in name:              # instrumented runs: tracing overhead is inside their timings
             continue
@@ -97,7 +100,11 @@ def summarize_run(results_dir, experiment):
         if not exists(path):
             continue
         for n, c in curves_for_file(path).items():
-            found.append({"run": name, **c})
+            row = {"run": name, **c}
+            identity = datasets.for_run(dataset_rows, name)
+            if datasets.is_fallback(identity):
+                row.update(dataset_role="cpu_fallback", dataset_label=datasets.label(identity), cpu_fallback=True)
+            found.append(row)
     return found
 
 
@@ -107,10 +114,13 @@ def write_outputs(out_dir, curves):
         "curves": curves})
     with open_csv(out_dir / "decode-curve.csv") as stream:
         writer = csv.writer(stream)
-        writer.writerow(["run", "prompt_tokens", "step", "context_tokens", "decode_ms_median"])
+        fallback = any(c.get("cpu_fallback") for c in curves)
+        writer.writerow(["run", "prompt_tokens", "step", "context_tokens", "decode_ms_median"]
+                        + (["dataset_label"] if fallback else []))
         for c in curves:
             for j, (ctx, ms) in enumerate(zip(c["context_tokens"], c["per_step_ms"])):
-                writer.writerow([c["run"], c["prompt_tokens"], j, ctx, ms])
+                writer.writerow([c["run"], c["prompt_tokens"], j, ctx, ms]
+                                + ([c.get("dataset_label", c["run"])] if fallback else []))
 
 
 def plot(out_dir, curves):
@@ -124,7 +134,7 @@ def plot(out_dir, curves):
     fig, ax = plt.subplots(figsize=(10, 5.5), facecolor="white")
     for c in usable:
         ax.plot(c["context_tokens"], c["per_step_ms"], lw=1.4,
-                label=f"{c['run']} · prompt {c['prompt_tokens']:,} ({c['steps']} steps)")
+                label=f"{c.get('dataset_label', c['run'])} · prompt {c['prompt_tokens']:,} ({c['steps']} steps)")
     ax.set_xlabel("Tokens in the KV cache when the step runs")
     ax.set_ylabel("Decode ms per token (median over repetitions)")
     ax.set_title("Decode cost as the context grows", loc="left", fontweight="bold")

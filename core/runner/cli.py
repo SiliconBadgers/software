@@ -45,6 +45,12 @@ def build_parser():
     p.add_argument("--jobs", type=positive, default=6, help="Parallel build jobs")
     p.add_argument("--metal", choices=["auto", "on", "off"], default="auto")
     p.add_argument("--skip-metal", action="store_true")
+    p.add_argument("--cuda", choices=["off", "on", "only"], default="off",
+                   help="off: CPU reference; on: CPU reference + CUDA; only: fast CUDA timing only")
+    p.add_argument("--cuda-controls", action="store_true",
+                   help="With --cuda on, opt into a zero-offload CUDA-build CPU diagnostic control")
+    p.add_argument("--cuda-no-host-control", action="store_true",
+                   help="With --cuda on, opt into both CPU diagnostic controls, including llama.cpp no_host=true")
     p.add_argument("--no-trace", action="store_true", help="Skip the patched runtime and operation traces")
     p.add_argument("--no-graphs", action="store_true", help="Skip scheduled-graph capture")
     p.add_argument("--include-diagnostic", action="store_true",
@@ -85,18 +91,28 @@ def make_context(args):
             sys.exit(f"error: prompt length(s) {too_long} plus {steps} continuation steps exceed the "
                      f"{work['prompt_source_tokens']}-token source passage. Shorten --decode-steps to at most "
                      f"{work['prompt_source_tokens'] - max(too_long)} or drop those lengths.")
+    cuda_only = args.cuda == "only"
+    if cuda_only and args.prompts_only:
+        sys.exit("error: --cuda only is the fixed-length fast path and cannot be combined with --prompts-only")
+    if args.cuda_no_host_control and args.cuda != "on":
+        sys.exit("error: --cuda-no-host-control requires --cuda on")
+    if args.cuda_controls and args.cuda != "on":
+        sys.exit("error: --cuda-controls requires --cuda on")
     ctx = Context(
         experiment=exp, platform=profile, os_label=os_label, work=args.work_dir.resolve(),
         run_dir=runpaths.create_run_dir(args.results_root, os_label, create=False),
         lengths=lengths, threads=args.threads or work["threads"], repetitions=reps,
         trace_repetitions=args.trace_repetitions or (1 if args.smoke else work["trace_repetitions"]),
         decode_steps=steps,
-        graph_lengths=graph_lengths, jobs=args.jobs, metal=args.metal, skip_metal=args.skip_metal,
-        run_trace=not args.no_trace, run_graphs=not args.no_graphs, include_diagnostic=args.include_diagnostic,
+        graph_lengths=graph_lengths, jobs=args.jobs, metal=args.metal, skip_metal=args.skip_metal, cuda=args.cuda,
+        cuda_controls=args.cuda_controls,
+        cuda_no_host_control=args.cuda_no_host_control,
+        run_trace=not args.no_trace and not cuda_only,
+        run_graphs=not args.no_graphs and not cuda_only, include_diagnostic=args.include_diagnostic,
         model_override=args.model, dry_run=args.dry_run, smoke=args.smoke,
-        run_prompt_graphs=args.prompts_only or not (args.no_prompt_graphs or args.smoke),
+        run_prompt_graphs=not cuda_only and (args.prompts_only or not (args.no_prompt_graphs or args.smoke)),
         prompts_only=args.prompts_only, prompt_set=args.prompt_set.resolve(),
-        run_prompt_timings=args.prompts_only or not (args.no_prompt_timings or args.smoke))
+        run_prompt_timings=not cuda_only and (args.prompts_only or not (args.no_prompt_timings or args.smoke)))
     runpaths.assert_writable(ctx.work)
     return ctx
 
@@ -110,6 +126,7 @@ def profile_command(args, argv):
 def doctor_command(args):
     ctx = make_context(args)
     ctx.state["metal"] = platform_profile.metal_available(ctx.platform, ctx.os_label) and args.metal != "off"
+    ctx.state["cuda_mode"] = args.cuda
     if not pipeline.doctor(ctx):
         sys.exit(1)
 
@@ -120,8 +137,8 @@ def analyze_command(args):
     manifest = json.loads((run_dir / "run-manifest.json").read_text(encoding="utf-8"))
     exp = load_experiment(manifest["experiment"]["name"])
     cfg = manifest["config"]
-    has_metal = "metal" in cfg["backends"]
-    result = pipeline.analyze_run(run_dir, exp, cfg["prompt_lengths"], cfg["trace"], has_metal, manifest["plot_subtitle"])
+    result = pipeline.analyze_run(run_dir, exp, cfg["prompt_lengths"], cfg["trace"], cfg["backends"],
+                                  manifest["plot_subtitle"], include_controls=cfg.get("cuda_controls", False))
     manifest["analysis"] = result
     (run_dir / "run-manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     print("Analysis written to", run_dir / "analysis")

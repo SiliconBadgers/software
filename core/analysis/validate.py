@@ -4,6 +4,7 @@ import json
 
 import numpy as np
 
+import datasets
 from policy import case_prefix, is_diagnostic, load_experiment, profile_prefixes, DEFAULT_EXPERIMENT
 from result_io import add_paths, exists, open_result, output_dir, write_json
 
@@ -16,22 +17,47 @@ def read_logits(path, vocabulary):
     return values
 
 
+def compare_backend(results_dir, experiment, lengths, backend):
+    """Compare a backend with the explicitly identified CPU reference without requiring bit identity."""
+    vocabulary = experiment["model"]["vocabulary_size"]
+    reference = datasets.cpu_reference(results_dir)["name"]
+    identity = next((row for row in datasets.read(results_dir) if row["name"] == backend), None)
+    checks = []
+    for n in lengths:
+        cpu_prefix = case_prefix(experiment, reference, n)
+        other_prefix = case_prefix(experiment, backend, n)
+        for phase in ("prefill", "decode"):
+            suffix = f"-p{n}-{phase}.f32"
+            cpu = read_logits(results_dir / (cpu_prefix + suffix), vocabulary)
+            other = read_logits(results_dir / (other_prefix + suffix), vocabulary)
+            checks.append(dict(
+                prompt_tokens=n, phase=phase, elements=cpu.size, both_finite=True,
+                max_abs_difference=float(np.max(np.abs(cpu - other))),
+                mean_abs_difference=float(np.mean(np.abs(cpu - other))),
+                cpu_top_token=int(cpu.argmax()), **{f"{backend}_top_token": int(other.argmax())},
+                top10_overlap=len(set(cpu.argsort()[-10:]) & set(other.argsort()[-10:]))))
+            if backend in ("cuda-cpu", "cuda-cpu-no-host"):
+                checks[-1]["bit_identical"] = cpu.tobytes() == other.tobytes()
+            if datasets.is_fallback(identity):
+                checks[-1].update(cpu_fallback=True, dataset_role="cpu_fallback",
+                                  dataset_label=datasets.label(identity))
+    return checks
+
+
 def validate(results_dir, experiment, lengths, skip_metal, require_profile=True):
     vocabulary = experiment["model"]["vocabulary_size"]
+    reference = datasets.cpu_reference(results_dir)["name"]
     profile_checks, backend_checks, missing_profile = [], [], []
+    metal_checks = {} if skip_metal else {
+        (row["prompt_tokens"], row["phase"]): row
+        for row in compare_backend(results_dir, experiment, lengths, "metal")}
     for n in lengths:
-        cpu_prefix, metal_prefix = case_prefix(experiment, "cpu", n), case_prefix(experiment, "metal", n)
+        cpu_prefix = case_prefix(experiment, reference, n)
         for phase in ("prefill", "decode"):
             suffix = f"-p{n}-{phase}.f32"
             cpu = read_logits(results_dir / (cpu_prefix + suffix), vocabulary)
             if not skip_metal:
-                metal = read_logits(results_dir / (metal_prefix + suffix), vocabulary)
-                backend_checks.append(dict(
-                    prompt_tokens=n, phase=phase, elements=cpu.size, both_finite=True,
-                    max_abs_difference=float(np.max(np.abs(cpu - metal))),
-                    mean_abs_difference=float(np.mean(np.abs(cpu - metal))),
-                    cpu_top_token=int(cpu.argmax()), metal_top_token=int(metal.argmax()),
-                    top10_overlap=len(set(cpu.argsort()[-10:]) & set(metal.argsort()[-10:]))))
+                backend_checks.append(metal_checks[(n, phase)])
             found = False
             for prefix in (profile_prefixes(experiment, n) if require_profile else []):
                 path = results_dir / (prefix + suffix)
@@ -54,6 +80,10 @@ def validate(results_dir, experiment, lengths, skip_metal, require_profile=True)
 def write_outputs(out_dir, profile_checks, backend_checks):
     write_json(out_dir / "profile-output-validation.json", profile_checks)
     write_json(out_dir / "cpu-metal-logit-check.json", backend_checks)
+
+
+def write_backend_output(out_dir, backend, checks):
+    write_json(out_dir / f"cpu-{backend}-logit-check.json", checks)
 
 
 def main(argv=None):
