@@ -146,7 +146,8 @@ def build(run_dir, out_path, raw_links=True):
                if (run_dir / "analysis" / name).is_file()}
     data = {
         "run": {"name": run_rel, **manifest["run"]}, "host": manifest["host"], "config": manifest["config"],
-        "comparability": manifest.get("comparability"), "subtitle": manifest.get("plot_subtitle"),
+        "comparability": manifest.get("comparability"),
+        "subtitle": datasets.report_subtitle(dataset_rows, manifest.get("plot_subtitle")),
         "performance": performance_rows(run_dir, dataset_rows), "figures": figures,
         "datasets": dataset_rows,
         "builds": {"baseline": manifest.get("build"), "cuda": manifest.get("cuda_build"),

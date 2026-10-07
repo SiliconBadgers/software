@@ -136,6 +136,19 @@ class PromptProfiles(unittest.TestCase):
         self.assertEqual(len(row["checks"]["cpu_vs_cuda"]), 2)
         self.assertTrue(all(check["max_abs_difference"] == 0 for check in row["checks"]["cpu_vs_cuda"]))
 
+    def test_saved_prompt_fallback_is_not_labeled_as_cuda_execution(self):
+        directory = make_prompt_dir(self.run, "alpha", traced=False)
+        timings(directory, "cuda-baseline", 2)
+        logits(directory, "cuda-baseline")
+        (self.run / "run-manifest.json").write_text(json.dumps({
+            "config": {"backends": ["cpu", "cuda"]}, "build": {"requested": {"GGML_CUDA": "OFF"}},
+            "prompt_backend_placements": [{"file": "prompts/alpha/cuda-baseline.jsonl",
+                                           "actual": {"cpu_fallback": True}}]}), encoding="utf-8")
+        row, = prompts.build(self.run, prompt_set=make_prompt_set(Path(self.tmp.name) / "set", ["alpha"]))["prompts"]
+        self.assertEqual(row["timing"]["cuda"]["dataset"]["role"], "cpu_fallback")
+        self.assertEqual(row["timing"]["cuda"]["dataset_label"], "CPU fallback (CUDA requested)")
+        self.assertTrue(all(check["cpu_fallback"] for check in row["checks"]["cpu_vs_cuda"]))
+
     def test_one_row_per_prompt_in_prompt_set_order_skipping_missing(self):
         make_prompt_dir(self.run, "beta")
         make_prompt_dir(self.run, "alpha")

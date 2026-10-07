@@ -21,6 +21,7 @@ def compare_backend(results_dir, experiment, lengths, backend):
     """Compare a backend with the explicitly identified CPU reference without requiring bit identity."""
     vocabulary = experiment["model"]["vocabulary_size"]
     reference = datasets.cpu_reference(results_dir)["name"]
+    identity = next((row for row in datasets.read(results_dir) if row["name"] == backend), None)
     checks = []
     for n in lengths:
         cpu_prefix = case_prefix(experiment, reference, n)
@@ -37,6 +38,9 @@ def compare_backend(results_dir, experiment, lengths, backend):
                 top10_overlap=len(set(cpu.argsort()[-10:]) & set(other.argsort()[-10:]))))
             if backend in ("cuda-cpu", "cuda-cpu-no-host"):
                 checks[-1]["bit_identical"] = cpu.tobytes() == other.tobytes()
+            if datasets.is_fallback(identity):
+                checks[-1].update(cpu_fallback=True, dataset_role="cpu_fallback",
+                                  dataset_label=datasets.label(identity))
     return checks
 
 

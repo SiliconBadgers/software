@@ -55,6 +55,7 @@ def subtitle_for(results_dir, override):
 def draw(results_dir, out_dir, experiment, subtitle=None):
     baselines = load_json(results_dir / "summary.json")
     dataset_rows = datasets.read(results_dir)
+    fallbacks = [row for row in dataset_rows if datasets.is_fallback(row)]
     cpu_legend = cpu_label(baselines, dataset_rows)
     show_point_labels = not any(r["run"].startswith("cuda-cpu-no-host-") for r in baselines)
     has_ops = exists(results_dir / "operation-summary.json")
@@ -116,6 +117,8 @@ def draw(results_dir, out_dir, experiment, subtitle=None):
     notes = [f"Top: uninstrumented medians of {plural(repetitions, 'run')}; whiskers show min–max."]
     if not show_point_labels:
         notes[0] += " Exact values are in summary.csv."
+    if fallbacks:
+        notes.append("CPU fallback timings retained; excluded from accelerated speedups.")
     if any(not timing_eligible(experiment, row["prompt_tokens"]) for row in baselines):
         notes[0] += " * Diagnostic; excluded from primary conclusions."
     if has_ops:
@@ -153,7 +156,7 @@ def draw(results_dir, out_dir, experiment, subtitle=None):
                      + (" Anomalous timing shares for excluded cases omitted."
                         if any(not timing_eligible(experiment, r["prompt_tokens"]) for r in ops) else ""))
     fig.suptitle("Qwen3.5-2B in llama.cpp", x=.08, y=.985, ha="left", fontsize=22, fontweight="bold")
-    fig.text(.08, .91, subtitle or "", fontsize=11, color="#555")
+    fig.text(.08, .91, datasets.report_subtitle(dataset_rows, subtitle) or "", fontsize=11, color="#555")
     fig.text(.08, .028, " ".join(notes[:2]) + "\n" + " ".join(notes[2:]), fontsize=9, color="#555")
     fig.subplots_adjust(top=.82, bottom=.21 if has_ops else .18, left=.1, right=.97)
     fig.savefig(out_dir / "profiling-summary.png", dpi=180)

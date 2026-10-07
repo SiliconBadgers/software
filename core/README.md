@@ -53,6 +53,13 @@ they are CPU-accessible. Historical CUDA-build CPU controls cannot be selected a
 reader; runs without enough build provenance remain unclassified. The immutable first package is read through
 its existing `baseline_backends` manifest.
 
+Reanalysis also checks recorded fallback in dataset/case placements and available raw metadata (including
+compressed files). Fallback timings remain visible as `CPU fallback (CUDA requested)` or the corresponding
+requested backend, rather than accelerated execution. A fallback in any fixed-length case excludes that
+dataset from accelerated speedups; per-prompt summaries use their own placements. Speedup JSON and CSV are
+rewritten even when empty, so a rerun cannot leave stale ratios behind. Reanalysis does not turn a failed run
+into a successful one, or change its captured evidence.
+
 The traced build stays CPU-only, and graph capture hard-codes CPU placement, so GPU kernel selection is never
 presented as accelerator-architecture evidence. When both the current CPU reference and CUDA are present, analysis writes
 `cpu-cuda-logit-check.json` with finite-logit, maximum/mean difference, top-token and top-10-overlap checks. The

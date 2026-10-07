@@ -160,6 +160,7 @@ def build_row(run_dir, experiment, entry, prompt_dir, prompt_set_dir):
         name = names[key]
         identity = next((item for item in identities if item["name"] == name), None)
         timing["dataset"] = identity
+        timing["dataset_label"] = datasets.label(identity)
         timing["actual_backend"] = _metadata(prompt_dir / f"{name}-baseline.jsonl").get("backend")
     return row
 

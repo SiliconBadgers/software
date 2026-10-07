@@ -2,6 +2,8 @@
 import json
 from pathlib import Path
 
+from result_io import open_result
+
 
 ROLE_LABELS = {
     "cpu_reference": "CPU reference",
@@ -10,7 +12,62 @@ ROLE_LABELS = {
     "accelerated_execution": "Accelerated execution",
     "unclassified_cpu": "CPU (build not identified)",
     "cpu_trace": "Instrumented CPU trace",
+    "cpu_fallback": "CPU fallback",
 }
+
+
+def is_fallback(row):
+    """Observed fallback overrides a requested accelerator role, including partial failed runs."""
+    return bool(row and (row.get("role") == "cpu_fallback" or row.get("cpu_fallback")
+                         or any(case.get("actual", {}).get("cpu_fallback")
+                                for case in row.get("cases", []))))
+
+
+def _placement(path):
+    with open_result(path) as stream:
+        for line in stream:
+            if line.strip():
+                record = json.loads(line)
+                if record.get("kind") == "metadata":
+                    return record.get("backend") or {}
+                return {}  # Timing metadata precedes measurements; do not scan operation traces.
+    return {}
+
+
+def _with_placement(rows, directory, manifest=None, manifest_root=None):
+    """Use saved observations, not filenames, to label fallback. Keep raw evidence unchanged.
+
+    A fallback in any fixed-length case disqualifies that dataset's speedups. Prompt
+    readers instead use their own placements; another prompt's failure is not theirs.
+    """
+    directory = Path(directory).resolve()
+    if directory.name == "analysis":
+        directory = directory.parent
+    rows = [dict(row) for row in rows]
+    if manifest_root and directory.parent.name == "prompts":
+        for row in rows:
+            row.pop("cpu_fallback", None)
+            row.pop("cases", None)
+            cases = [case for case in (manifest or {}).get("prompt_backend_placements", [])
+                     if (manifest_root / case["file"]).parent == directory
+                     and (identity := for_run(rows, Path(case["file"]).stem))
+                     and identity["name"] == row["name"]]
+            if cases:
+                row["cases"] = cases
+    # Raw metadata also covers manifest-less runs and old manifests without placement records.
+    for path in sorted(directory.glob("*.jsonl*")):
+        if not (path.name.endswith(".jsonl") or path.name.endswith(".jsonl.gz")):
+            continue
+        name = path.name.removesuffix(".gz").removesuffix(".jsonl")
+        identity = for_run(rows, name)
+        if identity and _placement(path).get("cpu_fallback"):
+            identity["cpu_fallback"] = True
+    for row in rows:
+        if is_fallback(row):
+            row["cpu_fallback"] = True
+            row["requested_role"] = row.get("requested_role", row["role"])
+            row["role"] = "cpu_fallback"
+    return rows
 
 
 def _manifest_path(directory):
@@ -93,7 +150,7 @@ def read(directory):
             else:
                 role, build = "accelerated_execution", "unknown"
             rows.append({"name": name, "role": role, "build": build, "provenance": "filenames_only"})
-        return rows
+        return _with_placement(rows, directory)
     manifest = json.loads(path.read_text(encoding="utf-8"))
     rows = manifest.get("datasets")
     if rows is None:
@@ -110,7 +167,7 @@ def read(directory):
                 raise ValueError(f"CPU-reference role contradicts its CUDA-enabled build: {path}")
             if cuda is None:
                 row["role"] = "unclassified_cpu"
-    return rows
+    return _with_placement(rows, directory, manifest, path.parent)
 
 
 def for_run(rows, run_name):
@@ -139,6 +196,15 @@ def cpu_reference(directory):
 def label(row):
     if row is None:
         return "Unclassified"
+    if is_fallback(row):
+        return f"CPU fallback ({row['name'].upper() if row['name'] == 'cuda' else row['name'].title()} requested)"
     if row.get("role") == "accelerated_execution":
         return row["name"].upper() if row["name"] == "cuda" else row["name"].title()
     return ROLE_LABELS.get(row.get("role"), row.get("role", "Unknown").replace("_", " ").title())
+
+
+def report_subtitle(rows, subtitle):
+    """A pre-failure host subtitle must not describe fallback as measured acceleration."""
+    if any(is_fallback(row) for row in rows):
+        return "CPU fallback recorded; see dataset labels and run-manifest.json for placement and host."
+    return subtitle
