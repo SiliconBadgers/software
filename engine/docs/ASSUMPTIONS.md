@@ -47,6 +47,7 @@ HBM setting). Sensitivity: `via_l1` decode / prefill, then `direct` decode where
 | `recurrent.count`, `lanes`, `scratch_kib` | 2, 128, 64 | design axes | Compute |
 | `recurrent.efficiency` | 0.7 | -0.05 / 0.00 (direct decode -0.12) | Compute |
 | `recurrent.lowering`, `chunk` | `auto`, 64 | **prefill +38 % if serial-only** (see below) | Software + Compute: an actual lowering |
+| `recurrent.matrix_penalty` (only with `lowering = matrix`) | 16 | none at 64 L1 banks (the op is L1-bound); +16 % prefill from 1x to 16x at 256 banks | Compute: synthesize the per-token update loop |
 | `dma.count`, `bytes_per_cycle` | 2, 64 | -0.04 / -0.01 | Memory |
 | `scalar.*` (fallback core) | 1 core, ipc 1, 300 MHz | only if a design lacks units | Control |
 | `launch_cycles` | 40 | 0.00 / 0.00 | Control: command issue cost |
@@ -65,7 +66,7 @@ HBM setting). Sensitivity: `via_l1` decode / prefill, then `direct` decode where
 | `memory.weight_path` | `via_l1` | `direct`: decode 14.4 -> 5.35 ms (pp512); an **architecture decision** that this model does not size |
 | `precision.weights` | `captured` | `uniform_int4` / `uniform_int8`: weights 1.18 GiB captured vs int4 < captured < int8; Q4_K_M does not validate a custom INT4 |
 | `precision.act_bits`, `kv_bits`, `state_bits` | 16, 16, 32 | storage widths; the explorer's activation remap (the capture has f32 activations) |
-| `memory.fusion` | `chains` | `none` is the pessimistic bracket (activation HBM +50 % at pp512) |
+| `memory.fusion` | `chains` | `none` is the pessimistic bracket (activation HBM +50 % at pp512); `groups` is the optimistic one (anchored dependency-map groups, a further -34 %) |
 | `memory.residency` | `belady` | `per_op` restores the explorer's proxy (undercounts activation traffic ~3x) |
 | `attention.causal_skip` | true | false: fused attention does the dense work |
 | `attention.mask_onchip` | true | false: the mask is read from HBM (0.5 GiB at 8192) |
@@ -73,11 +74,17 @@ HBM setting). Sensitivity: `via_l1` decode / prefill, then `direct` decode where
 | `attention.overlap_softmax` | true | softmax hides behind the matrix work |
 | `attention.kv_tile` | 128 | 0.00 |
 | `attention.capacity_tokens` | graph's | rescales the KV footprint |
-| `schedule.mode`, `within_op_overlap` | `pools`, true | `serial` is the explorer's sum |
+| `schedule.mode`, `within_op_overlap` | `pools`, true | `serial` is the explorer's sum. Overlap off charges compute, L1 and HBM in sequence: +52 % prefill, +39 % decode at pp512; reported as an upper bound, not bracketed (`EQUATIONS.md` 2.14) |
 
 **The recurrence lowering is the single largest assumption in the engine.** With `lowering = serial` the gated-delta-net op costs
 315.7 ms at pp512 (8.4x the chunked form at every length) and prefill is 38 % slower. Chunked lowering assumes the matrix units
 run the chunk GEMMs at `matrix.efficiency` and that software can lower the operation that way; neither is demonstrated.
+
+`lowering = matrix` runs the captured serial update on the matrix arrays at `recurrent.matrix_penalty` instead. It needs no new
+software lowering and covers decode, but it needs the `gemm` capability, its penalty is unmeasured, and its result here is set by
+the assumed state traffic through shared L1: five reads and two writes of the state per token, as on the vector path
+(`EQUATIONS.md` 2.8). `python -m sbengine switches` lists every switch above with its pessimistic setting
+and what each one is worth for a given design.
 
 ## Resource and cost proxies (unitless, unchanged coefficients except two new ones)
 

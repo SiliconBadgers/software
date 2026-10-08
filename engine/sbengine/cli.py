@@ -4,6 +4,8 @@
   eval                      one workload, one profile: timing, bytes, bounds, binding resource
   sweep                     grid over config paths -> CSV + meta.json (+ Pareto front)
   ablation                  switch each equation from the explorer's version to this engine's
+  switches                  every modelling switch: its setting, what it assumes, and the result without it
+  groups                    parallel projection groups and anchored fusion groups of one captured workload
   sensitivity               +/- delta on each assumption; which ones decide the answer
   montecarlo                rank stability of several designs under assumption uncertainty
   parity                    MAC/attention accounting checks against the captured summaries
@@ -74,6 +76,11 @@ def cmd_eval(args):
     print(f"resources: cost {res['cost']:.0f}  DSP {res['dsp']:.0f} / {res['dsp_limit']:.0f}  valid={r['valid']}")
     for e in r["errors"]:
         print("  !", e)
+    optimistic = [s for s in r["switches"] if s["optimistic"]]
+    if optimistic:
+        print("assumes (switches off their pessimistic setting): "
+              + ", ".join(f"{s['path']}={json.dumps(s['value'])}" for s in optimistic))
+        print("  `python -m sbengine switches` shows what each one is worth")
     for phase in ("prefill", "decode"):
         p = r["phases"][phase]
         b, by = p["bytes"], p["time_by_bound"]
@@ -131,6 +138,69 @@ def cmd_ablation(args):
         print(f"  {r['reverted'][:74]:74s} prefill {r['prefill_delta_pct']:+7.1f}%  decode {r['decode_delta_pct']:+7.1f}%")
 
 
+def cmd_switches(args):
+    from . import sweep
+    run, w = _workload(args)
+    cfg, doc = _config(args)
+    trace = load_trace(run, w) if cfg["host"]["enabled"] else None
+    t = sweep.switch_table(w, cfg, trace)
+    if args.json:
+        Path(args.json).write_text(json.dumps(t, indent=2) + "\n", encoding="utf-8")
+    g, c, u = t["given"], t["conservative"], t["upper_bound"]
+
+    def show(v):
+        return "-" if v is None else json.dumps(v)
+
+    def summary(label, r):
+        if not r["valid"]:      # an infeasible design times its unmapped ops at zero: its seconds are not a result
+            return f"  {label:36s} INFEASIBLE: {'; '.join(r['errors'])}   config {r['config_hash']}"
+        delta = f"   ({r['prefill_delta_pct']:+.1f}% / {r['decode_delta_pct']:+.1f}%)" if "prefill_delta_pct" in r else ""
+        return f"  {label:36s} prefill {_ms(r['prefill_s'])}  decode {_ms(r['decode_s'])}   config {r['config_hash']}{delta}"
+
+    print(f"modelling switches on {w.name} (profile {doc.get('name')})")
+    print()
+    print(summary("as configured", g))
+    print(summary("every bracketed switch pessimistic", c))
+    print(summary("...and no overlap inside an op", u))
+    print()
+    print(f"  {'switch':28s} {'value':>14s} {'pessimistic':>12s} {'explorer':>14s}  {'status':20s} alone: prefill / decode")
+    for r in t["rows"]:
+        if "prefill_delta_pct" in r:
+            delta = f"{r['prefill_delta_pct']:+7.1f}% / {r['decode_delta_pct']:+6.1f}%"
+        elif "alone" in r and not r["alone"]["valid"]:
+            delta = "infeasible: " + "; ".join(r["alone"]["errors"])
+        elif "alone" in r:
+            delta = "not compared (the configured design is infeasible)"
+        else:
+            delta = ""
+        mark = "*" if r["optimistic"] else "~" if r["informational"] else " "
+        bracket = f"({show(r['alternative'])})" if r["conservative"] is None and r["alternative"] is not None else show(r["conservative"])
+        print(f" {mark}{r['path']:28s} {show(r['value']):>14s} {bracket:>12s} {show(r['explorer']):>14s}  {r['status']:20s} {delta}")
+    print()
+    print("  * off its pessimistic setting. 'alone' is the change from moving just that switch back. A switch with no")
+    print("    pessimistic setting is a derived accounting change or a design choice (docs/EQUATIONS.md).")
+    print("  ~ not bracketed: the explorer's own node-duration rule and every study's baseline. Its other setting, in")
+    print("    parentheses, is shown alone and in the upper-bound line, not in the pessimistic line.")
+    print("  No percentage is shown for an infeasible design: its unmapped operations are timed at zero.")
+    print("  Estimates under assumed hardware parameters; a switch makes an assumption visible, it does not validate it.")
+
+
+def cmd_groups(args):
+    from . import groups
+    run, w = _workload(args)
+    out = {phase: groups.summary(w.graph(phase)) for phase in ("prefill", "decode")}
+    if args.json:
+        Path(args.json).write_text(json.dumps(out, indent=2) + "\n", encoding="utf-8")
+    print(f"anchored fusion groups on {w.name} (rule: sbengine/groups.py; candidates, not implemented kernels)")
+    for phase, s in out.items():
+        print()
+        print(f"{phase}: {s['nodes']} ops, {s['parallel_groups']} parallel groups, {s['fusion_groups']} fusion groups, "
+              f"{s['fused_edges']} intermediates kept inside a group")
+        for kind, t in s["layer_types"].items():
+            print(f"  {kind:15s} x{t['layers']:<3d} per layer: {t['ops_per_layer']:3d} ops, {t['parallel_groups_per_layer']} parallel groups, "
+                  f"{t['fusion_groups_per_layer']:2d} fusion groups")
+
+
 def cmd_sensitivity(args):
     from . import sweep
     run, w = _workload(args)
@@ -185,6 +255,15 @@ def cmd_validate_cpu(args):
     res = cpu_validate.run(run)
     if args.json:
         Path(args.json).write_text(json.dumps(res, indent=2, default=str) + "\n", encoding="utf-8")
+    if args.report:
+        Path(args.report).parent.mkdir(parents=True, exist_ok=True)
+        Path(args.report).write_bytes(cpu_validate.report_markdown(res, run.name).encode("utf-8"))
+    if not res["checked"]:      # e.g. a fresh clone: the traces are local-only files, so there is nothing to compare
+        print(f"NOT CHECKED on {run.name}: {res['not_checked_reason']}.")
+        for s in res["not_checked"]:
+            print(f"  {s['workload']:28s} {s['phase']:18s} {s['reason']}")
+        print("No validation result was produced" + (f"; {args.report} says so." if args.report else "."))
+        return 1
     print(f"train on {res['train']}; predict {len(res['test'])} held-out per-prompt graphs (only phases with a comparable trace)")
     for label, rows in (("training fit", res["train_fit"]), ("HELD-OUT", res["heldout"])):
         print(f"\n{label}")
@@ -194,6 +273,8 @@ def cmd_validate_cpu(args):
         e = [abs(r["error_pct"]) for r in res["heldout"] if r["phase"] == phase]
         if e:
             print(f"held-out {phase}: mean |error| {sum(e) / len(e):.1f}%  max {max(e):.1f}%  (n={len(e)})")
+    if res["not_checked"]:
+        print("not checked: " + ", ".join(f"{s['workload']} {s['phase']} ({s['reason']})" for s in res["not_checked"]))
     print("\nThis validates the MAC/byte accounting, not the accelerator timing equations.")
 
 
@@ -211,13 +292,17 @@ def main(argv=None):
     p.add_argument("--axis", action="append", required=True, metavar="PATH=v1,v2,...")
     p.add_argument("--out", default="out"); p.add_argument("--name", default="sweep"); p.set_defaults(fn=cmd_sweep)
     p = sub.add_parser("ablation"); _add_common(p, "pp512-fa-off"); p.add_argument("--json"); p.set_defaults(fn=cmd_ablation)
+    p = sub.add_parser("switches"); _add_common(p); p.add_argument("--json"); p.set_defaults(fn=cmd_switches)
+    p = sub.add_parser("groups"); _add_common(p); p.add_argument("--json"); p.set_defaults(fn=cmd_groups)
     p = sub.add_parser("sensitivity"); _add_common(p); p.add_argument("--delta", type=float, default=0.3); p.add_argument("--json"); p.set_defaults(fn=cmd_sensitivity)
     p = sub.add_parser("montecarlo"); _add_common(p)
     p.add_argument("--designs", nargs="+", default=["accel-balanced", "accel-efficient"])
     p.add_argument("--delta", type=float, default=0.3); p.add_argument("--samples", type=int, default=100); p.add_argument("--seed", type=int, default=0)
     p.set_defaults(fn=cmd_montecarlo)
     p = sub.add_parser("parity"); p.add_argument("--run"); p.set_defaults(fn=cmd_parity)
-    p = sub.add_parser("validate-cpu"); p.add_argument("--run"); p.add_argument("--json"); p.set_defaults(fn=cmd_validate_cpu)
+    p = sub.add_parser("validate-cpu"); p.add_argument("--run"); p.add_argument("--json")
+    p.add_argument("--report", help="write a Markdown report with per-operation-class measured and predicted times")
+    p.set_defaults(fn=cmd_validate_cpu)
     p = sub.add_parser("serve"); p.add_argument("--run"); p.add_argument("--host", default="127.0.0.1")
     p.add_argument("--port", type=int, default=8765); p.add_argument("--open", action="store_true", help="open the page in a browser")
     p.set_defaults(fn=cmd_serve)

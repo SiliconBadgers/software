@@ -63,6 +63,10 @@
           "target": "assets/python/sbengine/costs.py"
         },
         {
+          "source": "engine/sbengine/groups.py",
+          "target": "assets/python/sbengine/groups.py"
+        },
+        {
           "source": "engine/sbengine/memory.py",
           "target": "assets/python/sbengine/memory.py"
         },

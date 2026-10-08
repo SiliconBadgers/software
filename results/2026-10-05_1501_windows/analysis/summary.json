@@ -1,0 +1,164 @@
+[
+  {
+    "run": "cpu-baseline",
+    "prompt_tokens": 128,
+    "repetitions": 3,
+    "decode_steps_per_rep": 32,
+    "prefill_seconds": 0.7977761999999999,
+    "prefill_tps": 160.44599976785472,
+    "decode_ms": 29.547271875,
+    "decode_tps": 33.84407211029529,
+    "prefill_min_s": 0.7827515,
+    "prefill_max_s": 0.8097573,
+    "decode_min_ms": 28.852740625,
+    "decode_max_ms": 29.5541875,
+    "prefill_samples_seconds": [
+      0.7977761999999999,
+      0.8097573,
+      0.7827515
+    ],
+    "decode_run_means_ms": [
+      28.852740625,
+      29.5541875,
+      29.547271875
+    ]
+  },
+  {
+    "run": "cpu-baseline",
+    "prompt_tokens": 512,
+    "repetitions": 3,
+    "decode_steps_per_rep": 32,
+    "prefill_seconds": 3.3443645,
+    "prefill_tps": 153.0933604874708,
+    "decode_ms": 30.11259375,
+    "decode_tps": 33.20869694262056,
+    "prefill_min_s": 3.3337392,
+    "prefill_max_s": 3.445385,
+    "decode_min_ms": 29.1979375,
+    "decode_max_ms": 31.166071875,
+    "prefill_samples_seconds": [
+      3.445385,
+      3.3337392,
+      3.3443645
+    ],
+    "decode_run_means_ms": [
+      31.166071875,
+      30.11259375,
+      29.1979375
+    ]
+  },
+  {
+    "run": "cpu-baseline",
+    "prompt_tokens": 2048,
+    "repetitions": 3,
+    "decode_steps_per_rep": 32,
+    "prefill_seconds": 13.3440373,
+    "prefill_tps": 153.47678921730832,
+    "decode_ms": 30.471712500000002,
+    "decode_tps": 32.817321967053864,
+    "prefill_min_s": 13.3359657,
+    "prefill_max_s": 13.631516099999999,
+    "decode_min_ms": 30.329184375,
+    "decode_max_ms": 32.095978125,
+    "prefill_samples_seconds": [
+      13.631516099999999,
+      13.3440373,
+      13.3359657
+    ],
+    "decode_run_means_ms": [
+      30.329184375,
+      30.471712500000002,
+      32.095978125
+    ]
+  },
+  {
+    "run": "cpu-8k",
+    "prompt_tokens": 8192,
+    "repetitions": 3,
+    "decode_steps_per_rep": 32,
+    "prefill_seconds": 59.580658799999995,
+    "prefill_tps": 137.49428363151972,
+    "decode_ms": 37.037640625,
+    "decode_tps": 26.999559991545762,
+    "prefill_min_s": 58.95143,
+    "prefill_max_s": 59.7570273,
+    "decode_min_ms": 36.179703125,
+    "decode_max_ms": 37.291115624999996,
+    "prefill_samples_seconds": [
+      59.580658799999995,
+      59.7570273,
+      58.95143
+    ],
+    "decode_run_means_ms": [
+      37.037640625,
+      37.291115624999996,
+      36.179703125
+    ]
+  },
+  {
+    "run": "cpu-profile",
+    "prompt_tokens": 128,
+    "repetitions": 2,
+    "decode_steps_per_rep": 32,
+    "prefill_seconds": 0.84352895,
+    "prefill_tps": 151.74345824171178,
+    "decode_ms": 36.8243765625,
+    "decode_tps": 27.15592477995533,
+    "prefill_min_s": 0.841227,
+    "prefill_max_s": 0.8458309,
+    "decode_min_ms": 35.682359375,
+    "decode_max_ms": 37.96639375,
+    "prefill_samples_seconds": [
+      0.841227,
+      0.8458309
+    ],
+    "decode_run_means_ms": [
+      35.682359375,
+      37.96639375
+    ]
+  },
+  {
+    "run": "cpu-profile",
+    "prompt_tokens": 512,
+    "repetitions": 2,
+    "decode_steps_per_rep": 32,
+    "prefill_seconds": 3.8553401000000003,
+    "prefill_tps": 132.80281031497066,
+    "decode_ms": 36.023046875,
+    "decode_tps": 27.76000607250133,
+    "prefill_min_s": 3.8367042000000002,
+    "prefill_max_s": 3.873976,
+    "decode_min_ms": 35.5294375,
+    "decode_max_ms": 36.51665625,
+    "prefill_samples_seconds": [
+      3.8367042000000002,
+      3.873976
+    ],
+    "decode_run_means_ms": [
+      36.51665625,
+      35.5294375
+    ]
+  },
+  {
+    "run": "cpu-profile",
+    "prompt_tokens": 2048,
+    "repetitions": 2,
+    "decode_steps_per_rep": 32,
+    "prefill_seconds": 14.99470865,
+    "prefill_tps": 136.58151337271897,
+    "decode_ms": 37.4566734375,
+    "decode_tps": 26.69751230494599,
+    "prefill_min_s": 14.777294,
+    "prefill_max_s": 15.2121233,
+    "decode_min_ms": 37.19585,
+    "decode_max_ms": 37.717496874999995,
+    "prefill_samples_seconds": [
+      15.2121233,
+      14.777294
+    ],
+    "decode_run_means_ms": [
+      37.717496874999995,
+      37.19585
+    ]
+  }
+]

@@ -12,7 +12,7 @@ import random
 from pathlib import Path
 
 from . import VERSION
-from .config import apply_sets, config_hash, deep_merge, get_path, set_path, validate
+from .config import apply_sets, config_hash, conservative, deep_merge, get_path, set_path, switch_report, validate
 from .model import evaluate
 
 BINDING = ("matrix", "vector", "recurrent", "dma", "scalar", "host", "l1", "hbm")
@@ -156,6 +156,44 @@ def ablation(workload, legacy_cfg, new_cfg, trace=None):
         loo.append({"reverted": name, "prefill_s": p, "decode_s": d, **t,
                     "prefill_delta_pct": 100 * (p / full[0] - 1), "decode_delta_pct": 100 * (d / full[1] - 1)})
     return rows, loo
+
+
+def switch_table(workload, cfg, trace=None):
+    """Views of one design, so no modelling switch is in effect unstated: the config as given, the same hardware
+    with every bracketed switch at its pessimistic setting (config.conservative), that plus the unbracketed
+    alternatives as an upper bound, and the effect of moving each optimistic or informational switch on its own.
+
+    Every evaluation keeps its `valid` flag and `errors`. An infeasible design times its unmapped ops at zero, so
+    its seconds are not a result: percentage deltas are only reported when both sides of a comparison are valid."""
+    def run(c):
+        r = evaluate(workload, c, trace)
+        return {"prefill_s": r["phases"]["prefill"]["seconds"], "decode_s": r["phases"]["decode"]["seconds"],
+                "config_hash": r["config_hash"], "valid": r["valid"], "errors": r["errors"]}
+
+    def compare(result):
+        if not (given["valid"] and result["valid"]):
+            return {}
+        return {"prefill_delta_pct": 100 * (result["prefill_s"] / given["prefill_s"] - 1),
+                "decode_delta_pct": 100 * (result["decode_s"] / given["decode_s"] - 1)}
+
+    given = run(cfg)
+    pessimistic = run(conservative(cfg))
+    pessimistic.update(compare(pessimistic))
+    upper = run(conservative(cfg, upper_bound=True))
+    upper.update(compare(upper))
+    rows = []
+    for s in switch_report(cfg):
+        row = {k: s[k] for k in ("path", "value", "explorer", "conservative", "alternative", "status", "optimistic",
+                                 "informational", "assumes")}
+        target = s["conservative"] if s["optimistic"] else s["alternative"] if s["informational"] else None
+        if target is not None:
+            alone = copy.deepcopy(cfg)
+            set_path(alone, s["path"], target)
+            r = run(alone)
+            row["alone"] = r
+            row.update(compare(r))
+        rows.append(row)
+    return {"workload": workload.name, "given": given, "conservative": pessimistic, "upper_bound": upper, "rows": rows}
 
 
 # -- sensitivity ------------------------------------------------------------------------------------------------

@@ -173,9 +173,10 @@ class Graph:
                     self.consumers.setdefault(r, []).append(n.idx)
 
     def deps(self):
-        """Per-node dependency list: producers of consumed activations, plus read-after-write and
-        write-after-read ordering on persistent tensors (KV cache, recurrent/conv state), which plain
-        tensor dataflow does not express."""
+        """Per-node dependency list: producers of consumed activations, plus read-after-write,
+        write-after-read and write-after-write ordering on persistent tensors (KV cache, recurrent/conv
+        state), which plain tensor dataflow does not express. Ordering is whole-buffer, so it is conservative
+        for writes that touch different rows."""
         deps = [set() for _ in self.nodes]
         last_write, readers = {}, {}
         for n in self.nodes:
@@ -190,6 +191,8 @@ class Graph:
                 for reader in readers.get(n.dst_root, []):
                     if reader != n.idx:
                         deps[n.idx].add(reader)
+                if n.dst_root in last_write:   # e.g. prefill clears a state buffer (SCALE) before the write-back (CPY)
+                    deps[n.idx].add(last_write[n.dst_root])
                 readers[n.dst_root] = []
                 last_write[n.dst_root] = n.idx
         return [sorted(d) for d in deps]

@@ -47,4 +47,7 @@ classes.
 The [operation dependency map](2026-10-02-op-dependency-map/README.md) derives
 per-layer operation chains, persistent-state ordering, parallel projection
 groups and fusion candidates from those captured graphs. It is a structural
-analysis with no timing or measured traffic.
+analysis with no timing or measured traffic. Its grouping rule is maintained in
+the Python engine (`engine/sbengine/groups.py`, `memory.fusion = groups`), where
+a test reproduces this study's committed tables. The study's own script and
+outputs are frozen for reproduction and are not a second copy to evolve.

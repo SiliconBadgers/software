@@ -12,12 +12,20 @@ that live in HBM (a real liveness footprint, replacing the explorer's peak-worki
 import bisect
 import math
 
+from . import groups
 from .costs import FUSIBLE_CONSUMERS, FUSIBLE_PRODUCERS
 
 
 def fused_roots(g, policy):
-    """Roots whose producer->consumer edge is fused: the result has exactly one consumer node and that consumer
-    is an elementwise epilogue of a compute producer. Optimistic (the accelerator must support the epilogue)."""
+    """Roots whose producer->consumer edge is fused, so the intermediate is never stored.
+
+    "chains": the result has exactly one consumer node and that consumer is an elementwise epilogue of a compute
+    producer. Optimistic (the accelerator must support the epilogue).
+    "groups": the result stays inside one anchored fusion group (groups.py): any single-consumer edge within a
+    layer, around at most one compute anchor, including prologues (a state read feeding the recurrence), cache
+    writes and the whole attention core. More optimistic than "chains"; an upper bracket on what fusion removes."""
+    if policy == "groups":
+        return set(groups.analyze(g).fused_roots)
     if policy != "chains":
         return set()
     fused = set()
