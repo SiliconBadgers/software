@@ -90,7 +90,7 @@ Bugs the tests or checks found while building it: a schedule clip that made the 
 (ops that occupy a second pool now block it); a residency crash on an infeasible design (now flagged, not raised); an inconsistent DMA
 definition between copies and gathers; an activation-traffic undercount in the explorer's spill proxy (kept as the legacy switch).
 
-Added 2026-10-05, with review fixes on 2026-10-06 (79 tests in total, 3 of them skipped without local-only traces and summaries):
+Added 2026-10-05, with review fixes on 2026-10-06 and 2026-10-08 (82 tests in total, 3 of them skipped without local-only traces and summaries):
 
 - Anchored fusion groups (9): the rule on synthetic graphs (parallel group, one anchor per group, no cross-layer fusion); the
   engine's loader and `groups.py` reproduce the 2026-10-02 dependency-map study's committed tables for the four 2026-09-24
@@ -103,7 +103,9 @@ Added 2026-10-05, with review fixes on 2026-10-06 (79 tests in total, 3 of them 
 - Matrix recurrence feasibility and traffic (2): on a recurrence-only workload with no recurrence unit and no scalar core,
   matrix units without the `gemm` capability leave the design infeasible; the matrix path's L1 state traffic equals the vector
   path's (39 re-reads and 16 writes of the state for 8 tokens), where a dedicated unit with scratch has none.
-- CPU validation report (1): the Markdown report sums measured and predicted time per operation class over the held-out graphs.
+- CPU validation report (4): the Markdown report sums measured and predicted time per operation class over the held-out graphs;
+  a run without its local-only traces or graphs is reported as NOT CHECKED, with the reason per workload, no result tables
+  and a non-zero exit code; nothing is predicted when the training traces are missing.
 - Switch register (5): `attention.kv_padding` is bracketed at `captured`; `schedule.within_op_overlap` is unbracketed with its
   alternative reported alone and as an upper bound; infeasible designs are never turned into a percentage (the reverted evaluation keeps its validity
   and errors); every registered path and value is valid; `config.conservative` leaves no optimistic switch and moves

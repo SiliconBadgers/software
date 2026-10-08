@@ -45,7 +45,7 @@ A two-minute `--smoke` run on the same host preceded this one (`2026-10-05_1454_
 |---|---|---|
 | `EVIDENCE.md` | 2026-10-05 | Written from `run-manifest.json` and the `analysis/` files |
 | `omitted-files.sha256` | 2026-10-05 | SHA-256 of every file in the folder that `.gitignore` excludes, sorted by path |
-| `engine/validate-cpu.md` | 2026-10-06 | `python -m sbengine validate-cpu --run results/2026-10-05_1501_windows --report results/2026-10-05_1501_windows/engine/validate-cpu.md`, run in `engine/` with the local traces and graphs present. Added at review; it reads the run, it does not change it |
+| `engine/validate-cpu.md` | 2026-10-06, regenerated 2026-10-08 | From `engine/`, with the local traces and graphs present: `python -m sbengine validate-cpu --run ../results/2026-10-05_1501_windows --report ../results/2026-10-05_1501_windows/engine/validate-cpu.md`. Added at review; it reads the run, it does not change it. The regeneration added the status line and the not-checked list; the measured and predicted figures are unchanged. Without the traces the command writes a report marked NOT CHECKED and exits with an error |
 
 Nothing else in the folder was added, edited or regenerated.
 
@@ -110,8 +110,8 @@ Things to keep in mind when reading these:
   0.90 s (23.5%), and almost all of it is the `CONCAT` that builds each DeltaNet layer's convolution input:
   0.897 s across the 18 layers, against 0.080 s at 128 tokens. That is 11x the time for 4x the data (12.1 MiB
   per tensor against 3.1 MiB). The cause was not investigated; a cache-capacity effect is a guess.
-- **`engine/`'s accounting check does not carry over to this host for prefill.** `python -m sbengine validate-cpu`
-  on this run (it needs the local traces): held-out prefill mean error 16.8% (max 21.4%, n = 7), decode 1.3%
+- **`engine/`'s accounting check does not carry over to this host for prefill.** `python -m sbengine validate-cpu
+  --run ../results/2026-10-05_1501_windows`, from `engine/` (it needs the local traces): held-out prefill mean error 16.8% (max 21.4%, n = 7), decode 1.3%
   (max 6.2%, n = 8), against 2.2% and 7.1% reported for the 2026-09-27 run in `engine/docs/VALIDATION.md`. The
   prefill error is the `CONCAT` non-linearity above; a linear fit through 128 and 512 tokens over-predicts the
   prompts in between. [`engine/validate-cpu.md`](engine/validate-cpu.md) has the measured and predicted time per

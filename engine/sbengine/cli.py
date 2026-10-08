@@ -258,6 +258,12 @@ def cmd_validate_cpu(args):
     if args.report:
         Path(args.report).parent.mkdir(parents=True, exist_ok=True)
         Path(args.report).write_bytes(cpu_validate.report_markdown(res, run.name).encode("utf-8"))
+    if not res["checked"]:      # e.g. a fresh clone: the traces are local-only files, so there is nothing to compare
+        print(f"NOT CHECKED on {run.name}: {res['not_checked_reason']}.")
+        for s in res["not_checked"]:
+            print(f"  {s['workload']:28s} {s['phase']:18s} {s['reason']}")
+        print("No validation result was produced" + (f"; {args.report} says so." if args.report else "."))
+        return 1
     print(f"train on {res['train']}; predict {len(res['test'])} held-out per-prompt graphs (only phases with a comparable trace)")
     for label, rows in (("training fit", res["train_fit"]), ("HELD-OUT", res["heldout"])):
         print(f"\n{label}")
@@ -267,6 +273,8 @@ def cmd_validate_cpu(args):
         e = [abs(r["error_pct"]) for r in res["heldout"] if r["phase"] == phase]
         if e:
             print(f"held-out {phase}: mean |error| {sum(e) / len(e):.1f}%  max {max(e):.1f}%  (n={len(e)})")
+    if res["not_checked"]:
+        print("not checked: " + ", ".join(f"{s['workload']} {s['phase']} ({s['reason']})" for s in res["not_checked"]))
     print("\nThis validates the MAC/byte accounting, not the accelerator timing equations.")
 
 

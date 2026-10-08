@@ -152,6 +152,70 @@ class CpuValidation(unittest.TestCase):
         self.assertNotIn(("prompt-json_records-fa-on", "prefill"), {(r["workload"], r["phase"]) for r in res["heldout"]})
 
 
+class CpuValidationWithoutTraces(unittest.TestCase):
+    """A fresh clone has no operation traces (they are local-only). The check must say it did not run."""
+
+    def test_missing_graphs_and_traces_are_not_checked(self):
+        import contextlib
+        import io
+        import tempfile
+        from pathlib import Path
+        from sbengine import cli
+        with tempfile.TemporaryDirectory() as temp:
+            run = Path(temp) / "some-run"
+            (run / "graphs").mkdir(parents=True)
+            res = cpu_validate.run(run)
+            self.assertFalse(res["checked"])
+            self.assertEqual(res["heldout"], [])
+            self.assertIn("Nothing was fitted", res["not_checked_reason"])
+            self.assertEqual([(s["workload"], s["reason"]) for s in res["not_checked"]],
+                             [("pp128-fa-on", "no captured graph"), ("pp512-fa-on", "no captured graph")])
+            text = cpu_validate.report_markdown(res, "some-run")
+            self.assertIn("**Status: NOT CHECKED.**", text)
+            self.assertIn("| pp128-fa-on | prefill and decode | no captured graph |", text)
+            self.assertNotIn("Measured, ms", text)                               # no empty result tables
+            self.assertNotIn("Held-out", text)
+            # the command reports it and does not exit successfully
+            report = run / "engine" / "validate-cpu.md"
+            with contextlib.redirect_stdout(io.StringIO()) as printed:
+                self.assertEqual(cli.main(["validate-cpu", "--run", str(run), "--report", str(report)]), 1)
+            self.assertIn("NOT CHECKED on some-run", printed.getvalue())
+            self.assertIn("**Status: NOT CHECKED.**", report.read_text(encoding="utf-8"))
+
+    @unittest.skipIf(RUN is None, "no captured run under results/")
+    def test_a_run_without_its_traces_is_labelled_not_checked(self):
+        """The committed run keeps its graphs but not its traces; with the traces present locally it is checked."""
+        res = cpu_validate.run(RUN)
+        text = cpu_validate.report_markdown(res, RUN.name)
+        self.assertEqual(res["checked"], bool(res["heldout"]))
+        if res["checked"]:
+            self.assertIn("**Status: checked.**", text)
+            self.assertIsNone(res["not_checked_reason"])
+        else:
+            self.assertIn("**Status: NOT CHECKED.**", text)
+            self.assertIn("no operation trace", {s["reason"] for s in res["not_checked"]})
+            self.assertEqual(res["train_fit"], [])
+            self.assertNotIn("Measured, ms", text)
+
+    def test_no_prediction_without_training_traces(self):
+        """Held-out traces alone are not a check: a fit on no data would predict zero for every operation."""
+        from unittest import mock
+        sample = {("prompt-a-fa-on", "prefill"): {"samples": [("concat", {"bytes": 1.0, "one": 1.0}, 0.5)],
+                                                  "metadata_seconds": 0.0, "tokens": 10}}
+
+        def fake_collect(run_dir, names, not_checked=None):
+            return {} if "pp128-fa-on" in names else sample
+
+        import tempfile
+        from pathlib import Path
+        with tempfile.TemporaryDirectory() as temp, mock.patch.object(cpu_validate, "collect", fake_collect):
+            (Path(temp) / "graphs" / "prompt-a-fa-on").mkdir(parents=True)
+            res = cpu_validate.run(Path(temp))
+        self.assertFalse(res["checked"])
+        self.assertEqual(res["heldout"], [])
+        self.assertIn("Nothing was fitted", res["not_checked_reason"])
+
+
 class CpuValidationReport(unittest.TestCase):
     def test_report_lists_measured_and_predicted_time_per_operation_class(self):
         """The Markdown report needs no traces to test: it only formats run()'s result."""
@@ -167,6 +231,8 @@ class CpuValidationReport(unittest.TestCase):
                            row("prompt-a-fa-on", "decode", 200, {"matmul[q4_K]": (0.030, 0.031)})]}
         text = cpu_validate.report_markdown(res, "some-run", top=1)
         self.assertIn("# CPU accounting check: some-run", text)
+        self.assertIn("**Status: checked.** 3 held-out graph phases were compared.", text)
+        self.assertIn("--run ../results/some-run", text)                         # the command is run from engine/
         self.assertIn("| held out | prompt-b-fa-on | prefill | 300 | 2,000.0 | 2,100.0 | +5.0% |", text)
         # classes are summed over the held-out graphs and ordered by the size of the difference
         self.assertIn("| `concat` | 300.0 | 700.0 | +400.0 | +13.3% |", text)

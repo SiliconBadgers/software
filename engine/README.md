@@ -47,7 +47,7 @@ python -m sbengine montecarlo --designs accel-balanced accel-efficient
 python -m sbengine parity                                 # MAC accounting vs every captured summary
 python -m sbengine validate-cpu                           # held-out check against measured CPU op times (--report writes per-class tables)
 python -m sbengine serve                                  # interactive modelling page: http://127.0.0.1:8765
-python -m unittest discover -s tests                      # 79 tests
+python -m unittest discover -s tests                      # 82 tests
 ```
 
 `serve` opens the modelling web page (`sbengine/web/index.html`). Unlike the static run browser in
@@ -58,7 +58,8 @@ local JSON API, so it needs `python -m sbengine serve` running and cannot be ope
 **Data from a fresh clone.** The committed run keeps each graph as `graphs/<name>/{prefill,decode}.json.gz`
 (2.5 MB for all 22 graphs); the engine reads those or the uncompressed `.json` a local capture writes. All
 workloads, `eval`, `sweep`, `ablation`, `sensitivity` and `serve` work from a clone. The CPU operation traces
-are not committed, so `validate-cpu` and the measured host-fallback costs need a local run (`profile`); their
+are not committed, so `validate-cpu` and the measured host-fallback costs need a local run (`profile`). Without them
+`validate-cpu` prints NOT CHECKED, marks any `--report` the same way and exits with an error; their
 tests skip without one, as does the MAC cross-check against the local-only graph summaries.
 
 `--run results/<run>` selects a run (default: newest with a manifest and `graphs/`). `--profile` takes a file in
