@@ -397,13 +397,31 @@ def _gdn_dims(g, n):
 
 def cost_gdn(ctx, g, n):
     """Gated delta rule. Serial: (7 S^2 + 3 S) ops per head-token on a recurrence unit, vector or scalar.
-    Chunked (prefill only): 3 C S^2 + 5 C^2 S + C^3/3 MACs per head per chunk, matrix-mapped."""
+    Chunked (prefill only): 3 C S^2 + 5 C^2 S + C^3/3 MACs per head per chunk, matrix-mapped.
+    Matrix: the captured serial update on the matrix arrays, 3 S^2 32-bit MACs per head-token (two state-vector
+    products and the outer-product update) at `matrix_penalty` W8xA16-equivalent PE cycles each, with the decay,
+    scalar and exponential tail on the vector side. Compute follows the 2026-10-03 recurrence study's
+    shared-matrix path (explorer/engine.js); works for decode as well as prefill. It needs the `gemm` capability,
+    like the chunked lowering. State traffic is the vector path's: the arrays have no local state storage, so the
+    state is read 5x and written 2x per token through L1 (the study's path charges the reads only)."""
     S, H, T = _gdn_dims(g, n)
     B, r, m = ctx.B, ctx.cfg["recurrent"], ctx.cfg["matrix"]
     state = float(S * S * H * B)
     work = (7 * S * S + 3 * S) * H * T * B
     special = float(H * T * B)
     options = []   # (pool, seconds, extra L1 bytes beyond one pass over the operands, note, matrix MACs)
+    aux = {}
+    if r["lowering"] == "matrix" and m["count"] > 0 and "gemm" in m["caps"] and m["rates"].get("w8", 0) > 0:
+        macs = 3.0 * S * S * H * T * B
+        t_mat = macs * r["matrix_penalty"] / (m["count"] * m["rows"] * m["cols"] * m["rates"]["w8"] * ctx.f * m["efficiency"])
+        vpool, t_vec = ctx.vec_or_scalar((S * S + 3 * S) * H * T * B, special, ("elementwise", "exp"))
+        if vpool is not None:      # state re-read 5x and re-written 2x per token through L1, as on the vector path
+            traffic = state * ctx.state_b * (5 * T - 1) + 2 * state * T * ctx.state_b
+            options.append(("Matrix", t_mat + t_vec, traffic, f"serial/matrix x{r['matrix_penalty']:g}", macs))
+            # Matrix and vector time are added serially and the per-token tail is interleaved with the products,
+            # so the vector side is held for the whole compute interval, not only its first t_vec seconds. The
+            # scheduler has no explicit phases; until it does this is the reservation that cannot be overlapped.
+            aux = {vpool: t_mat + t_vec}
     if r["lowering"] in ("serial", "auto"):
         if r["count"] > 0:
             active = min(r["count"], H * B)
@@ -428,6 +446,8 @@ def cost_gdn(ctx, g, n):
         return c
     pool, seconds, extra, note, macs = min(options, key=lambda o: o[1])
     c.pool, c.compute_s, c.note = pool, seconds, note
+    if note.startswith("serial/matrix"):
+        c.aux_busy = aux
     if macs:
         c.macs, c.arith = macs, 2 * macs
     _finish_elementwise(ctx, g, n, c, _operands(ctx, g, n))

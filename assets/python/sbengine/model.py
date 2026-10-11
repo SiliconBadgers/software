@@ -11,7 +11,7 @@ Feasibility: every op mapped, matmul tile fits, DSP budget, HBM capacity (weight
 import math
 
 from . import VERSION
-from .config import config_hash
+from .config import config_hash, switch_report
 from .costs import Ctx, node_cost
 from .memory import drop_fused, fused_roots, per_op_spill, simulate_residency
 from .resources import resources
@@ -148,4 +148,4 @@ def evaluate(workload, cfg, trace=None, detail=False):
     return {"engine_version": VERSION, "config_hash": config_hash(cfg), "workload": workload.name,
             "prompt_tokens": workload.meta["prompt_tokens"], "flash_attention": workload.meta.get("flash_attention"),
             "batch": cfg["batch"], "valid": not errors, "errors": sorted(set(errors)), "resources": res,
-            "phases": phases}
+            "switches": switch_report(cfg), "phases": phases}

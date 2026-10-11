@@ -17,7 +17,7 @@
   {
     "source": "web/registry.json",
     "published": "registry.json",
-    "sha256": "0a3eebba6eec9badca9fb7866dd67c877d087d9fc4044658d45a4529edc37713"
+    "sha256": "19241219ce9382f749cc58cec7199bb814853996a6af1c5d1e1b0abb420e542b"
   },
   {
     "source": "web/graph.js",
@@ -52,7 +52,7 @@
   {
     "source": "web/components/python/adapter.js",
     "published": "components/python/adapter.js",
-    "sha256": "21454889e0a920eeaf1e72bb0844d5d44be1cc203b230f877505fcd6945ab512"
+    "sha256": "897a745a17dbe49349841b9c57e50a7465ada4ecf6361175e28916d128f3e573"
   },
   {
     "source": "web/components/python/worker.js",
@@ -72,7 +72,7 @@
   {
     "source": "engine/sbengine/config.py",
     "published": "assets/python/sbengine/config.py",
-    "sha256": "45e86dbeb5ca9c70f27975144b54a3df73a9902ad214ad7def69a5516ce1a0fa"
+    "sha256": "eae7045152251af7d355f3ba63b8e3faf63a116f2838ec170c6ae6b21dccba89"
   },
   {
     "source": "engine/sbengine/formats.py",
@@ -82,17 +82,22 @@
   {
     "source": "engine/sbengine/graph.py",
     "published": "assets/python/sbengine/graph.py",
-    "sha256": "c324627a1d174a540e6a21964728ea49e36ad3ffa0ec8010d3c639aa2eaa04b1"
+    "sha256": "8034fb2f65f53d7422a943d85b179cde045c86b81421325d95c68787713c162e"
   },
   {
     "source": "engine/sbengine/costs.py",
     "published": "assets/python/sbengine/costs.py",
-    "sha256": "97ea622cb8a2249ef8ab5a3f41f9b1ed27a6a24aa223cfcc8ed041535df9aac8"
+    "sha256": "5ca27431e9a789ae0b3bb35bc2f309bafe956ecb9fb790a877b484746f6dae76"
+  },
+  {
+    "source": "engine/sbengine/groups.py",
+    "published": "assets/python/sbengine/groups.py",
+    "sha256": "88fb26210bdb10d01d7beda4403b542b3a2b87c980802c2bc5710b11b1ea4d39"
   },
   {
     "source": "engine/sbengine/memory.py",
     "published": "assets/python/sbengine/memory.py",
-    "sha256": "7a74c41684c7cc4f28d583d3d79b6f1444be0cbde43be55b92125044fca2617a"
+    "sha256": "0c060ec4c293a0306b26cc932d76a356b30331f918a72567a864b268c67cc884"
   },
   {
     "source": "engine/sbengine/resources.py",
@@ -107,7 +112,7 @@
   {
     "source": "engine/sbengine/model.py",
     "published": "assets/python/sbengine/model.py",
-    "sha256": "589668199ef3025fa3ce49beef4d3b2e31148b0feec7777145efe04a295e3418"
+    "sha256": "d88900fc5c369f4d674134b11831209f0063b88b35b90364844de06d843d75bf"
   },
   {
     "source": "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/prefill.json",
