@@ -76,6 +76,63 @@ class Analyses(unittest.TestCase):
         self.assertAlmostEqual(rows[-1]["decode_s"], final["phases"]["decode"]["seconds"], places=9)
         self.assertEqual(len(loo), len(sweep.ABLATION_STEPS))
 
+    def test_switch_table_brackets_the_configured_result(self):
+        base = config.load_profile("accel-balanced")[0]
+        t = sweep.switch_table(self.w, base)
+        given, cautious = t["given"], t["conservative"]
+        self.assertNotEqual(given["config_hash"], cautious["config_hash"])
+        self.assertGreater(cautious["prefill_s"], given["prefill_s"])
+        self.assertGreater(cautious["decode_s"], given["decode_s"])
+        rows = {r["path"]: r for r in t["rows"]}
+        self.assertEqual(set(rows), {s["path"] for s in config.SWITCHES})
+        for r in rows.values():                                # only optimistic or informational switches get a delta
+            self.assertEqual("prefill_delta_pct" in r, r["optimistic"] or r["informational"], r["path"])
+        # within-op overlap is left out of the pessimistic line and reported on its own and as an upper bound
+        overlap = rows["schedule.within_op_overlap"]
+        self.assertEqual((overlap["optimistic"], overlap["informational"]), (False, True))
+        self.assertGreater(overlap["prefill_delta_pct"], 0)
+        upper = t["upper_bound"]
+        self.assertGreater(upper["prefill_s"], cautious["prefill_s"])
+        self.assertGreater(upper["decode_s"], cautious["decode_s"])
+        self.assertNotEqual(upper["config_hash"], cautious["config_hash"])
+        self.assertGreater(rows["recurrent.lowering"]["prefill_delta_pct"], 20)
+        self.assertAlmostEqual(rows["recurrent.lowering"]["decode_delta_pct"], 0)   # chunking never applies to one token
+        # a design that is already pessimistic everywhere has nothing to state
+        again = sweep.switch_table(self.w, config.conservative(base))
+        self.assertEqual(again["given"]["config_hash"], again["conservative"]["config_hash"])
+        self.assertEqual(again["conservative"]["prefill_delta_pct"], 0.0)
+        self.assertFalse(any(r["optimistic"] for r in again["rows"]))
+
+    def test_switch_table_does_not_compare_infeasible_designs(self):
+        """An infeasible design times its unmapped ops at zero, so its seconds must never become a percentage."""
+        base = config.load_profile("accel-balanced")[0]
+        # valid as configured: the serial update runs on the matrix arrays. Moving recurrent.lowering back to
+        # "serial" leaves no unit that can run it (no recurrence unit, no scalar core, vector lacks the capability)
+        caps = [c for c in base["vector"]["caps"] if c != "recurrent"]
+        cfg = config.make_config({"recurrent": {"lowering": "matrix", "count": 0}, "scalar": {"count": 0},
+                                  "vector": {"caps": caps}}, base=base)
+        t = sweep.switch_table(self.w, cfg)
+        self.assertTrue(t["given"]["valid"])
+        rows = {r["path"]: r for r in t["rows"]}
+        lowering = rows["recurrent.lowering"]
+        self.assertFalse(lowering["alone"]["valid"])
+        self.assertTrue(any("GATED_DELTA_NET" in e for e in lowering["alone"]["errors"]))
+        self.assertNotIn("prefill_delta_pct", lowering)
+        self.assertNotIn("decode_delta_pct", lowering)
+        self.assertFalse(t["conservative"]["valid"])                           # it contains the same reversion
+        self.assertTrue(t["conservative"]["errors"])
+        self.assertNotIn("prefill_delta_pct", t["conservative"])
+        feasible = rows["matrix.pipelined_tiles"]                              # other switches are still compared
+        self.assertTrue(feasible["alone"]["valid"])
+        self.assertIn("prefill_delta_pct", feasible)
+        # when the configured design itself is infeasible nothing is compared, even against feasible alternatives
+        broken = config.make_config({"matrix": {"count": 0}, "scalar": {"count": 0}}, base=base)
+        t = sweep.switch_table(self.w, broken)
+        self.assertFalse(t["given"]["valid"])
+        self.assertTrue(t["given"]["errors"])
+        self.assertNotIn("prefill_delta_pct", t["conservative"])
+        self.assertFalse(any("prefill_delta_pct" in r for r in t["rows"]))
+
     def test_sensitivity_direction_and_binding_flags(self):
         base, rows = sweep.sensitivity(self.w, self.cfg, ["hbm.gbs", "clock_mhz", "l1.banks"], delta=0.3)
         by = {r["param"]: r for r in rows}

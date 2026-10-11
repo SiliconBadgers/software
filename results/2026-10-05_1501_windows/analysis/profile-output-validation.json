@@ -1,0 +1,44 @@
+[
+  {
+    "run": "cpu-profile",
+    "prompt_tokens": 128,
+    "phase": "prefill",
+    "bit_identical": true,
+    "max_abs_difference": 0.0
+  },
+  {
+    "run": "cpu-profile",
+    "prompt_tokens": 128,
+    "phase": "decode",
+    "bit_identical": true,
+    "max_abs_difference": 0.0
+  },
+  {
+    "run": "cpu-profile",
+    "prompt_tokens": 512,
+    "phase": "prefill",
+    "bit_identical": true,
+    "max_abs_difference": 0.0
+  },
+  {
+    "run": "cpu-profile",
+    "prompt_tokens": 512,
+    "phase": "decode",
+    "bit_identical": true,
+    "max_abs_difference": 0.0
+  },
+  {
+    "run": "cpu-profile",
+    "prompt_tokens": 2048,
+    "phase": "prefill",
+    "bit_identical": true,
+    "max_abs_difference": 0.0
+  },
+  {
+    "run": "cpu-profile",
+    "prompt_tokens": 2048,
+    "phase": "decode",
+    "bit_identical": true,
+    "max_abs_difference": 0.0
+  }
+]

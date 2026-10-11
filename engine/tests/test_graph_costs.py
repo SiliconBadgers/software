@@ -8,6 +8,8 @@ from sbengine import config
 from sbengine.costs import Ctx, _candidates, _tile_plan, node_cost
 from sbengine.graph import KNOWN_OPS, METADATA_OPS, Graph, capture_path
 from sbengine.memory import fused_roots
+from sbengine.model import evaluate
+from sbengine.schedule import schedule
 
 
 def cfg_small(**over):
@@ -52,6 +54,7 @@ class GraphStructure(unittest.TestCase):
         deps = g.deps()
         self.assertIn(by["cache_k_l0 (view)"], deps[by["read"]])                   # read-after-write on the cache
         self.assertIn(by["read"], deps[by["cache_k_l0 (view) 2"]])                 # write-after-read
+        self.assertIn(by["cache_k_l0 (view)"], deps[by["cache_k_l0 (view) 2"]])    # write-after-write
         self.assertEqual(deps[by["Kcur"]], [])
 
     def test_fusion_rule(self):
@@ -216,6 +219,93 @@ class AttentionAndRecurrence(unittest.TestCase):
         g1 = one.graph(input_tokens=1)
         c1 = node_cost(Ctx(config.make_config({"recurrent": {"lowering": "chunked"}})), g1, g1.nodes[-1])
         self.assertIn("no recurrence", c1.error)
+
+    def test_serial_recurrence_on_the_matrix_arrays(self):
+        """recurrent.lowering = "matrix": 3 S^2 MACs per head-token at matrix_penalty, plus the vector tail
+        (compute as in the 2026-10-03 recurrence study's shared-matrix path in explorer/engine.js)."""
+        g = self._gdn_graph()                                                   # S = 4, H = 2, T = 8
+        n = g.nodes[-1]
+
+        def cost(penalty, **over):
+            cfg = config.make_config(config.deep_merge({"recurrent": {"lowering": "matrix", "matrix_penalty": penalty}}, over))
+            return cfg, node_cost(Ctx(cfg), g, n)
+
+        cfg, c = cost(4)
+        macs = 3 * 16 * 2 * 8
+        self.assertEqual((c.pool, c.macs, c.note), ("Matrix", macs, "serial/matrix x4"))
+        m, v = cfg["matrix"], cfg["vector"]
+        f = cfg["clock_mhz"] * 1e6
+        t_mat = macs * 4 / (m["count"] * m["rows"] * m["cols"] * m["rates"]["w8"] * f * m["efficiency"])
+        t_vec = ((16 + 12) * 2 * 8 + 2 * 8 * v["special_cycles"]) / (v["count"] * v["lanes"] * f * v["efficiency"])
+        self.assertAlmostEqual(c.compute_s, t_mat + t_vec)
+        # matrix and vector time are added serially, so the vector side is held for the whole compute interval:
+        # other vector work must not slip in behind the first t_vec seconds
+        self.assertEqual(set(c.aux_busy), {"Vector"})
+        self.assertAlmostEqual(c.aux_busy["Vector"], t_mat + t_vec)
+        timeline = schedule([c.compute_s, t_vec], ["Matrix", "Vector"], [[], []], [0.0, 0.0], [0.0, 0.0], 0.0,
+                            [c.aux_busy, {}], detail=True)["operations"]
+        self.assertAlmostEqual(timeline[1]["start"], c.compute_s)               # an independent vector op waits
+        # dedicated recurrence units are not used by this lowering, whatever their count
+        self.assertEqual(cost(4, recurrent={"count": 0})[1].compute_s, c.compute_s)
+        # the penalty scales only the matrix part
+        self.assertAlmostEqual(cost(16)[1].compute_s - c.compute_s, 3 * t_mat)
+        # "auto" never picks it, so existing configurations are unchanged
+        auto = node_cost(Ctx(config.make_config({"recurrent": {"matrix_penalty": 0.001}})), g, n)
+        self.assertNotIn("serial/matrix", auto.note)
+        # it needs matrix units and somewhere to run the tail
+        self.assertIn("no recurrence", cost(4, matrix={"count": 0})[1].error)
+        # ... and the matrix capability, like the chunked lowering: units that cannot multiply cannot run it
+        for caps in ([], ["gemv", "attention", "requant", "conv"]):
+            self.assertIn("no recurrence", cost(4, matrix={"caps": caps})[1].error, caps)
+        self.assertEqual(cost(4, matrix={"caps": ["gemm"]})[1].pool, "Matrix")
+        # unlike chunking it also covers a single token (decode)
+        one = Builder()
+        act = lambda name, shape: one.add(name, shape, op="ROPE")             # noqa: E731
+        srcs = [act(nm, s) for nm, s in (("q", [4, 2, 1]), ("k", [4, 2, 1]), ("v", [4, 2, 1]), ("g", [1, 2, 1]), ("b", [1, 2, 1]), ("s", [4, 4, 2]))]
+        one.add("gdn", [8, 5], op="GATED_DELTA_NET", src=tuple(srcs))
+        g1 = one.graph(input_tokens=1)
+        c1 = node_cost(Ctx(config.make_config({"recurrent": {"lowering": "matrix"}})), g1, g1.nodes[-1])
+        self.assertEqual((c1.pool, c1.macs), ("Matrix", 3 * 16 * 2))
+
+    def _gdn_workload(self):
+        b = Builder()
+        act = lambda name, shape: b.add(name, shape, op="ROPE")               # noqa: E731
+        q, k, v = act("q", [4, 2, 8]), act("k", [4, 2, 8]), act("v", [4, 2, 8])
+        gate, beta, state = act("gate", [1, 2, 8]), act("beta", [1, 2, 8]), act("state", [4, 4, 2])
+        b.add("gdn", [8, 5], op="GATED_DELTA_NET", src=(q, k, v, gate, beta, state))
+        return b.workload(input_tokens=8)
+
+    def test_matrix_recurrence_without_the_capability_is_infeasible(self):
+        """A recurrence-only workload: with no recurrence unit and no scalar fallback, matrix units that lack the
+        capability must not make the design valid (they previously did, and such designs reached Pareto fronts)."""
+        w = self._gdn_workload()
+        base = {"recurrent": {"lowering": "matrix", "count": 0}, "scalar": {"count": 0}}
+        capable = evaluate(w, config.make_config(base))
+        self.assertTrue(capable["valid"], capable["errors"])
+        for caps in ([], ["gemv", "attention", "requant"]):
+            r = evaluate(w, config.make_config(config.deep_merge(base, {"matrix": {"caps": caps}})))
+            self.assertFalse(r["valid"], caps)
+            self.assertTrue(any("GATED_DELTA_NET" in e for e in r["errors"]), r["errors"])
+
+    def test_matrix_recurrence_state_traffic_matches_the_vector_path(self):
+        """The arrays have no local state storage, so the state crosses L1 as on the vector path: read 5x and
+        written 2x per token. Only a dedicated unit whose scratch holds the state avoids that."""
+        g = self._gdn_graph()                                                   # S = 4, H = 2, T = 8
+        n = g.nodes[-1]
+
+        def l1(**recurrent):
+            c = node_cost(Ctx(config.make_config({"recurrent": recurrent})), g, n)
+            return c.pool, c.l1_fixed
+
+        state_bytes = 4 * 4 * 2 * 4                                             # S * S * H elements, 32-bit state
+        dedicated = l1(lowering="serial")                                       # scratch holds the state: one pass
+        vector = l1(lowering="serial", count=0)
+        matrix = l1(lowering="matrix", count=0)
+        self.assertEqual((dedicated[0], vector[0], matrix[0]), ("Recurrent", "Vector", "Matrix"))
+        extra = state_bytes * (5 * 8 - 1) + 2 * state_bytes * 8                # 39 re-reads and 16 writes
+        self.assertAlmostEqual(vector[1] - dedicated[1], extra)
+        self.assertAlmostEqual(matrix[1] - dedicated[1], extra)                 # reads and writes, not reads only
+        self.assertAlmostEqual(matrix[1], vector[1])
 
     def test_memory_ops(self):
         b = Builder()

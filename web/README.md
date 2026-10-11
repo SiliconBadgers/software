@@ -154,6 +154,11 @@ Only the selected capture pair is loaded into the worker. The runtime and worker
 remain available for subsequent comparisons. Full parameters can be exported and
 edited as dotted-path JSON keys, such as `matrix.count` or `memory.weight_path`.
 
+The Python model's controls include the dependency-map fusion rule (**Fusion model -> Anchored dependency-map groups**) and
+the captured serial recurrence on the matrix arrays (**Recurrence method -> Token by token on matrix arrays**, with its
+penalty). Both are optional; the defaults are unchanged. The engine's native report lists every modelling switch with
+its pessimistic setting.
+
 The Graphs tab includes the original SVG, tensor inventory and active dependencies
 for every published workload. Dependencies for the expanded captures come from
 Raghav's `Graph.deps()` method, including persistent-state ordering. These views

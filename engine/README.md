@@ -25,6 +25,11 @@ numbers on the explorer's own graphs (prefill within 0.001 %, decode within 1 %;
 - Mixed Q4_K_M weights (as captured) do not validate a custom uniform INT4 format; `precision.weights` lets you model
   either, and says so in the result.
 
+Default results depend on modelling switches that are off their pessimistic setting (chunked recurrence, pool scheduling, fusion
+and others). `eval` names them and every result carries the full list; `python -m sbengine switches` shows what each is worth.
+At pp512 flash-attention-on, balanced design, the all-pessimistic result is 49 % slower in prefill and 11 % slower in decode than
+the default (`docs/EQUATIONS.md` 2.14).
+
 ## Run it
 
 From this directory (Python 3.13, numpy; no other dependencies):
@@ -35,12 +40,14 @@ python -m sbengine eval --graph pp512-fa-on               # timing, bytes, bound
 python -m sbengine eval --graph pp512-fa-on --set memory.weight_path=\"direct\" --nodes 10
 python -m sbengine sweep --graph pp512-fa-on --axis matrix.count=1,2,4,8 --axis l1.banks=32,64,128,256 --out out
 python -m sbengine ablation --graph pp512-fa-off          # each equation, explorer version -> this engine
+python -m sbengine switches --graph pp512-fa-on           # every modelling switch, and the result without it
+python -m sbengine groups --graph pp512-fa-off            # dependency-map parallel and fusion groups
 python -m sbengine sensitivity --graph pp512-fa-on        # which assumptions decide the answer
 python -m sbengine montecarlo --designs accel-balanced accel-efficient
 python -m sbengine parity                                 # MAC accounting vs every captured summary
-python -m sbengine validate-cpu                           # held-out check against measured CPU op times
+python -m sbengine validate-cpu                           # held-out check against measured CPU op times (--report writes per-class tables)
 python -m sbengine serve                                  # interactive modelling page: http://127.0.0.1:8765
-python -m unittest discover -s tests                      # 60 tests, ~40 s
+python -m unittest discover -s tests                      # 82 tests
 ```
 
 `serve` opens the modelling web page (`sbengine/web/index.html`). Unlike the static run browser in
@@ -51,7 +58,8 @@ local JSON API, so it needs `python -m sbengine serve` running and cannot be ope
 **Data from a fresh clone.** The committed run keeps each graph as `graphs/<name>/{prefill,decode}.json.gz`
 (2.5 MB for all 22 graphs); the engine reads those or the uncompressed `.json` a local capture writes. All
 workloads, `eval`, `sweep`, `ablation`, `sensitivity` and `serve` work from a clone. The CPU operation traces
-are not committed, so `validate-cpu` and the measured host-fallback costs need a local run (`profile`); their
+are not committed, so `validate-cpu` and the measured host-fallback costs need a local run (`profile`). Without them
+`validate-cpu` prints NOT CHECKED, marks any `--report` the same way and exits with an error; their
 tests skip without one, as does the MAC cross-check against the local-only graph summaries.
 
 `--run results/<run>` selects a run (default: newest with a manifest and `graphs/`). `--profile` takes a file in
@@ -65,6 +73,7 @@ workload and the engine version, so a CSV can be reproduced or challenged later.
 |---|---|
 | `sbengine/graph.py` | Load a capture: typed nodes, view-chain roots, storage kinds (weight / KV / state / input / activation), hazards |
 | `sbengine/costs.py` | Per-node equations: matmul, fused attention, recurrence, conv, vector, memory ops; tile search |
+| `sbengine/groups.py` | Anchored fusion groups and parallel projection groups, ported from the operation dependency map (`memory.fusion = groups`) |
 | `sbengine/memory.py` | Fusion rule and activation residency simulation (plus the explorer's spill proxy, for ablation) |
 | `sbengine/schedule.py` | Serial sum, dependency-aware list schedule, lower bound |
 | `sbengine/model.py` | `evaluate()`: one workload under one config; feasibility checks |
