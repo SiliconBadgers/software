@@ -31,6 +31,10 @@ jobs:
           python3 -m unittest discover -s core/tests -v
       - name: Workspace and publication checks
         run: python3 -m unittest discover -s tests/web -v
+      - name: Repository boundaries and MAC reference
+        run: |
+          python3 scripts/check_boundaries.py
+          python3 -m unittest discover -s tests -v
       - name: Build workspace
         env:
           GH_TOKEN: ${{ github.token }}
