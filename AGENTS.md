@@ -4,6 +4,10 @@ Use llama.cpp profiling and numerical evidence to guide compute-unit boundaries,
 
 ## Before editing or committing
 
+Follow [scientific code organization](docs/DESIGN-RULES.md) for stage boundaries,
+canonical ownership, evidence preservation and affected checks. The current
+refactor is local-only; remote writes require explicit user authorization.
+
 - Read README.md, CONTRIBUTING.md, docs/START-HERE.md and the linked issue.
 - Do not commit secrets, licensed collateral, model weights or generated
   build/simulation databases.

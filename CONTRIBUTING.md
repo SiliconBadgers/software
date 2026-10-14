@@ -6,6 +6,9 @@ the issue. Use existing evidence and explicit assumptions to work in parallel.
 
 ## Branch, validate, propose
 
+Use [scientific code organization](docs/DESIGN-RULES.md) for source placement,
+baseline/decision records and result policy.
+
 1. Accept any pending organization invite and check repository write access.
 2. Create a descriptive branch from current `main`, then make the issue's change.
 3. Keep editable diagram sources and link the central architecture diagram.

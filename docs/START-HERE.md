@@ -4,6 +4,9 @@ Use llama.cpp profiling and numerical evidence to guide compute-unit boundaries,
 
 ## Assignment
 
+For maintained source, baselines and reproduction boundaries, see
+[scientific code organization](DESIGN-RULES.md).
+
 - [Extend llama.cpp profiling and recommend compute boundaries](https://github.com/SiliconBadgers/software/issues/3)
 
 1. Reproduce and read the recorded 2026-09-22 baseline, report and CPU profiler methodology before extending it. Keep recorded results unchanged.
