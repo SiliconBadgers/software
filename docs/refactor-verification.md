@@ -3,7 +3,8 @@
 Verified 2026-10-14 on local branch `refactor/scientific-characterization`, source
 `2e53a124a30a84aa969a1cabe2332b73abae9309`, against reviewed main
 `0e06023d74c06cc12bb9e05d9e65102347ecc3f0`. This record is documentation added after
-testing that source; no numerical change is hidden in it. Nothing was published.
+testing that source; no numerical change is hidden in it. At this verification
+checkpoint on 2026-10-14, nothing had been published.
 
 ## Gates
 
@@ -32,7 +33,7 @@ the task-local preview servers are stopped separately after testing. Automatic
 removal of the temporary checkout was blocked by the execution policy, so that
 copy remains contained and ignored; it contains no unique source changes and can
 be removed manually or recreated from the tested commit. Detailed logs, screenshots
-and full comparisons remain ignored and contained. The snapshot ZIP is absent.
+and full comparisons remain ignored and contained.
 
 Full characterization is under
 `build/refactor-characterization/0e06023/final/`; final/clean suite logs and visual
@@ -59,4 +60,8 @@ No new inference, quantization-quality, real lowered-kernel, accelerator/SoC,
 FPGA/ASIC, physical bandwidth/cost or licensed-tool qualification was performed.
 This completes the requested source/configuration/reproduction refactor, not the
 broader Software research objective or an optimal hardware design. Any new baseline
-selection still needs manual review and evidence; any remote write needs user approval.
+selection still needs manual review and evidence.
+
+AI assistance: OpenAI Codex. Local task metadata verified `gpt-6.1-sol` for the
+latest task on 2026-10-14; exact model identifiers for earlier stages were not
+verified. This does not attribute every earlier stage to that model.

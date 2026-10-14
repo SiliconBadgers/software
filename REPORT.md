@@ -86,10 +86,13 @@ chunked implementation. No new inference, SoC, RTL or licensed-tool qualificatio
 is claimed; missing CPU validation remains NOT CHECKED.
 
 Baseline freezing remains manual review, with parent, selected study, rationale
-and approval evidence. All refactor commits remain local; no remote writes or
-review requests are made without approval. The Software research objective is
-not completed merely by source organization.
+and approval evidence. At the local verification checkpoint on 2026-10-14,
+through `2203e67`, all refactor commits were local and no branch, PR or review
+request had been published. This records that checkpoint, not later publication
+status. The Software research objective is not completed merely by source
+organization.
 
-AI assistance: OpenAI Codex assisted this refactor; the exact model identifier
-was unavailable in runtime metadata. Existing contributor and AI attribution is
+AI assistance: OpenAI Codex assisted this refactor. Local task metadata verified
+`gpt-6.1-sol` for the latest task on 2026-10-14; exact model identifiers for
+earlier stages were not verified. Existing contributor and AI attribution is
 preserved in the component sources and documentation.

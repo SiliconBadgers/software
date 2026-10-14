@@ -19,9 +19,9 @@ baseline/decision records and result policy.
    unrun, not passed. Keep secrets, licenses, PDKs, model weights and generated
    build/simulation databases out of Git.
 5. Commit your changes with a clear description.
-6. Show the proposed diff and PR text to the user before authorized publication.
-   Ask Akanksha and/or the Software team for review and follow current repository
-   approval requirements. Do not close research issues because scaffolding exists.
+6. Push the branch and open an issue-linked PR. Request the maintainer-designated
+   reviewers and follow the repository's existing approval and merge requirements.
+   Do not close research issues because scaffolding exists.
 
 Preserve recorded experiments and slide baselines. Put new runs and proposals
 in their own locations so reviewers can compare them. A change in architecture

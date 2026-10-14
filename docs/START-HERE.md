@@ -35,7 +35,7 @@ and [component checks](../tests/README.md). CPU time shares are not accelerator 
 or speedup; mixed Q4_K_M is not a custom uniform INT4 validation.
 
 These structures organize the work; they do not close the research objective.
-Use explicit evidence, keep unresolved decisions provisional and obtain approval
-before publishing useful intermediate results.
+Use explicit evidence, keep unresolved decisions provisional and publish useful
+intermediate results through the repository's existing branch/PR review process.
 
 Follow [CONTRIBUTING.md](../CONTRIBUTING.md) before editing or committing.

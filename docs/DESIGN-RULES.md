@@ -77,10 +77,9 @@ separate explained changes; do not relax tolerances. Run affected native/browser
 checks after source moves and all suites before handoff. Report skips and unavailable
 inference, hardware and licensed-tool checks explicitly.
 
-Keep commits small and independently usable. This refactor remains local: show
-proposed public material and obtain user authorization before remote writes. Ask
-Akanksha and/or Software for review when publication is authorized; verify repository
-requirements instead of claiming an unverified enforced approval count.
+Keep commits small and independently usable. Use issue-linked PRs and request
+the maintainer-designated reviewers. Follow the repository's existing approval
+and merge requirements; these design rules do not change them.
 
 Ponytail is optional advisory review, not required installation, hooks or source
 policy. Scientific authorities remain [equations](../engine/docs/EQUATIONS.md),
