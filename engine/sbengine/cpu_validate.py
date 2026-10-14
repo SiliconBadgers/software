@@ -22,7 +22,7 @@ def node_features(g, n):
     t, op = n.tensor, n.op
     if op == "MUL_MAT":
         a = n.slots[0]
-        macs = float(t.shape[0] * t.shape[1] * t.shape[2] * t.shape[3] * a.shape[0])
+        macs = float(g.macs_of(n))
         cls = f"matmul[{a.dtype}]" if g.kind(g.root(a.id)) == "weight" else "matmul[act]"
         return cls, {"macs": macs, "bytes": float(a.nbytes), "one": 1.0}
     if op == "FLASH_ATTN_EXT":
@@ -33,7 +33,7 @@ def node_features(g, n):
         v = n.slots[2]
         return "gated_delta_net", {"macs": float(v.shape[0] ** 2 * v.shape[1] * g.meta["input_tokens"]), "one": 1.0}
     if op == "SSM_CONV":
-        return "ssm_conv", {"macs": float(t.elements * n.slots[1].shape[0]), "one": 1.0}
+        return "ssm_conv", {"macs": float(g.macs_of(n)), "one": 1.0}
     if op in ("GET_ROWS", "SET_ROWS", "CPY", "CONT", "CONCAT"):
         return op.lower(), {"bytes": float(t.nbytes), "one": 1.0}
     return op.lower(), {"elems": float(t.elements), "one": 1.0}

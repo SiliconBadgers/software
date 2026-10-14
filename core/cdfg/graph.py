@@ -10,6 +10,8 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
+from .work import dense_macs
+
 METADATA_OPS = {"NONE", "VIEW", "RESHAPE", "PERMUTE", "TRANSPOSE"}
 ELEMENTWISE_OPS = {"MUL", "ADD", "SCALE"}
 ACTIVATION_OPS = {"SILU", "SIGMOID", "SOFTPLUS", "SWIGLU"}
@@ -200,12 +202,7 @@ class Graph:
     # -- work accounting (same counts as core/analysis/graph.py) ------------------------------------------
     @staticmethod
     def macs_of(node):
-        t = node.tensor
-        if t.op == "MUL_MAT":
-            return t.elements * node.slots[0].shape[0]
-        if t.op == "SSM_CONV":
-            return t.elements * node.slots[1].shape[0]
-        return None
+        return dense_macs(node.tensor.op, node.tensor.elements, lambda slot: node.slots[slot].shape)
 
     def totals(self):
         macs = {}

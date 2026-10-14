@@ -69,6 +69,11 @@
           "virtual": "core/cdfg/graph.py"
         },
         {
+          "source": "core/cdfg/work.py",
+          "target": "assets/python/cdfg/work.py",
+          "virtual": "core/cdfg/work.py"
+        },
+        {
           "source": "engine/sbengine/workload.py",
           "target": "assets/python/sbengine/workload.py"
         },
