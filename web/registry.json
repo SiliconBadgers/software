@@ -82,6 +82,10 @@
           "target": "assets/python/sbengine/costs.py"
         },
         {
+          "source": "engine/sbengine/mapping.py",
+          "target": "assets/python/sbengine/mapping.py"
+        },
+        {
           "source": "engine/sbengine/groups.py",
           "target": "assets/python/sbengine/groups.py"
         },
