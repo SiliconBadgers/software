@@ -11,8 +11,10 @@ refactor is local-only; remote writes require explicit user authorization.
 - Read README.md, CONTRIBUTING.md, docs/START-HERE.md and the linked issue.
 - Do not commit secrets, licensed collateral, model weights or generated
   build/simulation databases.
-- Use a branch and PR for @abhinavnandwani's review. Keep the issue's technical
-  scope intact; scaffolding and tone changes do not authorize a new design.
+- Keep issue scope intact; source moves and documentation do not authorize a new design.
+- Keep changes and generated artifacts contained. Never overwrite dated evidence.
+- Obtain user approval before publishing. For authorized review, ask Akanksha
+  and/or Software and check current repository requirements.
 
 ## AI assistance
 

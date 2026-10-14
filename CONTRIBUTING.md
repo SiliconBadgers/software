@@ -19,10 +19,26 @@ baseline/decision records and result policy.
    unrun, not passed. Keep secrets, licenses, PDKs, model weights and generated
    build/simulation databases out of Git.
 5. Commit your changes with a clear description.
-6. Push the branch and open a PR linked to the issue for `@abhinavnandwani` to
-   review. Main requires one approving review; admins can bypass. Do not
-   close research/scaffold issues just because folders or templates exist.
+6. Show the proposed diff and PR text to the user before authorized publication.
+   Ask Akanksha and/or the Software team for review and follow current repository
+   approval requirements. Do not close research issues because scaffolding exists.
 
 Preserve recorded experiments and slide baselines. Put new runs and proposals
 in their own locations so reviewers can compare them. A change in architecture
 or team scope needs an explicit proposal, not a silent documentation rewrite.
+
+## Contribution examples
+
+- Source extraction: move an existing calculation to its scientific owner, update
+  native/browser consumers together and compare against characterization. Explain
+  any result-changing correctness fix in a separate commit.
+- Existing sweep: add a specification/thin caller under `engine/sweeps/`, reuse
+  the evaluator, declare axes/fixed assumptions and record a compact summary under
+  `docs/sweeps/`. Full candidate output remains ignored under `build/sweeps/`.
+- Reviewed baseline: add a new complete profile and record under `engine/designs/`
+  referencing its parent, selected study and approval evidence. Preserve prior
+  revisions; existing balanced defaults are not architectural approval.
+
+Run the [explicit component checks](tests/README.md). Scientific equations,
+assumptions and validation limits remain in their existing component documents;
+the [current report](REPORT.md) links evidence without replacing dated findings.

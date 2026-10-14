@@ -9,9 +9,9 @@ model comparisons, captured graphs, execution estimates and source links.
 ## Start here
 
 1. Read [the current assignment and artifact locations](docs/START-HERE.md).
-2. Work on a branch and open a PR for `@abhinavnandwani` using
-   [CONTRIBUTING.md](CONTRIBUTING.md). Main requires one approving review;
-   admins can bypass.
+2. Read the [current report](REPORT.md), [scientific code organization](docs/DESIGN-RULES.md)
+   and [contribution guide](CONTRIBUTING.md). Work locally on a branch; obtain
+   approval before publication and request Akanksha/Software review.
 
 ## Current issues
 
@@ -26,7 +26,12 @@ model comparisons, captured graphs, execution estimates and source links.
 
 ## Current material and scope
 
-A reproducible CPU/Metal profiling package and the small MAC reference example exist. CPU time shares are not accelerator area or speedup. Mixed Q4_K_M results do not validate the slide's custom INT4/group-64 proposal.
+The profiling runner supports CPU reference execution, Metal and optional CUDA
+iteration. [Shared CDFG source](core/cdfg/), [mapping and evaluation](engine/README.md),
+[resolved baselines](engine/designs/README.md) and [reproducible studies](engine/sweeps/README.md)
+organize the existing analysis. [Explicit tests](tests/README.md) cover these paths.
+CPU time shares are not accelerator area or speedup; mixed Q4_K_M does not validate
+a custom uniform INT4 format. The small MAC reference remains an example.
 
 [Shared diagram](https://github.com/SiliconBadgers/architecture/blob/main/docs/accelerator-diagram.md) · [Software evidence](https://github.com/SiliconBadgers/software/tree/main/experiments/llama-cpp/2026-09-22)
 
