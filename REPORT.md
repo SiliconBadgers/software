@@ -66,6 +66,9 @@ are unchanged.
 
 ## Verification and limits
 
+[Complete local acceptance](docs/refactor-verification.md) records fresh-checkout
+results, exact comparisons, visual checks, preserved inputs and unavailable gates.
+
 Local verification uses existing Python 3.13.15, NumPy 2.5.3, Matplotlib 3.11.2,
 Node 24.19.0, Playwright 1.62.1 and native Chrome. [Explicit test commands](tests/README.md)
 cover core, engine, repository/MAC, publication and all five JS suites. Native/worker
