@@ -284,4 +284,22 @@ def load_profile(path_or_name):
     if not path.is_file():
         path = PROFILE_DIR / (str(path_or_name) if str(path_or_name).endswith(".json") else f"{path_or_name}.json")
     doc = json.loads(path.read_text(encoding="utf-8"))
+    if doc.get("resolved"):
+        missing = []
+
+        def required(reference, given, prefix=""):
+            if not isinstance(given, dict):
+                missing.append(prefix or "config")
+                return
+            for key, value in reference.items():
+                name = f"{prefix}.{key}" if prefix else key
+                if key not in given:
+                    missing.append(name)
+                elif isinstance(value, dict):
+                    required(value, given[key], name)
+
+        required(DEFAULTS, doc["config"])
+        if missing:
+            raise ValueError("resolved profile is incomplete: " + ", ".join(missing))
+        return make_config(base=doc["config"]), doc
     return make_config(doc.get("config")), doc

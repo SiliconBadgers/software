@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "baseline": "characterized-v1",
+  "branches": [
+    {
+      "id": "compute",
+      "question": "Which compute capacity and legal lowerings help prefill and decode under the recorded workload?",
+      "configuration_paths": [
+        "matrix.count",
+        "matrix.rows",
+        "matrix.cols",
+        "matrix.caps",
+        "vector.count",
+        "vector.lanes",
+        "recurrent.count",
+        "recurrent.lowering",
+        "recurrent.matrix_penalty"
+      ],
+      "alternatives": [
+        "Existing matrix/vector/dedicated-recurrence choices; serial, auto/chunked and matrix recurrence scenarios."
+      ],
+      "prerequisites": [
+        "local-memory"
+      ],
+      "acceptance": [
+        "Preserve mapping legality and feasible budgets.",
+        "Compare prefill/decode and bottleneck changes; no global optimum claim.",
+        "Numerical implementation evidence and calibrated cost/timing are still needed for selection."
+      ],
+      "status": "open",
+      "evidence": [
+        "engine/docs/EQUATIONS.md",
+        "research/compute-mapping/2026-10-03-recurrence-multiplier-sensitivity/REPORT.md"
+      ]
+    },
+    {
+      "id": "local-memory",
+      "question": "How do existing tile choices, SRAM capacity, banking, residency and fusion interact?",
+      "configuration_paths": [
+        "l1.mib",
+        "l1.banks",
+        "l1.tile_fraction",
+        "l1.state_reserve",
+        "matrix.tile_k",
+        "memory.residency",
+        "memory.fusion",
+        "memory.weight_path"
+      ],
+      "alternatives": [
+        "Existing searched/fixed tiles and chains/groups/none fusion.",
+        "via_l1 baseline; direct weights remain an unpriced-organization alternative, not approved."
+      ],
+      "prerequisites": [],
+      "acceptance": [
+        "Report spills/traffic/footprints and memory-dependent mapping.",
+        "Hold external/platform assumptions fixed.",
+        "Banking/routing/area/power feasibility remains unvalidated."
+      ],
+      "status": "open",
+      "evidence": [
+        "engine/docs/ASSUMPTIONS.md",
+        "engine/docs/EQUATIONS.md"
+      ]
+    },
+    {
+      "id": "joint",
+      "question": "Which feasible compute/local-memory tradeoffs survive the stated objectives?",
+      "configuration_paths": [
+        "matrix.count",
+        "l1.banks",
+        "l1.mib",
+        "recurrent.count"
+      ],
+      "alternatives": [
+        "Existing Cartesian-grid candidates and Pareto filtering under explicit objectives."
+      ],
+      "prerequisites": [
+        "compute",
+        "local-memory"
+      ],
+      "acceptance": [
+        "Keep coupled choices and objective definitions explicit.",
+        "Report candidate/valid denominators and cost-proxy limitations.",
+        "Any baseline revision needs reviewed evidence, parent and rationale."
+      ],
+      "status": "open",
+      "evidence": [
+        "engine/README.md",
+        "docs/DESIGN-RULES.md"
+      ]
+    }
+  ]
+}
