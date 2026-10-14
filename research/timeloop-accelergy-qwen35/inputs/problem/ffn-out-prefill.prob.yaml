@@ -1,0 +1,17 @@
+problem:
+  version: 0.4
+  shape:
+    name: BPU_MatMul
+    dimensions: [ M, K, N ]
+    data_spaces:
+    - name: A
+      projection: [ [ [ M ] ], [ [ K ] ] ]
+    - name: B
+      projection: [ [ [ K ] ], [ [ N ] ] ]
+    - name: C
+      projection: [ [ [ M ] ], [ [ N ] ] ]
+      read_write: True
+  instance:
+    M: 2048
+    K: 6144
+    N: 128

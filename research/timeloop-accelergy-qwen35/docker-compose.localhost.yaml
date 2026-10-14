@@ -1,0 +1,13 @@
+# Copy beside the official exercise repository's workspace/ directory.
+# Keep Jupyter's generated authentication token enabled.
+services:
+  tutorial:
+    hostname: tutorial
+    image: timeloopaccelergy/timeloop-accelergy-pytorch:latest-amd64
+    ports:
+      - "127.0.0.1:8888:8888"
+    volumes:
+      - ./workspace:/home/workspace
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000

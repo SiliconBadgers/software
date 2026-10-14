@@ -1,0 +1,47 @@
+architecture:
+  version: 0.4
+  nodes:
+  - !Container
+    name: System
+    attributes:
+      technology: "40nm"
+      global_cycle_seconds: 1e-9
+
+  - !Component
+    name: MainMemory
+    class: DRAM
+    attributes:
+      depth: 1073741824
+      width: 256
+      datawidth: 8
+
+  - !Component
+    name: GlobalBuffer
+    class: SRAM
+    attributes:
+      depth: 262144
+      width: 64
+      datawidth: 8
+
+  - !Container
+    name: PE_M
+    spatial: {meshX: 8}
+
+  - !Container
+    name: PE_K
+    spatial: {meshX: 8}
+
+  - !Component
+    name: RegisterFile
+    class: regfile
+    attributes:
+      depth: 16
+      width: 32
+      datawidth: 8
+
+  - !Component
+    name: MACC
+    class: intmac
+    attributes:
+      width: 8
+      datawidth: 8

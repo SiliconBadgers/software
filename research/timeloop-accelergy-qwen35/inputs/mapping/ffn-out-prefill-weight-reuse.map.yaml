@@ -1,0 +1,21 @@
+mapping:
+  - target: MainMemory
+    type: temporal
+    factors: M=2 K=6 N=1
+    permutation: MKN
+  - target: GlobalBuffer
+    type: temporal
+    factors: M=128 K=128 N=16
+    permutation: MKN
+  - target: PE_M
+    type: spatial
+    factors: M=8
+    permutation: M
+  - target: PE_K
+    type: spatial
+    factors: K=8
+    permutation: K
+  - target: RegisterFile
+    type: temporal
+    factors: M=1 K=1 N=8
+    permutation: MKN
