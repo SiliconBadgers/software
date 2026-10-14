@@ -59,6 +59,20 @@
           "target": "assets/python/sbengine/graph.py"
         },
         {
+          "source": "core/cdfg/__init__.py",
+          "target": "assets/python/cdfg/__init__.py",
+          "virtual": "core/cdfg/__init__.py"
+        },
+        {
+          "source": "core/cdfg/graph.py",
+          "target": "assets/python/cdfg/graph.py",
+          "virtual": "core/cdfg/graph.py"
+        },
+        {
+          "source": "engine/sbengine/workload.py",
+          "target": "assets/python/sbengine/workload.py"
+        },
+        {
           "source": "engine/sbengine/costs.py",
           "target": "assets/python/sbengine/costs.py"
         },

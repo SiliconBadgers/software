@@ -9,3 +9,12 @@ Every figure this package produces is an analytical estimate under stated assump
 """
 
 VERSION = "0.1.0"
+
+# The CLI still runs from engine/. Locate the shared sibling package without an
+# installation step; the browser packages the same sources under /core/.
+from pathlib import Path
+import sys
+
+_core = str(Path(__file__).resolve().parents[2] / "core")
+if _core not in sys.path:
+    sys.path.insert(0, _core)
