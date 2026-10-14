@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from sbengine.config import DEFAULTS, set_path, validate
-from sbengine.graph import load_workload
+from sbengine.workload import load_workload
 from sbengine.model import evaluate
 
 WORKLOADS = {}

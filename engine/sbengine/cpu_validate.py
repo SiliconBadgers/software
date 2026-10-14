@@ -13,7 +13,8 @@ import re
 
 import numpy as np
 
-from .graph import has_capture, load_workload
+from cdfg import has_capture
+from .workload import load_workload
 from .trace import load_trace
 
 

@@ -104,6 +104,18 @@
         {
           "source": "engine/sbengine/model.py",
           "target": "assets/python/sbengine/model.py"
+        },
+        {
+          "source": "engine/designs/baselines/characterized-v1/profile.json",
+          "target": "assets/designs/characterized-v1/profile.json"
+        },
+        {
+          "source": "engine/designs/baselines/characterized-v1/record.json",
+          "target": "assets/designs/characterized-v1/record.json"
+        },
+        {
+          "source": "engine/designs/decisions.json",
+          "target": "assets/designs/decisions.json"
         }
       ]
     }
@@ -183,6 +195,16 @@
       "title": "Expanded captured workloads",
       "path": "results/2026-09-27_1839_windows-2",
       "description": "Recorded Q4_K_M graphs, prompt-specific workloads, flash-attention variants and evidence limits."
+    },
+    {
+      "title": "Shared captured graph representation",
+      "path": "core/cdfg",
+      "description": "Canonical tensors, aliases, work conventions and conservative dependencies; no hardware assumptions."
+    },
+    {
+      "title": "Resolved baseline and open decisions",
+      "path": "engine/designs",
+      "description": "Provisional reproducible configuration and compute/local-memory/joint decision questions."
     }
   ]
 }
