@@ -5,6 +5,8 @@ from unittest import mock
 
 from helpers import Builder
 from sbengine import config, costs, mapping
+from sbengine import model
+from sbengine.graph import Workload
 
 
 class MappingContract(unittest.TestCase):
@@ -42,6 +44,15 @@ class MappingContract(unittest.TestCase):
         ctx = costs.Ctx(config.make_config())
         with self.assertRaisesRegex(ValueError, "captured operation"):
             costs.node_cost(ctx, g, g.nodes[-1], mapping.map_node(ctx, g, g.nodes[0]))
+
+    def test_evaluator_maps_each_operation_once(self):
+        g = self.graph()
+        workload = Workload("synthetic", g.path.parent, g, g)
+        with mock.patch.object(model, "map_node", wraps=mapping.map_node) as selected:
+            with mock.patch.object(costs, "map_node", side_effect=AssertionError("selection repeated")):
+                result = model.evaluate(workload, config.make_config())
+        self.assertTrue(result["valid"])
+        self.assertEqual(selected.call_count, 2 * len(g.nodes))
 
 
 if __name__ == "__main__":
