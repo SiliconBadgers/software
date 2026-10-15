@@ -17,6 +17,13 @@ python -B scripts/check_boundaries.py
 measured-evidence checks skip without local-only traces/summaries; skips are not
 validation passes. Missing CPU-fit evidence is explicitly NOT CHECKED.
 
+Boundary tests include real Git repositories and negative evidence/artifact cases.
+The committed original-file inventory is checked against the unchanged
+characterization digest, so a shallow checkout needs no historical Git objects.
+New research is permitted; only the recorded originals retain the legacy bulk
+exemption. Study tests retain the original three cases, allow a fourth valid spec
+and reject missing originals or invalid additions.
+
 With Node 22+, run all five preserved JS suites:
 
 ```text

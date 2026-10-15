@@ -1,0 +1,1786 @@
+{
+  "experiments/README.md": {
+    "mode": "100644",
+    "git_blob": "92254b0923e78e55c9db2564867e42bfc29c43e5"
+  },
+  "experiments/llama-cpp/2026-09-22/.gitignore": {
+    "mode": "100644",
+    "git_blob": "3f6c5b58c23ddecfc2ba14c2e8666e041649c5e5"
+  },
+  "experiments/llama-cpp/2026-09-22/CPU-PROFILER-METHODOLOGY.md": {
+    "mode": "100644",
+    "git_blob": "c03637130784d77cbe098d76cca4ade1a411c6d1"
+  },
+  "experiments/llama-cpp/2026-09-22/README.md": {
+    "mode": "100644",
+    "git_blob": "f708b4d4aa50a46efa65395068d833dbbd7a255c"
+  },
+  "experiments/llama-cpp/2026-09-22/REPORT.md": {
+    "mode": "100644",
+    "git_blob": "af662dd3221f6401850f611429f3335fdc77192d"
+  },
+  "experiments/llama-cpp/2026-09-22/analyze.py": {
+    "mode": "100644",
+    "git_blob": "cbbfecfb5965ea09a7e4e551caf7543e55b743b3"
+  },
+  "experiments/llama-cpp/2026-09-22/analyze_ops.py": {
+    "mode": "100644",
+    "git_blob": "bd65c5bc0013733b0ddf40be553a331e7e937eec"
+  },
+  "experiments/llama-cpp/2026-09-22/artifact-checksums.json": {
+    "mode": "100644",
+    "git_blob": "ff323804c149acaa64ea1910742061206266635f"
+  },
+  "experiments/llama-cpp/2026-09-22/manifest.json": {
+    "mode": "100644",
+    "git_blob": "098277bd321d9442ff8a4cd979882b546c7aadf0"
+  },
+  "experiments/llama-cpp/2026-09-22/model-metadata.json": {
+    "mode": "100644",
+    "git_blob": "6ebb572d46ed5864c0e3bb6920f645b9f81dbbd9"
+  },
+  "experiments/llama-cpp/2026-09-22/plot_results.py": {
+    "mode": "100644",
+    "git_blob": "14ea3555e7e0aced1f807b17a97515f5945abd91"
+  },
+  "experiments/llama-cpp/2026-09-22/profile.cpp": {
+    "mode": "100644",
+    "git_blob": "c1590f4037fcb995447dd489f6e86c861392d722"
+  },
+  "experiments/llama-cpp/2026-09-22/reproduce.py": {
+    "mode": "100644",
+    "git_blob": "3cf76fce9c7fff8f731fefbaa71e0d4c34f24de5"
+  },
+  "experiments/llama-cpp/2026-09-22/requirements.txt": {
+    "mode": "100644",
+    "git_blob": "0676cbdc248e678a14c0c848a910c43a28c4d69c"
+  },
+  "experiments/llama-cpp/2026-09-22/result_io.py": {
+    "mode": "100644",
+    "git_blob": "2d7dc5624ea172014d4b7b5694acc22c0ddda933"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-8k-control-p8192-decode.f32.gz": {
+    "mode": "100644",
+    "git_blob": "e8d6c8d93487bebcdd38a6fc5d7c95314756533f"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-8k-control-p8192-prefill.f32.gz": {
+    "mode": "100644",
+    "git_blob": "7c916d154c73a0bdff546b1709d88713a11fcf07"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-8k-control-prompt.txt": {
+    "mode": "100644",
+    "git_blob": "b57a4a781784009e6a1d0075d4ceafc56905cb39"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-8k-control-tokens.json": {
+    "mode": "100644",
+    "git_blob": "ad73e96d6c31f473f751bd54dd7fb61c1cd4ee36"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-8k-control.jsonl": {
+    "mode": "100644",
+    "git_blob": "01e9ded107ba4cade3d9cfacdf25a00dcb0e65cb"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-8k-control.log": {
+    "mode": "100644",
+    "git_blob": "ffa6c32a9ad8c4fb57e4846d39eab5469b75f07f"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-8k-op-trace.jsonl.gz": {
+    "mode": "100644",
+    "git_blob": "d9880fad587b6b70aab52c6e2318d27e00caed7f"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-8k-p8192-decode.f32.gz": {
+    "mode": "100644",
+    "git_blob": "e8d6c8d93487bebcdd38a6fc5d7c95314756533f"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-8k-p8192-prefill.f32.gz": {
+    "mode": "100644",
+    "git_blob": "7c916d154c73a0bdff546b1709d88713a11fcf07"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-8k-profile-p8192-decode.f32.gz": {
+    "mode": "100644",
+    "git_blob": "e8d6c8d93487bebcdd38a6fc5d7c95314756533f"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-8k-profile-p8192-prefill.f32.gz": {
+    "mode": "100644",
+    "git_blob": "7c916d154c73a0bdff546b1709d88713a11fcf07"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-8k-profile-prompt.txt": {
+    "mode": "100644",
+    "git_blob": "b57a4a781784009e6a1d0075d4ceafc56905cb39"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-8k-profile-tokens.json": {
+    "mode": "100644",
+    "git_blob": "ad73e96d6c31f473f751bd54dd7fb61c1cd4ee36"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-8k-profile.jsonl": {
+    "mode": "100644",
+    "git_blob": "2984c40c72a162e5bed68a5af5c42a787fa43f2a"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-8k-profile.log": {
+    "mode": "100644",
+    "git_blob": "68434c3fea382aeef199db2bb2b9cf117ffd0556"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-8k-prompt.txt": {
+    "mode": "100644",
+    "git_blob": "b57a4a781784009e6a1d0075d4ceafc56905cb39"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-8k-tokens.json": {
+    "mode": "100644",
+    "git_blob": "ad73e96d6c31f473f751bd54dd7fb61c1cd4ee36"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-8k.jsonl": {
+    "mode": "100644",
+    "git_blob": "6e4faa6f5b10e48638634c6e806943732736c569"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-8k.log": {
+    "mode": "100644",
+    "git_blob": "a64e0dca28d868b60a74b8591634f3be22847376"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-baseline-p128-decode.f32.gz": {
+    "mode": "100644",
+    "git_blob": "ec88d55be67d56489451f991a4d109a358f2b352"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-baseline-p128-prefill.f32.gz": {
+    "mode": "100644",
+    "git_blob": "2da4845e9768f490a2fc2867d3fb10c3be28d9a7"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-baseline-p2048-decode.f32.gz": {
+    "mode": "100644",
+    "git_blob": "09c8938dc3f85d8890eba384af176bf953532d96"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-baseline-p2048-prefill.f32.gz": {
+    "mode": "100644",
+    "git_blob": "6dbacd9cb8579489f8e92879ece02f7cb53fbf5a"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-baseline-p512-decode.f32.gz": {
+    "mode": "100644",
+    "git_blob": "0d36077bda0e996aaa8ce374ad3ded0740b29776"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-baseline-p512-prefill.f32.gz": {
+    "mode": "100644",
+    "git_blob": "2afff31d6551632765dbce3c41d0f7b1c6d80d1b"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-baseline-prompt.txt": {
+    "mode": "100644",
+    "git_blob": "b57a4a781784009e6a1d0075d4ceafc56905cb39"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-baseline-tokens.json": {
+    "mode": "100644",
+    "git_blob": "ad73e96d6c31f473f751bd54dd7fb61c1cd4ee36"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-baseline.jsonl": {
+    "mode": "100644",
+    "git_blob": "c4e04cbf5e22e2fa9d5e8802abbf986cfb8613ad"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-baseline.log": {
+    "mode": "100644",
+    "git_blob": "3cf5beb8b4fd994ee07eec7ee8f416fab9fa364f"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-metal-logit-check.json": {
+    "mode": "100644",
+    "git_blob": "31b8179acacc7fe492df8cb96c35b06f2dfdb894"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-op-trace.jsonl.gz": {
+    "mode": "100644",
+    "git_blob": "919f8f7c8ed0e757f1636a99152a1a6e92775405"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-profile-p128-decode.f32.gz": {
+    "mode": "100644",
+    "git_blob": "ec88d55be67d56489451f991a4d109a358f2b352"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-profile-p128-prefill.f32.gz": {
+    "mode": "100644",
+    "git_blob": "2da4845e9768f490a2fc2867d3fb10c3be28d9a7"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-profile-p2048-decode.f32.gz": {
+    "mode": "100644",
+    "git_blob": "09c8938dc3f85d8890eba384af176bf953532d96"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-profile-p2048-prefill.f32.gz": {
+    "mode": "100644",
+    "git_blob": "6dbacd9cb8579489f8e92879ece02f7cb53fbf5a"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-profile-p512-decode.f32.gz": {
+    "mode": "100644",
+    "git_blob": "0d36077bda0e996aaa8ce374ad3ded0740b29776"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-profile-p512-prefill.f32.gz": {
+    "mode": "100644",
+    "git_blob": "2afff31d6551632765dbce3c41d0f7b1c6d80d1b"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-profile-prompt.txt": {
+    "mode": "100644",
+    "git_blob": "b57a4a781784009e6a1d0075d4ceafc56905cb39"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-profile-tokens.json": {
+    "mode": "100644",
+    "git_blob": "ad73e96d6c31f473f751bd54dd7fb61c1cd4ee36"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-profile.jsonl": {
+    "mode": "100644",
+    "git_blob": "901c2657505bd51f0fb9f4315cf2a5192d4d4643"
+  },
+  "experiments/llama-cpp/2026-09-22/results/cpu-profile.log": {
+    "mode": "100644",
+    "git_blob": "84e89f9539191d2f3bd39fa7096839dc5db81797"
+  },
+  "experiments/llama-cpp/2026-09-22/results/matrix-weight-inventory.json": {
+    "mode": "100644",
+    "git_blob": "8ca162d65f39f09c7a36a5f61f22698f3e8395c5"
+  },
+  "experiments/llama-cpp/2026-09-22/results/metal-8k-p8192-decode.f32.gz": {
+    "mode": "100644",
+    "git_blob": "c860bfdd88bd98e9f45975edc783319666eb5b61"
+  },
+  "experiments/llama-cpp/2026-09-22/results/metal-8k-p8192-prefill.f32.gz": {
+    "mode": "100644",
+    "git_blob": "9c3adc46a44af19dce5f970f59b173582dc3b856"
+  },
+  "experiments/llama-cpp/2026-09-22/results/metal-8k-prompt.txt": {
+    "mode": "100644",
+    "git_blob": "b57a4a781784009e6a1d0075d4ceafc56905cb39"
+  },
+  "experiments/llama-cpp/2026-09-22/results/metal-8k-tokens.json": {
+    "mode": "100644",
+    "git_blob": "ad73e96d6c31f473f751bd54dd7fb61c1cd4ee36"
+  },
+  "experiments/llama-cpp/2026-09-22/results/metal-8k.jsonl": {
+    "mode": "100644",
+    "git_blob": "1756243254ba043b225bad2fc39441071c7fd919"
+  },
+  "experiments/llama-cpp/2026-09-22/results/metal-8k.log": {
+    "mode": "100644",
+    "git_blob": "da2b064fd372fff1779f5dc6ac67cec06c2c0f11"
+  },
+  "experiments/llama-cpp/2026-09-22/results/metal-baseline-p128-decode.f32.gz": {
+    "mode": "100644",
+    "git_blob": "e06e51924ba11fbbf1553d7d01b3021ff867cf02"
+  },
+  "experiments/llama-cpp/2026-09-22/results/metal-baseline-p128-prefill.f32.gz": {
+    "mode": "100644",
+    "git_blob": "fc7884642b034aa31317f2331b57041ce2fa37e8"
+  },
+  "experiments/llama-cpp/2026-09-22/results/metal-baseline-p2048-decode.f32.gz": {
+    "mode": "100644",
+    "git_blob": "c09fd5aead2e6e80589296f934729fa9f82cef27"
+  },
+  "experiments/llama-cpp/2026-09-22/results/metal-baseline-p2048-prefill.f32.gz": {
+    "mode": "100644",
+    "git_blob": "cc25f56a24ebe665e0aa088970816fca9108db8d"
+  },
+  "experiments/llama-cpp/2026-09-22/results/metal-baseline-p512-decode.f32.gz": {
+    "mode": "100644",
+    "git_blob": "1fa3c63ded1f42436223d500a67594c2e1dcc724"
+  },
+  "experiments/llama-cpp/2026-09-22/results/metal-baseline-p512-prefill.f32.gz": {
+    "mode": "100644",
+    "git_blob": "4acaa8c2f7274c11c8465d10ce368e958985edfc"
+  },
+  "experiments/llama-cpp/2026-09-22/results/metal-baseline-prompt.txt": {
+    "mode": "100644",
+    "git_blob": "b57a4a781784009e6a1d0075d4ceafc56905cb39"
+  },
+  "experiments/llama-cpp/2026-09-22/results/metal-baseline-tokens.json": {
+    "mode": "100644",
+    "git_blob": "ad73e96d6c31f473f751bd54dd7fb61c1cd4ee36"
+  },
+  "experiments/llama-cpp/2026-09-22/results/metal-baseline.jsonl": {
+    "mode": "100644",
+    "git_blob": "4a691266b31259dafc66791803224bf524ba3399"
+  },
+  "experiments/llama-cpp/2026-09-22/results/metal-baseline.log": {
+    "mode": "100644",
+    "git_blob": "6b6a3ff27b571ad808f08bb342297ede3ef5531f"
+  },
+  "experiments/llama-cpp/2026-09-22/results/model-sha256.txt": {
+    "mode": "100644",
+    "git_blob": "fa573bb825de11af8ed7ccb5e012ce126235b1e7"
+  },
+  "experiments/llama-cpp/2026-09-22/results/operation-summary.csv": {
+    "mode": "100644",
+    "git_blob": "6d765d5a671a99afe790ed4ac796fc5528ce9cac"
+  },
+  "experiments/llama-cpp/2026-09-22/results/operation-summary.json": {
+    "mode": "100644",
+    "git_blob": "059b52a115f613fe873ed1b77a50546190f0e74d"
+  },
+  "experiments/llama-cpp/2026-09-22/results/operator-shapes.json.gz": {
+    "mode": "100644",
+    "git_blob": "385b471f0b8df056452d25ed9c0f6a06294f839f"
+  },
+  "experiments/llama-cpp/2026-09-22/results/profile-output-validation.json": {
+    "mode": "100644",
+    "git_blob": "cab117b8031e5139890ffef9b98dbc4b7ea5c8f6"
+  },
+  "experiments/llama-cpp/2026-09-22/results/profiling-summary.pdf": {
+    "mode": "100644",
+    "git_blob": "6bbd568bc66b4a0bcfc1fb6fa1fb32a72e8b8afc"
+  },
+  "experiments/llama-cpp/2026-09-22/results/profiling-summary.png": {
+    "mode": "100644",
+    "git_blob": "a862ebe16bb1f9c6b6561017172ef2033f5209cb"
+  },
+  "experiments/llama-cpp/2026-09-22/results/stock-llama-bench-cpu.json": {
+    "mode": "100644",
+    "git_blob": "640ca8b542ab18bf77341a8b82f868f0b3589fe4"
+  },
+  "experiments/llama-cpp/2026-09-22/results/stock-llama-bench-cpu.log": {
+    "mode": "100644",
+    "git_blob": "81fa0e001c51a868467e0f32b373f1f39aa6e23e"
+  },
+  "experiments/llama-cpp/2026-09-22/results/summary.csv": {
+    "mode": "100644",
+    "git_blob": "ce0ed628181cbc28825c7e45622adc1fe4adecc1"
+  },
+  "experiments/llama-cpp/2026-09-22/results/summary.json": {
+    "mode": "100644",
+    "git_blob": "54be41ae4ad4933ebb2ad2e9c13d9bd4d0718df7"
+  },
+  "experiments/llama-cpp/2026-09-22/sb-cpu-profile.patch": {
+    "mode": "100644",
+    "git_blob": "78bac485328dcf14ec7d5bdefeb875b4edf27759"
+  },
+  "experiments/llama-cpp/2026-09-22/validate_outputs.py": {
+    "mode": "100644",
+    "git_blob": "fcc1c5c8114cb19a5a5c5a1f958c6ef2047ffd84"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/.gitattributes": {
+    "mode": "100644",
+    "git_blob": "0ef77a3581ee5607f27aef946780fb63b0a6e1f1"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/.gitignore": {
+    "mode": "100644",
+    "git_blob": "7838030a495173d60620e75590e91b12433854e8"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/IMPORT.md": {
+    "mode": "100644",
+    "git_blob": "db121d2ca12a12ef019a2f9526585ef93a0daacd"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/README.md": {
+    "mode": "100644",
+    "git_blob": "ee9a572bdf490c28ad5a24dbbe1fe7d566eabb76"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/configs/recommended-balanced.json": {
+    "mode": "100644",
+    "git_blob": "e57f282527350891b802a6b1326bd4725766cf8b"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/configs/recommended-efficient.json": {
+    "mode": "100644",
+    "git_blob": "177d4871d087b958de82c88f3dceabb261006a8a"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/explorer/MODEL.md": {
+    "mode": "100644",
+    "git_blob": "f8802294c597d3d5d10419c6a32391c3b5f639a6"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/explorer/app.js": {
+    "mode": "100644",
+    "git_blob": "cd12d6e13792cc9859c4fc42002d5757c13180a3"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/explorer/engine.js": {
+    "mode": "100644",
+    "git_blob": "dc9c34a089446efbb58fc19d259b8e2d66f967fb"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/explorer/graph-data.js": {
+    "mode": "100644",
+    "git_blob": "0bef9046d94b97c362a55e22903b7a1e6674a0eb"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/explorer/index.html": {
+    "mode": "100644",
+    "git_blob": "d7838c331c1a4db765d13550020ed0ab0c41c590"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/explorer/scheduler.js": {
+    "mode": "100644",
+    "git_blob": "a3354e1299026d40f70bb8565d57524b5d33aef1"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/explorer/style.css": {
+    "mode": "100644",
+    "git_blob": "c1b99ac1eac0f84c64a1db93946478bc139639ca"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graph-browser.html": {
+    "mode": "100644",
+    "git_blob": "1dfb4c578b685186dbda527b5a588beef39e86d7"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/REPORT.md": {
+    "mode": "100644",
+    "git_blob": "ccb7be625241688225f83697ebbe910fbb5b320a"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/decode.dot": {
+    "mode": "100644",
+    "git_blob": "3c5191ac4007ee6d82bd7841b40260c54bf1124a"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/decode.json": {
+    "mode": "100644",
+    "git_blob": "9588f02ab1b553d817a62fcc37f4d4ebd1e78ea6"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/decode.layer0.dot": {
+    "mode": "100644",
+    "git_blob": "18f6891fcf5e6b2285f4037b1e7247b7984f6725"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/decode.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "ceacfd1b54a86b883d67ebed738d3f3978125c87"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/decode.layer3.dot": {
+    "mode": "100644",
+    "git_blob": "129d2e2b9c9b36f306d8bdc62adff0393fc5ee61"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/decode.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "926dd628e93232ce3541f155a4b5943f30125cc3"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/decode.ops.csv": {
+    "mode": "100644",
+    "git_blob": "21cc71b2be172e18cb83867d4008b759794e280e"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/decode.summary.json": {
+    "mode": "100644",
+    "git_blob": "2e07715c77b6d535505c887daf435de178a7ff12"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/index.html": {
+    "mode": "100644",
+    "git_blob": "2039ad241c3714e03002fbf760b82e1e34c43b0c"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/prefill.dot": {
+    "mode": "100644",
+    "git_blob": "c6dcc66e6a026b7353897e1bef5e1c6b0a93815c"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/prefill.json": {
+    "mode": "100644",
+    "git_blob": "2f389fe98cbf970890da53638dbcb17e2a7aab39"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/prefill.layer0.dot": {
+    "mode": "100644",
+    "git_blob": "826bf9bb03eb6b40e82cf22d431240261c2b0ebf"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/prefill.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "8cf9136539454920dcbdbe202d7e1b6d2bff546d"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/prefill.layer3.dot": {
+    "mode": "100644",
+    "git_blob": "acd5f75d98cce898d9830a414a9989578bdc5002"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/prefill.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "e9ea22a711ad0cb6f3334d6c6abda1126532d422"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/prefill.ops.csv": {
+    "mode": "100644",
+    "git_blob": "1904dcca57304f776055fa00da04805319e30229"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/prefill.summary.json": {
+    "mode": "100644",
+    "git_blob": "0b6283119a37da746ad296a346cf7541bb53083b"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/workload.json": {
+    "mode": "100644",
+    "git_blob": "8198d6c1472a83c2d5c9f0dfc8f64e0aad9a47a6"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp512/REPORT.md": {
+    "mode": "100644",
+    "git_blob": "c0879ae931d1113ec9d263f828b1abebc948b1f3"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp512/decode.dot": {
+    "mode": "100644",
+    "git_blob": "d425b3c46fe90d94c8df76f320c0a66c35bf1cb8"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp512/decode.json": {
+    "mode": "100644",
+    "git_blob": "1fde4fa83e7d1a50b1574c1d6ebc3e45db1d941e"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp512/decode.layer0.dot": {
+    "mode": "100644",
+    "git_blob": "6c57a92df0b497253e037285a4f2f7f06fd6ece3"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp512/decode.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "91cc941baf03e2a0219bf749687e3573c1997f08"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp512/decode.layer3.dot": {
+    "mode": "100644",
+    "git_blob": "f159a80c8bbd2fa0f57263a28918e0926c83af49"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp512/decode.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "e432d6ca36147bb9b57adcc13524a126aebed73f"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp512/decode.ops.csv": {
+    "mode": "100644",
+    "git_blob": "5630d284348892b495758bbe8d5919fe049d5216"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp512/decode.summary.json": {
+    "mode": "100644",
+    "git_blob": "a63fac90c09bd42709b2410f859af2cc7172535e"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp512/index.html": {
+    "mode": "100644",
+    "git_blob": "d025c017508d09af573536c3579aedac05c756d2"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp512/prefill.dot": {
+    "mode": "100644",
+    "git_blob": "786153d866c281df5d3e79ef41210ba72538952d"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp512/prefill.json": {
+    "mode": "100644",
+    "git_blob": "465ed131e9882b5444feded5ad44fc45fbc4abe9"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp512/prefill.layer0.dot": {
+    "mode": "100644",
+    "git_blob": "e9b45fcc038032ebac397f2c818012a3e9213373"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp512/prefill.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "559486217087cc6c4479cbdb6f4ce2b648b5c41c"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp512/prefill.layer3.dot": {
+    "mode": "100644",
+    "git_blob": "8a4a13117bd1424118eb389d5851418490aa11d1"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp512/prefill.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "3040c578b75d3a172dbd4ebe2faf5c806483bc10"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp512/prefill.ops.csv": {
+    "mode": "100644",
+    "git_blob": "145377e45e0298a5a3605bb1fb6b201e8f928824"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp512/prefill.summary.json": {
+    "mode": "100644",
+    "git_blob": "efdac9f64d7b448fd031e27a4b156569a7a4c8ea"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp512/workload.json": {
+    "mode": "100644",
+    "git_blob": "8da6529d43a2dc595656086d4db1bc2825398a60"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/index.html": {
+    "mode": "100644",
+    "git_blob": "b05b3a45d844d8638f1273567896b9a4c29a78a3"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/manifest.json": {
+    "mode": "100644",
+    "git_blob": "bee6fa9355ea68337361925f9f2238f105116982"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/scripts/analyze_graph.py": {
+    "mode": "100755",
+    "git_blob": "16f162983a1f92df7725c65aed74fab6e3ea844d"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/scripts/build.sh": {
+    "mode": "100755",
+    "git_blob": "1787ad62b39892864a6c57fb90221932fddb879f"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/scripts/capture.sh": {
+    "mode": "100755",
+    "git_blob": "a911175d8cb0b440736d8bb00ec0c5287459971f"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/scripts/export_explorer_data.py": {
+    "mode": "100644",
+    "git_blob": "671b57a824293b699e212f78bdecb98837373ff5"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/scripts/plot_joint_resources.py": {
+    "mode": "100644",
+    "git_blob": "1de00351699c71f339c9dd2b8ac0c2e6972260ff"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/scripts/plot_recurrence_penalty.py": {
+    "mode": "100644",
+    "git_blob": "f86be0d167b832f2bfd4c4e328cf18f5107525fa"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/scripts/plot_sensitivity.py": {
+    "mode": "100644",
+    "git_blob": "fcbfc92ee42f319978a3d2e6f54fec605a20515c"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/scripts/serve-explorer.sh": {
+    "mode": "100755",
+    "git_blob": "0293831e944e3acfd9cbe52297e3c2b04c83f58f"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/scripts/sweep_dependency_sensitivity.cjs": {
+    "mode": "100644",
+    "git_blob": "2699498b3fcf6015293b9f2ff732a96607aad223"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/scripts/sweep_joint_resources.cjs": {
+    "mode": "100644",
+    "git_blob": "3596011cfc24de4c3e0867e3a7e658a14baecd1e"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/scripts/sweep_recurrence_penalty.cjs": {
+    "mode": "100644",
+    "git_blob": "f4550d8402b0d197d72383ed679fd0deaeb7f71a"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/scripts/sweep_sensitivity.cjs": {
+    "mode": "100644",
+    "git_blob": "04f38eded7f5d2c72ad854898ec2152c4501f5f6"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/scripts/test_joint_resources.cjs": {
+    "mode": "100644",
+    "git_blob": "cbe5cb2255a44b758017cd7eac0dfdfdc1de5d36"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/scripts/test_model.cjs": {
+    "mode": "100644",
+    "git_blob": "0a1707497de41926ffddc19684993b999160ca98"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/scripts/test_recurrence_penalty.cjs": {
+    "mode": "100644",
+    "git_blob": "181b300fe623e5f1ec7cdb6e28331339a1025168"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/scripts/test_scheduler.cjs": {
+    "mode": "100644",
+    "git_blob": "959e9392ad621989720d67189101b0bbd24f5d84"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/scripts/test_sensitivity.cjs": {
+    "mode": "100644",
+    "git_blob": "bbf75b4466f08b2f4ed8a3d7d7a3404371e47d81"
+  },
+  "experiments/llama-cpp/2026-09-24-qwen35-2b/src/capture_graph.cpp": {
+    "mode": "100644",
+    "git_blob": "94f435e8c26687a85bb27b934922b4707f99a7d9"
+  },
+  "experiments/llama-cpp/README.md": {
+    "mode": "100644",
+    "git_blob": "9d3d4c773295e537475980e5545992c6524f8545"
+  },
+  "research/README.md": {
+    "mode": "100644",
+    "git_blob": "555b57dc9cd72c955415b1073924ba158b42c19f"
+  },
+  "research/compute-mapping/2026-09-28-resource-sensitivity/REPORT.md": {
+    "mode": "100644",
+    "git_blob": "e846c15a69655f116d04ec49bfd1231b9edac789"
+  },
+  "research/compute-mapping/2026-09-28-resource-sensitivity/figures/dmaCount.png": {
+    "mode": "100644",
+    "git_blob": "d0863e3eedaa401a0ed8ebd6304acb2b9b664762"
+  },
+  "research/compute-mapping/2026-09-28-resource-sensitivity/figures/hbmGBs.png": {
+    "mode": "100644",
+    "git_blob": "90b8ef63b019b20476bd5f06b0bf9b6b1e5d8c8f"
+  },
+  "research/compute-mapping/2026-09-28-resource-sensitivity/figures/l1Banks.png": {
+    "mode": "100644",
+    "git_blob": "de92938e1e7ad14a2dd05549437441f46dba0a1c"
+  },
+  "research/compute-mapping/2026-09-28-resource-sensitivity/figures/l1MiB.png": {
+    "mode": "100644",
+    "git_blob": "320a2b01cee4cbd9a0e141179686f6d1fcf71fab"
+  },
+  "research/compute-mapping/2026-09-28-resource-sensitivity/figures/matrixCount.png": {
+    "mode": "100644",
+    "git_blob": "43106a0cea7eb15c69f2ca740e2e83ab1cfe0f78"
+  },
+  "research/compute-mapping/2026-09-28-resource-sensitivity/figures/recurrentCount.png": {
+    "mode": "100644",
+    "git_blob": "44c75968036847f7d88b8a23d677d7fcc0e8d707"
+  },
+  "research/compute-mapping/2026-09-28-resource-sensitivity/figures/sensitivity-curves.pdf": {
+    "mode": "100644",
+    "git_blob": "eb9c5d9aba7dfe6bc01e2c71e54c030317967d7a"
+  },
+  "research/compute-mapping/2026-09-28-resource-sensitivity/figures/vectorCount.png": {
+    "mode": "100644",
+    "git_blob": "cebee6021268ce1daa8c74278d1be906a6e41f20"
+  },
+  "research/compute-mapping/2026-09-28-resource-sensitivity/sweep-spec.json": {
+    "mode": "100644",
+    "git_blob": "8488576d7eb1eb06d12ce9829ab958e3a7dbebe6"
+  },
+  "research/compute-mapping/2026-09-28-resource-sensitivity/sweeps.csv": {
+    "mode": "100644",
+    "git_blob": "f32d89a482834790b2e2b67a0af273559eb906b2"
+  },
+  "research/compute-mapping/2026-09-28-resource-sensitivity/sweeps.json": {
+    "mode": "100644",
+    "git_blob": "7081cdb47d500a5ff3525d1958268a85ed97d22c"
+  },
+  "research/compute-mapping/2026-09-30-dependency-resource-sensitivity/REPORT.md": {
+    "mode": "100644",
+    "git_blob": "78fd3753de367ebe199255d812e44e08a9b31eed"
+  },
+  "research/compute-mapping/2026-09-30-dependency-resource-sensitivity/figures/dmaCount.png": {
+    "mode": "100644",
+    "git_blob": "72723dfc35702c103ed1b821f1560b5c13285107"
+  },
+  "research/compute-mapping/2026-09-30-dependency-resource-sensitivity/figures/hbmGBs.png": {
+    "mode": "100644",
+    "git_blob": "3f5d5da0f28168489e81d07869b0866c49f98680"
+  },
+  "research/compute-mapping/2026-09-30-dependency-resource-sensitivity/figures/l1Banks.png": {
+    "mode": "100644",
+    "git_blob": "7c0a368ec80db12f9e82f8e15ab67ea042588f46"
+  },
+  "research/compute-mapping/2026-09-30-dependency-resource-sensitivity/figures/l1MiB.png": {
+    "mode": "100644",
+    "git_blob": "7da52807c0f04a2b6e08cc33ccf0cc992a97f80d"
+  },
+  "research/compute-mapping/2026-09-30-dependency-resource-sensitivity/figures/matrixCount.png": {
+    "mode": "100644",
+    "git_blob": "3fd77e9a98e0e053855e486f55e8ce7b0ec52f26"
+  },
+  "research/compute-mapping/2026-09-30-dependency-resource-sensitivity/figures/recurrentCount.png": {
+    "mode": "100644",
+    "git_blob": "96859dbe52ff1c946efe7eeb72fb582d61c25e40"
+  },
+  "research/compute-mapping/2026-09-30-dependency-resource-sensitivity/figures/sensitivity-curves.pdf": {
+    "mode": "100644",
+    "git_blob": "d11602c2669f521a7efa0cc827b65c108d89403e"
+  },
+  "research/compute-mapping/2026-09-30-dependency-resource-sensitivity/figures/vectorCount.png": {
+    "mode": "100644",
+    "git_blob": "24f980c47cbb4ed80d30eba9ee438f5e1e6bde39"
+  },
+  "research/compute-mapping/2026-09-30-dependency-resource-sensitivity/sweep-spec.json": {
+    "mode": "100644",
+    "git_blob": "3bd0a188b7e81c8de6e82e26011df8661dcd0f32"
+  },
+  "research/compute-mapping/2026-09-30-dependency-resource-sensitivity/sweeps.csv": {
+    "mode": "100644",
+    "git_blob": "1fd33b8fabe237cf52fe2c3dd2905343fb5ba1d4"
+  },
+  "research/compute-mapping/2026-09-30-dependency-resource-sensitivity/sweeps.json": {
+    "mode": "100644",
+    "git_blob": "6feef3a9ad2fec8a92b7d8bc12363f54b86161c0"
+  },
+  "research/compute-mapping/2026-10-01-joint-resource-tradeoffs/REPORT.md": {
+    "mode": "100644",
+    "git_blob": "272d31049308cacf4d933f676e3068a51db1398e"
+  },
+  "research/compute-mapping/2026-10-01-joint-resource-tradeoffs/joint-tradeoffs.png": {
+    "mode": "100644",
+    "git_blob": "feeb079924626eac54b7c58c5f61549cbbcd7d00"
+  },
+  "research/compute-mapping/2026-10-01-joint-resource-tradeoffs/sweep-spec.json": {
+    "mode": "100644",
+    "git_blob": "f74f172ce85ba6f66db63770b10a3bac564a0060"
+  },
+  "research/compute-mapping/2026-10-01-joint-resource-tradeoffs/sweeps.csv": {
+    "mode": "100644",
+    "git_blob": "162cdd7a8d64c67dc518b28e30d7ee0cc84e71c7"
+  },
+  "research/compute-mapping/2026-10-01-joint-resource-tradeoffs/sweeps.json": {
+    "mode": "100644",
+    "git_blob": "d097fb621c88c2ad0b62bf59b5f44fd9a72d6470"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/README.md": {
+    "mode": "100644",
+    "git_blob": "363564827a2f2c1d54bf089e3851990213cb906f"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/build_map.py": {
+    "mode": "100644",
+    "git_blob": "6e287cec07b948f90dc298aa91cd8a6d90acc72e"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp128-decode/chain_deltanet.csv": {
+    "mode": "100644",
+    "git_blob": "6594319fa214032e2402317839d51a13fc5de5fa"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp128-decode/chain_embedding.csv": {
+    "mode": "100644",
+    "git_blob": "cabe10a6bf5107d4af393ccab30433dd99098587"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp128-decode/chain_full_attention.csv": {
+    "mode": "100644",
+    "git_blob": "6227947b4645e8370fe162eb60100a2d0db9a52b"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp128-decode/chain_output_head.csv": {
+    "mode": "100644",
+    "git_blob": "d1b8e7e2f3015d3aa76d3af60db67816beda49df"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp128-decode/edges.csv": {
+    "mode": "100644",
+    "git_blob": "1891350e0db737ca72cb80ddaed3d14ae0afc82e"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp128-decode/fusion_groups.csv": {
+    "mode": "100644",
+    "git_blob": "30544c10246b11efdeb67924eb0cfd4f6d931c7f"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp128-decode/handoffs.csv": {
+    "mode": "100644",
+    "git_blob": "03f1e3589f749bff5bf92cc5e3029ba3aa53c392"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp128-decode/nodes.csv": {
+    "mode": "100644",
+    "git_blob": "001318558315156d7e48a74b9754f7c8c53ee541"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp128-decode/parallel_groups.csv": {
+    "mode": "100644",
+    "git_blob": "fe6e74c991a8228d0b342d1f71da635a213493c2"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp128-decode/summary.json": {
+    "mode": "100644",
+    "git_blob": "75adad94567270efd3e5332c1edac660726b0aef"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp128-prefill/chain_deltanet.csv": {
+    "mode": "100644",
+    "git_blob": "f1cc56d87714079468c5b6bfcc4bcd32d8d87acc"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp128-prefill/chain_embedding.csv": {
+    "mode": "100644",
+    "git_blob": "c62d765c539b427188c21e5d523d8c40037c0dbc"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp128-prefill/chain_full_attention.csv": {
+    "mode": "100644",
+    "git_blob": "25ab52d89770974207fb6943c155f096fd17f6b9"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp128-prefill/chain_output_head.csv": {
+    "mode": "100644",
+    "git_blob": "b68c3358e94b0357d95ee5dd4ee3614920b423d3"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp128-prefill/edges.csv": {
+    "mode": "100644",
+    "git_blob": "93ce3b2cfc46e7e44b8f4091c30bbaa484e791db"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp128-prefill/fusion_groups.csv": {
+    "mode": "100644",
+    "git_blob": "002679e5f3989c22f5d2db5acc43bad7fdf01477"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp128-prefill/handoffs.csv": {
+    "mode": "100644",
+    "git_blob": "c646ebfcf9d2394923a87fcf55f9b8da8f4063cf"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp128-prefill/nodes.csv": {
+    "mode": "100644",
+    "git_blob": "422451f0c3c53d54c592c6cf0f77a27c35327789"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp128-prefill/parallel_groups.csv": {
+    "mode": "100644",
+    "git_blob": "94dc1f16e9feaf667c1c2f45258fac44387f7eb7"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp128-prefill/summary.json": {
+    "mode": "100644",
+    "git_blob": "3b17df2bb6113bedc0aa27474798131770520ab0"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp512-decode/chain_deltanet.csv": {
+    "mode": "100644",
+    "git_blob": "6594319fa214032e2402317839d51a13fc5de5fa"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp512-decode/chain_embedding.csv": {
+    "mode": "100644",
+    "git_blob": "cabe10a6bf5107d4af393ccab30433dd99098587"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp512-decode/chain_full_attention.csv": {
+    "mode": "100644",
+    "git_blob": "b050a535932d391bd20da5473d1acdfa37025447"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp512-decode/chain_output_head.csv": {
+    "mode": "100644",
+    "git_blob": "d1b8e7e2f3015d3aa76d3af60db67816beda49df"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp512-decode/edges.csv": {
+    "mode": "100644",
+    "git_blob": "23d54ba364295c21c889ca490962f137f5664a01"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp512-decode/fusion_groups.csv": {
+    "mode": "100644",
+    "git_blob": "12d6cc58eade1742834dae095ed80faffe746603"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp512-decode/handoffs.csv": {
+    "mode": "100644",
+    "git_blob": "734809cd9ce37b1a8788cbd5db81cbb2e6c1192a"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp512-decode/nodes.csv": {
+    "mode": "100644",
+    "git_blob": "96ba724be9a3b854909a684d5faa979d6c6f2730"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp512-decode/parallel_groups.csv": {
+    "mode": "100644",
+    "git_blob": "fe6e74c991a8228d0b342d1f71da635a213493c2"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp512-decode/summary.json": {
+    "mode": "100644",
+    "git_blob": "8d6d0d9d343468a78c77bef785476ef0ffcfbf83"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp512-prefill/chain_deltanet.csv": {
+    "mode": "100644",
+    "git_blob": "dec8f67c4e7f8b69aeffd22d9536733d835110b5"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp512-prefill/chain_embedding.csv": {
+    "mode": "100644",
+    "git_blob": "733b92566f8fc379bf9ad070b1babef0699e0966"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp512-prefill/chain_full_attention.csv": {
+    "mode": "100644",
+    "git_blob": "60beb3da5251c29389c969071671510bc1fb5fd3"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp512-prefill/chain_output_head.csv": {
+    "mode": "100644",
+    "git_blob": "45d33fc4dd1f0179c7cb017d7c0115b426e75c39"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp512-prefill/edges.csv": {
+    "mode": "100644",
+    "git_blob": "97592c31aa072bd0102ce262f8e851cf416467c1"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp512-prefill/fusion_groups.csv": {
+    "mode": "100644",
+    "git_blob": "740d71842df7dd5459b58415e57894110e918933"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp512-prefill/handoffs.csv": {
+    "mode": "100644",
+    "git_blob": "95d3a95d7044e8f4f5829efd6be4feb22e181479"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp512-prefill/nodes.csv": {
+    "mode": "100644",
+    "git_blob": "aa6b56c14865cb97b1958843670ad1663fdcfada"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp512-prefill/parallel_groups.csv": {
+    "mode": "100644",
+    "git_blob": "d11fd1d504fe7a2f5fa54312f0d02ae0867296a4"
+  },
+  "research/compute-mapping/2026-10-02-op-dependency-map/out/pp512-prefill/summary.json": {
+    "mode": "100644",
+    "git_blob": "deb797b470304bcd4b6a0830a74a653bc9ce5379"
+  },
+  "research/compute-mapping/2026-10-03-recurrence-multiplier-sensitivity/REPORT.md": {
+    "mode": "100644",
+    "git_blob": "cc68984e0166263f3c8598ed9289f7a62dd2da2a"
+  },
+  "research/compute-mapping/2026-10-03-recurrence-multiplier-sensitivity/recurrence-sensitivity.png": {
+    "mode": "100644",
+    "git_blob": "aef4e1e5df6d9eb40f20f72977daf372014e1ed8"
+  },
+  "research/compute-mapping/2026-10-03-recurrence-multiplier-sensitivity/sweep-spec.json": {
+    "mode": "100644",
+    "git_blob": "e190b63593d4d7036faf2635789e3dd3c6924b5a"
+  },
+  "research/compute-mapping/2026-10-03-recurrence-multiplier-sensitivity/sweeps.csv": {
+    "mode": "100644",
+    "git_blob": "89bd73f4a2427dad88997ed6fbebf229e0d25418"
+  },
+  "research/compute-mapping/2026-10-03-recurrence-multiplier-sensitivity/sweeps.json": {
+    "mode": "100644",
+    "git_blob": "6f5a2ea8f0ed5905f83e7e2705dd55739edac341"
+  },
+  "research/compute-mapping/README.md": {
+    "mode": "100644",
+    "git_blob": "5945d30712ed7c61f6a215d0871115de37e03bbc"
+  },
+  "results/2026-09-27_1839_windows-2/EVIDENCE.md": {
+    "mode": "100644",
+    "git_blob": "7a866a404926e860e8d9e6f0d90813efa22c3c3d"
+  },
+  "results/2026-09-27_1839_windows-2/analysis/cpu-metal-logit-check.json": {
+    "mode": "100644",
+    "git_blob": "0637a088a01e8ddab3bf3fa98dbe804cbde1a0dc"
+  },
+  "results/2026-09-27_1839_windows-2/analysis/decode-curve.csv": {
+    "mode": "100644",
+    "git_blob": "f9dd8afc084dd477751e2e9bbc12407dd945c884"
+  },
+  "results/2026-09-27_1839_windows-2/analysis/decode-curve.json": {
+    "mode": "100644",
+    "git_blob": "65325fc2c5d006596826010f92507d426bc699f2"
+  },
+  "results/2026-09-27_1839_windows-2/analysis/decode-curve.png": {
+    "mode": "100644",
+    "git_blob": "bd232d747d2c1c3e48657c6927ad8f9485fcadd8"
+  },
+  "results/2026-09-27_1839_windows-2/analysis/matrix-weight-inventory.json": {
+    "mode": "100644",
+    "git_blob": "8ca162d65f39f09c7a36a5f61f22698f3e8395c5"
+  },
+  "results/2026-09-27_1839_windows-2/analysis/operation-summary.csv": {
+    "mode": "100644",
+    "git_blob": "6d7a020b2adb5f7a9da6d5fad7fccbb14f8d2743"
+  },
+  "results/2026-09-27_1839_windows-2/analysis/operation-summary.json": {
+    "mode": "100644",
+    "git_blob": "e41b74b4111b47fe87a5b79d845d014a4f245bd3"
+  },
+  "results/2026-09-27_1839_windows-2/analysis/profile-output-validation.json": {
+    "mode": "100644",
+    "git_blob": "17bc5b98d0b18039b5243672345649d66eed9eec"
+  },
+  "results/2026-09-27_1839_windows-2/analysis/profiling-summary.png": {
+    "mode": "100644",
+    "git_blob": "4ce3e7fe3b8eea3e5dd3e6715ec4e322939cf59e"
+  },
+  "results/2026-09-27_1839_windows-2/analysis/summary.csv": {
+    "mode": "100644",
+    "git_blob": "ebf2b65510e0dc0a36f25101dc5ba5ec5daa81e7"
+  },
+  "results/2026-09-27_1839_windows-2/analysis/summary.json": {
+    "mode": "100644",
+    "git_blob": "4df899e332f37db2e675137345d61a7c92b3e6df"
+  },
+  "results/2026-09-27_1839_windows-2/cpu-8k.jsonl": {
+    "mode": "100644",
+    "git_blob": "5fba28b1aefd4e89425de6a13140fb6c84968459"
+  },
+  "results/2026-09-27_1839_windows-2/cpu-baseline.jsonl": {
+    "mode": "100644",
+    "git_blob": "4edbb7f4e64efdc676bf66d84072f7cb679ad79a"
+  },
+  "results/2026-09-27_1839_windows-2/cpu-profile.jsonl": {
+    "mode": "100644",
+    "git_blob": "7f5869103f78c5125189db9c36bfc5c207ab969c"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp128-fa-off/decode.json.gz": {
+    "mode": "100644",
+    "git_blob": "81dc913b4d9e1659e5d1fdb00894ebe643dcebf0"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp128-fa-off/decode.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "17b0b7d04c4a1d4786502590b14f22e70c18e19d"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp128-fa-off/decode.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "fb22792fd73c7150dc5c7d692c54830577500587"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp128-fa-off/prefill.json.gz": {
+    "mode": "100644",
+    "git_blob": "1bf44da62a01e755c92bb2cfdc725a1767a842e5"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp128-fa-off/prefill.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "252b83bd93f876bc667c25bb48296205313d0ac9"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp128-fa-off/prefill.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "7ec87e31954b825647bc288b42097cf0aaa61ba1"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp128-fa-on/decode.json.gz": {
+    "mode": "100644",
+    "git_blob": "0bdc9f9f1ffdd411b716a1d6d715bb0e5a7453df"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp128-fa-on/decode.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "2a08a17f4be43de7b9c3a555442e9276496ab96a"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp128-fa-on/decode.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "4a4bdbe5b16f0d5decf3a90f5cd68c65c6958864"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp128-fa-on/prefill.json.gz": {
+    "mode": "100644",
+    "git_blob": "a071b4a01ec327723a316a567677dd2469c44abb"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp128-fa-on/prefill.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "b13caf9ca346274df11851022b0afd5f419bd0a2"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp128-fa-on/prefill.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "7980f15ab70617db9da557abd04c83fba7fbb1d0"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp512-fa-off/decode.json.gz": {
+    "mode": "100644",
+    "git_blob": "c769881bfd82d66dee96e6897e3af67d1156ca95"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp512-fa-off/decode.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "8f7635aa00927b47487ee73f592fbeab1698d0ee"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp512-fa-off/decode.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "834b45b4729ce05a09389daf091956a866bfc0da"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp512-fa-off/prefill.json.gz": {
+    "mode": "100644",
+    "git_blob": "49699b3f0c29e3208cdd9fc0e33253e0504f5239"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp512-fa-off/prefill.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "e217cb384cb7236ac241db406654ed4fc5fb346b"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp512-fa-off/prefill.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "8cc780c8264fc88b3ffd8c52e51ee6d1b1764616"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp512-fa-on/decode.json.gz": {
+    "mode": "100644",
+    "git_blob": "e445cf2aa5d6ccab150027c7c8260258db6163aa"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp512-fa-on/decode.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "544c42b1bac5e98bab7dee7f2b4bc48acb15cbc2"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp512-fa-on/decode.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "67323dc1c2922961961987c510884a8ebe6557f2"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp512-fa-on/prefill.json.gz": {
+    "mode": "100644",
+    "git_blob": "e54a9e23fc84caf5e9fbe944ddb7f87491f4f242"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp512-fa-on/prefill.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "228b1274f3100cb207e2722d2e3d3be36aad07db"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp512-fa-on/prefill.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "716690eac771b9aeae35280b6d78584f7107caf9"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp8192-fa-off/decode.json.gz": {
+    "mode": "100644",
+    "git_blob": "0f09a294d1dc5234f411f638f059834c7c7384a5"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp8192-fa-off/decode.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "7aa02febee3a228865205319050b352b5558fbc2"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp8192-fa-off/decode.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "c5b0cb9e731a5dee1297212094c0b368abd04efe"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp8192-fa-off/decode.svg": {
+    "mode": "100644",
+    "git_blob": "fa294ba5215b66d7b8617bc8ec86df39b6576f31"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp8192-fa-off/prefill.json.gz": {
+    "mode": "100644",
+    "git_blob": "093e90c191e1413126c311867b79777a3cc007e2"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp8192-fa-off/prefill.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "3eac463edc9e4493addb8d94a1d83236e2926cd3"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp8192-fa-off/prefill.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "cff9b32a9120bd0ba44e2bfbfd15a6fe8330d61b"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp8192-fa-off/prefill.svg": {
+    "mode": "100644",
+    "git_blob": "d10b9887256cb8d84aec33be8f4344994268ee00"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp8192-fa-on/decode.json.gz": {
+    "mode": "100644",
+    "git_blob": "ece17adf27ff44b69b3ee97307b912bd1e10627e"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp8192-fa-on/decode.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "1b49546d9fdb799d200c196d576c93b73ab9548e"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp8192-fa-on/decode.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "fe9f7abed93fc21262d2929f3289fc9d1eced61a"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp8192-fa-on/decode.svg": {
+    "mode": "100644",
+    "git_blob": "161c8da8739dfac4a1ab37d96762bdaa95448246"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp8192-fa-on/prefill.json.gz": {
+    "mode": "100644",
+    "git_blob": "9e720ffb5a6dad522fb94c6281d474c07f05150a"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp8192-fa-on/prefill.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "8b2aa8a4f481b6b87d3fd8d2306126bc45d1d18d"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp8192-fa-on/prefill.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "b64b3b915d7a45105d998f84289b1fe8ad16e598"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/pp8192-fa-on/prefill.svg": {
+    "mode": "100644",
+    "git_blob": "03a8f21b84d702959f5ad934e362a93f9d7f1239"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-code-fa-off/decode.json.gz": {
+    "mode": "100644",
+    "git_blob": "6d87f9e86f53c2654137a935fe828ed0ab93012f"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-code-fa-off/decode.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "2d9431ecf374ff804b0930be4040954fa64726f7"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-code-fa-off/decode.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "0a522691d30d9527c211b74708a7336f4c849ca1"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-code-fa-off/prefill.json.gz": {
+    "mode": "100644",
+    "git_blob": "ed152c82c293424599d34ff1d74220662d6db204"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-code-fa-off/prefill.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "96524ccac6d5229eeb07731a0b7f9c600a106a07"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-code-fa-off/prefill.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "fe2384ad6268daa1b4c1e2807363fe06ab77e8d7"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-code-fa-on/decode.json.gz": {
+    "mode": "100644",
+    "git_blob": "cc1c174545a6ceb5de76a194e7020f7b597b405e"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-code-fa-on/decode.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "877cbf993793e5abe51a621b2dd88a20668409d3"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-code-fa-on/decode.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "0eb8227c4aa27253ed207d1543e326c63d45a6de"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-code-fa-on/prefill.json.gz": {
+    "mode": "100644",
+    "git_blob": "f96c9831e4dffbf9fe814ccee3f2fe8d9ed5cdf5"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-code-fa-on/prefill.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "1ee4bf617b1aa50248e73356be32e4d78dabac6f"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-code-fa-on/prefill.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "f74b55a698fb0c1051ab68fed7ad6eefd80337b3"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-dialogue-fa-off/decode.json.gz": {
+    "mode": "100644",
+    "git_blob": "68b63b722f28fa60fdd3941acd6b0405ec0a8603"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-dialogue-fa-off/decode.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "85eb7e8373ac1f148f0955fb418653d055e8029d"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-dialogue-fa-off/decode.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "2c69172616bae37f143a949f701ad9cccac2949f"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-dialogue-fa-off/prefill.json.gz": {
+    "mode": "100644",
+    "git_blob": "1a384a431da9363a3881eaa8332d3dca54cfeebc"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-dialogue-fa-off/prefill.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "47de2ff069186451d9fd0b3357d601ca635ddcf7"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-dialogue-fa-off/prefill.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "bc9292be3006c95606def87e7948b5aff6d9ea6d"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-dialogue-fa-on/decode.json.gz": {
+    "mode": "100644",
+    "git_blob": "12957aef1acf0ddc919b32f5ce7c2554a3a0c3c9"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-dialogue-fa-on/decode.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "56345520f65a25331147b7959ffa066860677e86"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-dialogue-fa-on/decode.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "1575cba0f6d17620aaea819636548ebe82c0b259"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-dialogue-fa-on/prefill.json.gz": {
+    "mode": "100644",
+    "git_blob": "3cdf6376334bee5c8f38a73eff7e7437a2a49511"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-dialogue-fa-on/prefill.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "2feaf9a881ef837118e40f6c0f1d05b9eb08bc7b"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-dialogue-fa-on/prefill.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "e88a1269dc5dd861d08ea711a31422f3f6a51092"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-hardware-fa-off/decode.json.gz": {
+    "mode": "100644",
+    "git_blob": "50188083ce9e8f0a5debbdc813db3aa15321d9c3"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-hardware-fa-off/decode.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "1e31515745e754c2cf15600af07677ce22d14f12"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-hardware-fa-off/decode.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "f6a547e278aeb8ea958659996f290a6a5d53f3d5"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-hardware-fa-off/prefill.json.gz": {
+    "mode": "100644",
+    "git_blob": "258f214289b47bd915159fdfe1c117acccab146c"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-hardware-fa-off/prefill.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "925c100cde526f8b2caaec20aaa156388f027a85"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-hardware-fa-off/prefill.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "51f99553336d6ef10a1e42112b2da4d53731c6ff"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-hardware-fa-on/decode.json.gz": {
+    "mode": "100644",
+    "git_blob": "d24cd8e32467eea685c3e69b2ae39d36fe718bc7"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-hardware-fa-on/decode.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "d55251728d8e5ea15dbb559fd93ec6f582e67a5d"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-hardware-fa-on/decode.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "3322ea55adf2d122692cadd4d7d868f1545af309"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-hardware-fa-on/prefill.json.gz": {
+    "mode": "100644",
+    "git_blob": "097d8fe13e118ddb3872b01d8e1b2f63a20e09e0"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-hardware-fa-on/prefill.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "0bb3ef8084a0602a4109d5b803ab3593c8816180"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-hardware-fa-on/prefill.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "0de6544aef3e7001d1a425d5262c66e1b9e00212"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-json_records-fa-off/decode.json.gz": {
+    "mode": "100644",
+    "git_blob": "7b8982260e1626845ec9a96ebca242f5e8057248"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-json_records-fa-off/decode.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "cd25fef5fb8ebec64790b65c8bf6b4979f060a95"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-json_records-fa-off/decode.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "747708773faa7987428e09b4fa51fb703b4d6fe8"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-json_records-fa-off/prefill.json.gz": {
+    "mode": "100644",
+    "git_blob": "80cfe5936564aa2477e9472173508578bb7c6298"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-json_records-fa-off/prefill.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "9bc27fd027c836c82083b1dd26fa9d602fca7032"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-json_records-fa-off/prefill.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "e5c43a146ce0972176ed17fcf32ac2a700e58bc2"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-json_records-fa-on/decode.json.gz": {
+    "mode": "100644",
+    "git_blob": "c51f9bb450bdb17f000e274a7bd00ff1704c8dcd"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-json_records-fa-on/decode.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "1b396a885d7739d5b07f9609bcadec3ac298ce1d"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-json_records-fa-on/decode.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "eddd5ebebe7b951c6791b688b839e4eaf2a0f448"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-json_records-fa-on/prefill.json.gz": {
+    "mode": "100644",
+    "git_blob": "a8361d487cea7cd18b23e49cfbd9ff641085fbe2"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-json_records-fa-on/prefill.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "436a33be9b2d5174f47e63fd8e7c3a1f30f7e8db"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-json_records-fa-on/prefill.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "3a83b3b680e9a80597bcbd27519d35587e70255e"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-math-fa-off/decode.json.gz": {
+    "mode": "100644",
+    "git_blob": "52c5ef48d4874a31f5bd72eafa4cf488cee48aff"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-math-fa-off/decode.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "3ee16c82763eba4354d1e64e74611f8a20d26d67"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-math-fa-off/decode.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "aa322ac45065c2c9597a794244e3c23fc4845510"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-math-fa-off/prefill.json.gz": {
+    "mode": "100644",
+    "git_blob": "298ba5b09c4841ed496eb41d6e06408bac5b16f5"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-math-fa-off/prefill.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "6951094610d84e49689607d2eda14d6874b347af"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-math-fa-off/prefill.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "2fe9ced3dfde478213954f4b22b24db7cdf609b7"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-math-fa-on/decode.json.gz": {
+    "mode": "100644",
+    "git_blob": "e706624b4e22201803b92b61991397442d17523c"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-math-fa-on/decode.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "241be661c55c512f0c2bc238f7bc2f9ab2cb987d"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-math-fa-on/decode.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "e433e282a94035eb0dd57126ef27e9e06fd9388e"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-math-fa-on/prefill.json.gz": {
+    "mode": "100644",
+    "git_blob": "1216602f36c9813655082eb75c16e090109f093f"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-math-fa-on/prefill.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "f904b37a42ee7adb5067ac0533237edda14654c6"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-math-fa-on/prefill.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "2f162af9a06368ce026de14d233c9175155705ec"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-multilingual-fa-off/decode.json.gz": {
+    "mode": "100644",
+    "git_blob": "70aa05983c1bcb13725df8a000147320d179b042"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-multilingual-fa-off/decode.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "77b4f885654f9807efb131a96fc77ddca8f236fb"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-multilingual-fa-off/decode.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "bdfe807884dccdbd894dfd2804c90f5b5e321602"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-multilingual-fa-off/prefill.json.gz": {
+    "mode": "100644",
+    "git_blob": "136e09f7ea09d7af14b3928de175dbf3c358aefb"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-multilingual-fa-off/prefill.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "90ab8151dfa5807afe5d7aa6a3e03a3e03d9ce09"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-multilingual-fa-off/prefill.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "84273e655c0ef39fa146b759652695f524c84048"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-multilingual-fa-on/decode.json.gz": {
+    "mode": "100644",
+    "git_blob": "6755ec353329dd7ec2269dcbaa3c404012418235"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-multilingual-fa-on/decode.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "f525dd70380d361e6e04cdf2c512ad81c0acc47d"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-multilingual-fa-on/decode.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "58de30d3750630fa42d690b410bc459ac7ead5cb"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-multilingual-fa-on/prefill.json.gz": {
+    "mode": "100644",
+    "git_blob": "59e96e94a93ccd976a71540e268720a2b589b5eb"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-multilingual-fa-on/prefill.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "81fcb5ca85d90c10d7628a62483722d445089b2f"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-multilingual-fa-on/prefill.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "979e8913822316681e0d4d89f35e2a6d696eb7f9"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-narrative-fa-off/decode.json.gz": {
+    "mode": "100644",
+    "git_blob": "7faa1da84080c078cb60cd49d9a7f960157b7648"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-narrative-fa-off/decode.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "3f1d5259cb5d84d0b679a24bfe6c3e04e802a6ed"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-narrative-fa-off/decode.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "32213a266ff23bef2c0ed1f524530b01c648f0a2"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-narrative-fa-off/prefill.json.gz": {
+    "mode": "100644",
+    "git_blob": "0b561bfcb85d62b93a129b618c4e7dc5b2a19650"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-narrative-fa-off/prefill.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "9064cfe77072e2df2e607a53c163cae8187b275a"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-narrative-fa-off/prefill.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "91e62a67e483df8d4f26e84e74fd401ab4fb8d0f"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-narrative-fa-on/decode.json.gz": {
+    "mode": "100644",
+    "git_blob": "a6e8102689237d657ece6f7e2cac45c73996aa7f"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-narrative-fa-on/decode.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "faf7634535f170cde92974ceed7351691234b9ae"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-narrative-fa-on/decode.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "e7d207dbea9725079bcd0e626950d20873d09a01"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-narrative-fa-on/prefill.json.gz": {
+    "mode": "100644",
+    "git_blob": "76700507d869eca677344241f8db74a446b19ea8"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-narrative-fa-on/prefill.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "ec22ba6e252ce920aed83e0c62d94ba55117ca79"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-narrative-fa-on/prefill.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "888cf20a67e740320b6356f24853076b5d6739d0"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-repetitive-fa-off/decode.json.gz": {
+    "mode": "100644",
+    "git_blob": "d8b4022d97594e5053920f72e335f12cf97521c6"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-repetitive-fa-off/decode.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "b17b6383b952cd10327205e3fc2d2960b203d812"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-repetitive-fa-off/decode.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "3961d8085a82f5e6eb2bc7ebeb50d25dc0425e5f"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-repetitive-fa-off/prefill.json.gz": {
+    "mode": "100644",
+    "git_blob": "44d2605dce8c52b171351c6a9861ff6a005df489"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-repetitive-fa-off/prefill.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "d8071f23e4eacd9be21060f84931453481baf3bc"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-repetitive-fa-off/prefill.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "582deabcb71756da9b192d92b5409d43ff21810a"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-repetitive-fa-on/decode.json.gz": {
+    "mode": "100644",
+    "git_blob": "ff92a31c8e077b65b6ede7cf56d2bcdf30ee0f9b"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-repetitive-fa-on/decode.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "32be7969cdf933bfaf58809f6b2e027df73bb1d9"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-repetitive-fa-on/decode.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "d1f32331188a0d7f432b465a32f0f516e5194631"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-repetitive-fa-on/prefill.json.gz": {
+    "mode": "100644",
+    "git_blob": "c228bdac2e8124b59e78d8a7504c41da40c2e328"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-repetitive-fa-on/prefill.layer0.svg": {
+    "mode": "100644",
+    "git_blob": "d1d316e8868d6c90a22bf099a2e545b1c704d044"
+  },
+  "results/2026-09-27_1839_windows-2/graphs/prompt-repetitive-fa-on/prefill.layer3.svg": {
+    "mode": "100644",
+    "git_blob": "c25b648c9d30a454dce076d896279f31454e65c8"
+  },
+  "results/2026-09-27_1839_windows-2/omitted-files.sha256": {
+    "mode": "100644",
+    "git_blob": "74d09eca91e35ef2b8682676bf00b0b7a3bf06b7"
+  },
+  "results/2026-09-27_1839_windows-2/prompt-profiles.json": {
+    "mode": "100644",
+    "git_blob": "b63f6d0ed7ddb82033bcdb5eaba51b1651f7b5cb"
+  },
+  "results/2026-09-27_1839_windows-2/prompts/code/cpu-baseline.jsonl": {
+    "mode": "100644",
+    "git_blob": "fc488bad5282bbf3a974593f5041c579943b3867"
+  },
+  "results/2026-09-27_1839_windows-2/prompts/code/cpu-profile.jsonl": {
+    "mode": "100644",
+    "git_blob": "e5f173007b8c61502f5c321543a2acc48cb0c81c"
+  },
+  "results/2026-09-27_1839_windows-2/prompts/dialogue/cpu-baseline.jsonl": {
+    "mode": "100644",
+    "git_blob": "f6d41b206bcbc8968363afdf5739606f8c235548"
+  },
+  "results/2026-09-27_1839_windows-2/prompts/dialogue/cpu-profile.jsonl": {
+    "mode": "100644",
+    "git_blob": "132a559b4e22398859c95e599520c3f155b398d1"
+  },
+  "results/2026-09-27_1839_windows-2/prompts/hardware/cpu-baseline.jsonl": {
+    "mode": "100644",
+    "git_blob": "d2870497904fa64b98f0dba98c7349ceb12b8371"
+  },
+  "results/2026-09-27_1839_windows-2/prompts/hardware/cpu-profile.jsonl": {
+    "mode": "100644",
+    "git_blob": "695712d0145ef27e68baafe31b47ac76f17c9dbf"
+  },
+  "results/2026-09-27_1839_windows-2/prompts/json_records/cpu-baseline.jsonl": {
+    "mode": "100644",
+    "git_blob": "92b959ab12e8f9cbd2ccb55ca3ff91bf326e5508"
+  },
+  "results/2026-09-27_1839_windows-2/prompts/json_records/cpu-profile.jsonl": {
+    "mode": "100644",
+    "git_blob": "2f3207503f66c40c7b7995d944321e220b69683b"
+  },
+  "results/2026-09-27_1839_windows-2/prompts/math/cpu-baseline.jsonl": {
+    "mode": "100644",
+    "git_blob": "348511b4e049d1a212ad0eb5148fa4bdd6a96709"
+  },
+  "results/2026-09-27_1839_windows-2/prompts/math/cpu-profile.jsonl": {
+    "mode": "100644",
+    "git_blob": "dbfcdea26ac01f35fb141a879701639a71acfc90"
+  },
+  "results/2026-09-27_1839_windows-2/prompts/multilingual/cpu-baseline.jsonl": {
+    "mode": "100644",
+    "git_blob": "299c1eed6c0c4f10b12ad771240ee21765cc214c"
+  },
+  "results/2026-09-27_1839_windows-2/prompts/multilingual/cpu-profile.jsonl": {
+    "mode": "100644",
+    "git_blob": "d4597dd18c20a6b57638b64fd5ba79ba0da7df26"
+  },
+  "results/2026-09-27_1839_windows-2/prompts/narrative/cpu-baseline.jsonl": {
+    "mode": "100644",
+    "git_blob": "fcb6bdb9a1438f269a417ea106866c172ec4cbb4"
+  },
+  "results/2026-09-27_1839_windows-2/prompts/narrative/cpu-profile.jsonl": {
+    "mode": "100644",
+    "git_blob": "b7727106cc430877d932fcdbfd8576c51d26164e"
+  },
+  "results/2026-09-27_1839_windows-2/prompts/repetitive/cpu-baseline.jsonl": {
+    "mode": "100644",
+    "git_blob": "21e4e0769b91f4ccd9a86f6af8e89593a2f7690a"
+  },
+  "results/2026-09-27_1839_windows-2/prompts/repetitive/cpu-profile.jsonl": {
+    "mode": "100644",
+    "git_blob": "cf262fd0c4963e07a8b0c0a65299ef8ad56c9543"
+  },
+  "results/2026-09-27_1839_windows-2/research/compute-mapping-index.json": {
+    "mode": "100644",
+    "git_blob": "67d53ecef54867ea0323c41fdbc1f4f57d5698de"
+  },
+  "results/2026-09-27_1839_windows-2/research/compute-mapping.md": {
+    "mode": "100644",
+    "git_blob": "7cb73161983a96c8861aecec0d33ef20279111fe"
+  },
+  "results/2026-09-27_1839_windows-2/run-manifest.json": {
+    "mode": "100644",
+    "git_blob": "a4ac8bb5ce653b43ead46f75b6d41b32192bc6e8"
+  },
+  "results/2026-10-05_1501_windows/EVIDENCE.md": {
+    "mode": "100644",
+    "git_blob": "308aece690dd394ef1aab9860d60c1badf5f7f36"
+  },
+  "results/2026-10-05_1501_windows/analysis/cpu-metal-logit-check.json": {
+    "mode": "100644",
+    "git_blob": "0637a088a01e8ddab3bf3fa98dbe804cbde1a0dc"
+  },
+  "results/2026-10-05_1501_windows/analysis/decode-curve.csv": {
+    "mode": "100644",
+    "git_blob": "61482420114fdbd5f2493ca9c0c73e143ea2ee21"
+  },
+  "results/2026-10-05_1501_windows/analysis/decode-curve.json": {
+    "mode": "100644",
+    "git_blob": "2327ebc917cbb89d42b83e579669b41fe06626b1"
+  },
+  "results/2026-10-05_1501_windows/analysis/decode-curve.png": {
+    "mode": "100644",
+    "git_blob": "20b95d2ab2c540f64c5301e0ba47a76a3feaeadb"
+  },
+  "results/2026-10-05_1501_windows/analysis/matrix-weight-inventory.json": {
+    "mode": "100644",
+    "git_blob": "8ca162d65f39f09c7a36a5f61f22698f3e8395c5"
+  },
+  "results/2026-10-05_1501_windows/analysis/operation-summary.csv": {
+    "mode": "100644",
+    "git_blob": "3df198e28beb65a10ab09b91408b778f70e9cae9"
+  },
+  "results/2026-10-05_1501_windows/analysis/operation-summary.json": {
+    "mode": "100644",
+    "git_blob": "1e9e418bc4c524982331b0e5387c7bd32a5f00fc"
+  },
+  "results/2026-10-05_1501_windows/analysis/profile-output-validation.json": {
+    "mode": "100644",
+    "git_blob": "17bc5b98d0b18039b5243672345649d66eed9eec"
+  },
+  "results/2026-10-05_1501_windows/analysis/profiling-summary.png": {
+    "mode": "100644",
+    "git_blob": "67e5017886f7e75e40ba307fccf9cf560272e5f0"
+  },
+  "results/2026-10-05_1501_windows/analysis/summary.csv": {
+    "mode": "100644",
+    "git_blob": "d05e6e227f6fec358a74d6c76c3397d87370cdd4"
+  },
+  "results/2026-10-05_1501_windows/analysis/summary.json": {
+    "mode": "100644",
+    "git_blob": "9cccc6d661f14255eb5298209ced1ffe5591b6fd"
+  },
+  "results/2026-10-05_1501_windows/cpu-8k.jsonl": {
+    "mode": "100644",
+    "git_blob": "8aa0238241bb8ce1cd6b1044ff10a9b079669d6b"
+  },
+  "results/2026-10-05_1501_windows/cpu-baseline.jsonl": {
+    "mode": "100644",
+    "git_blob": "b70f794e746c83d80e4b3074827a49d8be53ec31"
+  },
+  "results/2026-10-05_1501_windows/cpu-profile.jsonl": {
+    "mode": "100644",
+    "git_blob": "e7728f0b713e3ebfad3272cc516380dd9670b91a"
+  },
+  "results/2026-10-05_1501_windows/engine/validate-cpu.md": {
+    "mode": "100644",
+    "git_blob": "2d074ae0b95ea5729efc3f048fddff4f47002e09"
+  },
+  "results/2026-10-05_1501_windows/omitted-files.sha256": {
+    "mode": "100644",
+    "git_blob": "e185d73580c5a6a90c1e27192fa32427c306be41"
+  },
+  "results/2026-10-05_1501_windows/prompt-profiles.json": {
+    "mode": "100644",
+    "git_blob": "f9b9221c1ab406e3c22d8396a764c07845c1511f"
+  },
+  "results/2026-10-05_1501_windows/prompts/code/cpu-baseline.jsonl": {
+    "mode": "100644",
+    "git_blob": "5c22e017291dd45bb640d75f6fee8ae93f6f6133"
+  },
+  "results/2026-10-05_1501_windows/prompts/code/cpu-profile.jsonl": {
+    "mode": "100644",
+    "git_blob": "56a5ee22a4516979d61bd18680593bd937b1b5ed"
+  },
+  "results/2026-10-05_1501_windows/prompts/dialogue/cpu-baseline.jsonl": {
+    "mode": "100644",
+    "git_blob": "a9d6c8113e4fa6874a5906eb1a0057b6955db281"
+  },
+  "results/2026-10-05_1501_windows/prompts/dialogue/cpu-profile.jsonl": {
+    "mode": "100644",
+    "git_blob": "410b462f3569ccd19e0bd044eacc398502d45b37"
+  },
+  "results/2026-10-05_1501_windows/prompts/hardware/cpu-baseline.jsonl": {
+    "mode": "100644",
+    "git_blob": "882003a0b8c2728049ba10d9c7b2b14b4d612d9a"
+  },
+  "results/2026-10-05_1501_windows/prompts/hardware/cpu-profile.jsonl": {
+    "mode": "100644",
+    "git_blob": "b0358b2e719c1c43d0c5ec0fe10af6162fa5cc02"
+  },
+  "results/2026-10-05_1501_windows/prompts/json_records/cpu-baseline.jsonl": {
+    "mode": "100644",
+    "git_blob": "bbaedad7a9a16c610b7fb7d68505279b678e967f"
+  },
+  "results/2026-10-05_1501_windows/prompts/json_records/cpu-profile.jsonl": {
+    "mode": "100644",
+    "git_blob": "8380a7afdd4cb6afc3821d81d7469813b50e41a9"
+  },
+  "results/2026-10-05_1501_windows/prompts/math/cpu-baseline.jsonl": {
+    "mode": "100644",
+    "git_blob": "45caaaf0c50c22ef9f92e612217a11183f39b007"
+  },
+  "results/2026-10-05_1501_windows/prompts/math/cpu-profile.jsonl": {
+    "mode": "100644",
+    "git_blob": "7157c6022a9ff81306f936343248d470179a63ef"
+  },
+  "results/2026-10-05_1501_windows/prompts/multilingual/cpu-baseline.jsonl": {
+    "mode": "100644",
+    "git_blob": "2c2b5b5fcfd04a0ec31d445fcbb6aa639b95eec5"
+  },
+  "results/2026-10-05_1501_windows/prompts/multilingual/cpu-profile.jsonl": {
+    "mode": "100644",
+    "git_blob": "1fadf4c3ba68a6da2d5602e7f5b15e0de2fda85b"
+  },
+  "results/2026-10-05_1501_windows/prompts/narrative/cpu-baseline.jsonl": {
+    "mode": "100644",
+    "git_blob": "8e260ce3c39a6c72593f4cf137d8f32de56d6a9c"
+  },
+  "results/2026-10-05_1501_windows/prompts/narrative/cpu-profile.jsonl": {
+    "mode": "100644",
+    "git_blob": "1ee14f4803d5957d757e4aa481cf0201a4ea876b"
+  },
+  "results/2026-10-05_1501_windows/prompts/repetitive/cpu-baseline.jsonl": {
+    "mode": "100644",
+    "git_blob": "a62a2d4f9f41f05a76c961a307ecc947b9a45d1c"
+  },
+  "results/2026-10-05_1501_windows/prompts/repetitive/cpu-profile.jsonl": {
+    "mode": "100644",
+    "git_blob": "97f8261173bb63821b1101f361d598617d94a1c8"
+  },
+  "results/2026-10-05_1501_windows/run-manifest.json": {
+    "mode": "100644",
+    "git_blob": "486dbbf39f9d494649b41a3a6ed410cfa50f7445"
+  },
+  "results/README.md": {
+    "mode": "100644",
+    "git_blob": "3eaea51b6dbf46219292b0ff06339c81de2b5147"
+  },
+  "results/index.html": {
+    "mode": "100644",
+    "git_blob": "7ff3bd74176248ffe6a33dd58fed84b0d6521509"
+  }
+}

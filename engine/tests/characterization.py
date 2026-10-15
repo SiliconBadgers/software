@@ -13,6 +13,9 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "engine"))
+sys.path.insert(0, str(ROOT / "scripts"))
+
+from check_boundaries import historical_files as preserved_historical_files  # noqa: E402
 
 from sbengine import config  # noqa: E402
 from sbengine.costs import Ctx, node_cost  # noqa: E402
@@ -91,28 +94,8 @@ def compact_evaluation(record):
 
 
 def historical_files():
-    """Exact repository identities plus a working-tree check; not OS newline bytes.
-
-    Some historical CSV blobs already contain CRLF, so normalizing all text by
-    hand would erase historical differences. Let Git apply its checkout rules.
-    Raw local bytes are recorded separately in ignored full comparison output.
-    """
-    require_unchanged(["experiments", "research", "results"])
-    raw = subprocess.check_output(
-        ["git", "ls-files", "--stage", "-z", "--", "experiments", "research", "results"], cwd=ROOT)
-    files, gitlinks = {}, {}
-    for entry in raw.decode().split("\0"):
-        if not entry:
-            continue
-        info, name = entry.split("\t", 1)
-        mode, blob, stage = info.split()
-        if stage != "0":
-            raise ValueError(f"unmerged historical file: {name}")
-        if mode == "160000":
-            gitlinks[name] = blob
-        else:
-            files[name] = {"mode": mode, "git_blob": blob}
-    return files, gitlinks
+    """The original evidence subset; later research does not rewrite its digest."""
+    return preserved_historical_files(ROOT)
 
 
 def write_json(path, value, pretty=False):

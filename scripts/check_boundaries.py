@@ -8,6 +8,52 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 HISTORICAL = ("experiments/", "research/", "results/")
+REGRESSION_STUDIES = ("compute/capacity.json", "local-memory/service.json", "joint/matrix-l1.json")
+
+
+def tracked_files(root):
+    raw = subprocess.check_output(["git", "ls-files", "--stage", "-z"], cwd=root)
+    files = {}
+    for entry in filter(None, raw.decode().split("\0")):
+        info, path = entry.split("\t", 1)
+        mode, blob, stage = info.split()
+        if stage != "0":
+            raise ValueError(f"unmerged tracked file: {path}")
+        files[path] = {"mode": mode, "git_blob": blob}
+    return files
+
+
+def historical_files(root=ROOT, tracked=None):
+    """Check the frozen subset against the index/worktree, without old Git objects."""
+    fixtures = root / "engine/tests/fixtures"
+    history = json.loads((fixtures / "historical-0e06023.json").read_text(encoding="utf-8"))
+    fixture = json.loads((fixtures / "characterization-0e06023.json").read_text(encoding="utf-8"))
+    digest = hashlib.sha256(json.dumps(history, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    if {"count": len(history), "sha256": digest} != fixture["historical_files"]:
+        raise ValueError("historical inventory differs from the original characterization digest")
+    gitlinks = fixture["historical_gitlinks"]
+    expected = {**history, **{path: {"mode": "160000", "git_blob": blob} for path, blob in gitlinks.items()}}
+    tracked = tracked_files(root) if tracked is None else tracked
+    for path, identity in expected.items():
+        if tracked.get(path) != identity:
+            raise ValueError(f"preserved historical identity changed or missing: {path}")
+    dirty = subprocess.check_output(
+        ["git", "diff-files", "--name-only", "-z", "--ignore-submodules=dirty", "--", *HISTORICAL], cwd=root)
+    for path in filter(None, dirty.decode().split("\0")):
+        if path in expected:
+            raise ValueError(f"preserved historical working tree changed: {path}")
+    return history, gitlinks
+
+
+def study_paths(root=ROOT):
+    """Retain the original regression cases without closing the catalog to additions."""
+    directory = root / "engine/sweeps"
+    paths = sorted(directory.glob("*/*.json"))
+    present = {path.relative_to(directory).as_posix() for path in paths}
+    missing = sorted(set(REGRESSION_STUDIES) - present)
+    if missing:
+        raise ValueError("missing regression studies: " + ", ".join(missing))
+    return paths
 
 
 def import_errors(path, source):
@@ -77,7 +123,12 @@ def reference_errors(root):
                     raise ValueError(f"capture identity differs: {capture}")
         except (KeyError, TypeError, ValueError) as error:
             errors.append(f"{path.relative_to(root)}: {error}")
-    for path in sorted((root / "engine/sweeps").glob("*/*.json")):
+    try:
+        specs = study_paths(root)
+    except ValueError as error:
+        errors.append(str(error))
+        specs = []
+    for path in specs:
         try:
             spec = json.loads(path.read_text(encoding="utf-8"))
             baseline = json.loads(reference(root, spec["baseline"]).read_text(encoding="utf-8"))
@@ -109,21 +160,17 @@ def check(root=ROOT):
     for folder in ("core/cdfg", "engine/sbengine"):
         for path in sorted((root / folder).glob("*.py")):
             errors.extend(import_errors(path.relative_to(root), path.read_text(encoding="utf-8")))
-    tracked = subprocess.check_output(["git", "ls-files", "--stage", "-z"], cwd=root).decode().split("\0")
-    history = {}
-    for entry in filter(None, tracked):
-        info, path = entry.split("\t", 1)
-        mode, blob, stage = info.split()
-        preserved = path.startswith(HISTORICAL)
-        if preserved and mode != "160000":
-            history[path] = {"mode": mode, "git_blob": blob}
-        error = tracked_path_error(path, preserved)
+    tracked = tracked_files(root)
+    preserved = set()
+    try:
+        history, gitlinks = historical_files(root, tracked)
+        preserved = set(history) | set(gitlinks)
+    except (OSError, ValueError) as error:
+        errors.append(str(error))
+    for path in tracked:
+        error = tracked_path_error(path, path in preserved)
         if error:
             errors.append(error)
-    fixture = json.loads((root / "engine/tests/fixtures/characterization-0e06023.json").read_text())
-    digest = hashlib.sha256(json.dumps(history, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
-    if digest != fixture["historical_files"]["sha256"]:
-        errors.append("preserved historical input inventory changed; new bulk is not implicitly allowed")
     errors.extend(reference_errors(root))
     return errors
 

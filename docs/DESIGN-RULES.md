@@ -70,6 +70,12 @@ candidate rows, timelines, checkpoints and rendered intermediates under ignored
 retrieval/regeneration paths are verified. Do not rewrite old evidence to resolve
 configuration mismatches.
 
+The recorded inventory protects the original evidence identities, not entire
+directories. New attributable research follows the normal artifact rules, including
+inside historical directories. Study checks retain the three original regression
+cases while allowing additional valid specifications. These safeguards do not fix
+the engineering structure permanently; reviewed changes can revise it as needed.
+
 Compare graph interpretation, mapping, counts, traffic, footprints, feasibility,
 schedules and public outputs against [characterization](refactor-characterization.md).
 Unexplained differences stop an extraction. Result-changing correctness fixes are
