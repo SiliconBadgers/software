@@ -18,6 +18,8 @@ measured-evidence checks skip without local-only traces/summaries; skips are not
 validation passes. Missing CPU-fit evidence is explicitly NOT CHECKED.
 
 Boundary tests include real Git repositories and negative evidence/artifact cases.
+Timestamp-only changes pass; content edits still fail when size and timestamps
+are unchanged. Both Git-normalized checkouts and original CRLF blobs are covered.
 The committed original-file inventory is checked against the unchanged
 characterization digest, so a shallow checkout needs no historical Git objects.
 New research is permitted; only the recorded originals retain the legacy bulk

@@ -2,6 +2,7 @@
 import importlib.util
 import hashlib
 import json
+import os
 from pathlib import Path
 import subprocess
 import tempfile
@@ -75,7 +76,9 @@ class GitEvidenceBoundaries(unittest.TestCase):
         self.root = self.directory / "repo"
         self.root.mkdir()
         self.git("init", "-q")
-        self.write("research/original.md", "Author: original contributor\nRecorded finding.\n")
+        self.git("config", "core.autocrlf", "false")
+        self.write("research/original.md", b"Author: original contributor\nRecorded finding.\n")
+        self.write("results/original/summary.csv", b"field,value\r\nx,1\r\n")
         self.write("results/original/trace.jsonl.gz", b"original captured bytes\0")
         self.write("results/original/graphs/sample/prefill.json.gz", b"original graph bytes\0")
         self.git("add", ".")
@@ -152,6 +155,34 @@ class GitEvidenceBoundaries(unittest.TestCase):
         self.assertTrue(any("historical identity changed" in error for error in boundaries.check(self.root)))
         self.git("commit", "-qm", "changed evidence")
         self.assertTrue(any("historical identity changed" in error for error in boundaries.check(self.root)))
+
+    def test_timestamp_only_change_preserves_original_evidence(self):
+        path = self.root / "research/original.md"
+        original = path.read_bytes()
+        stat = path.stat()
+        os.utime(path, ns=(stat.st_atime_ns, stat.st_mtime_ns + 10_000_000_000))
+        self.assertIn("research/original.md", self.git("diff-files", "--name-only"))
+        self.assertEqual(path.read_bytes(), original)
+        self.assertEqual(boundaries.check(self.root), [])
+        self.assertEqual(boundaries.historical_files(self.root)[0], self.history)
+
+    def test_same_size_original_edit_with_restored_timestamp_fails(self):
+        path = self.root / "research/original.md"
+        original = path.read_bytes()
+        stat = path.stat()
+        changed = original.replace(b"Recorded", b"Altered!")
+        self.assertNotEqual(changed, original)
+        self.assertEqual(len(changed), len(original))
+        self.write("research/original.md", changed)
+        os.utime(path, ns=(stat.st_atime_ns, stat.st_mtime_ns))
+        self.assertTrue(any("historical working tree changed" in error for error in boundaries.check(self.root)))
+
+    def test_line_ending_only_checkout_changes_follow_git_rules(self):
+        self.git("config", "core.autocrlf", "true")
+        path = self.root / "research/original.md"
+        path.write_bytes(path.read_bytes().replace(b"\n", b"\r\n"))
+        self.assertEqual(boundaries.check(self.root), [])
+        self.assertEqual((self.root / "results/original/summary.csv").read_bytes(), b"field,value\r\nx,1\r\n")
 
     def test_deleted_original_fails_unstaged_staged_and_committed(self):
         (self.root / "research/original.md").unlink()

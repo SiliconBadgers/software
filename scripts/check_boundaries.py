@@ -37,11 +37,34 @@ def historical_files(root=ROOT, tracked=None):
     for path, identity in expected.items():
         if tracked.get(path) != identity:
             raise ValueError(f"preserved historical identity changed or missing: {path}")
+    # Porcelain diff refreshes stat-only changes before comparing content.
     dirty = subprocess.check_output(
-        ["git", "diff-files", "--name-only", "-z", "--ignore-submodules=dirty", "--", *HISTORICAL], cwd=root)
+        ["git", "diff", "--no-ext-diff", "--no-textconv", "--name-only", "-z",
+         "--ignore-submodules=dirty", "--", *HISTORICAL], cwd=root)
     for path in filter(None, dirty.decode().split("\0")):
         if path in expected:
             raise ValueError(f"preserved historical working tree changed: {path}")
+    # Hash content even when cached size/timestamps match. Accept exact blobs or
+    # Git-cleaned checkout bytes, retaining historical CRLF blobs as recorded.
+    for path in history:
+        source = root / path
+        if source.is_symlink() or not source.is_file():
+            raise ValueError(f"preserved historical working tree changed: {path}")
+    blobs = subprocess.check_output(
+        ["git", "hash-object", "--stdin-paths"], cwd=root,
+        input="".join(json.dumps(path, ensure_ascii=False) + "\n" for path in history).encode()).decode().splitlines()
+    if len(blobs) != len(history):
+        raise ValueError("historical working-tree content comparison is incomplete")
+    mismatched = [path for path, blob in zip(history, blobs) if blob != history[path]["git_blob"]]
+    if mismatched:
+        raw_blobs = subprocess.check_output(
+            ["git", "hash-object", "--stdin-paths", "--no-filters"], cwd=root,
+            input="".join(json.dumps(path, ensure_ascii=False) + "\n" for path in mismatched).encode()).decode().splitlines()
+        if len(raw_blobs) != len(mismatched):
+            raise ValueError("historical working-tree content comparison is incomplete")
+        for path, blob in zip(mismatched, raw_blobs):
+            if blob != history[path]["git_blob"]:
+                raise ValueError(f"preserved historical working tree changed: {path}")
     return history, gitlinks
 
 
