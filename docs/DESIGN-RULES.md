@@ -1,10 +1,11 @@
 # Scientific code organization
 
-Software uses execution and graph evidence to evaluate compute boundaries, shared
-resources and host integration. The [Architecture diagram](https://github.com/SiliconBadgers/architecture/blob/main/docs/accelerator-diagram.md)
-is the shared design reference, not a list of already justified hardware engines.
+Software uses captured workloads and analytical estimates to study compute,
+memory and host integration. The [Architecture diagram](https://github.com/SiliconBadgers/architecture/blob/main/docs/accelerator-diagram.md)
+is the shared design reference. The organization below describes current
+calculation ownership and can evolve with the work.
 
-## Stages and dependency direction
+## Stages and ownership
 
 ```text
 pinned execution -> capture -> CDFG -> mapping -> simulation -> evaluation/sweeps
@@ -15,78 +16,53 @@ pinned execution -> capture -> CDFG -> mapping -> simulation -> evaluation/sweep
 
 | Owner | Responsibility |
 |---|---|
-| `core/runner/`, `core/harness/` | Existing executable builds, instrumented execution, graph/trace export and provenance. Executable-to-CDFG is capture, not decompilation. |
-| `core/cdfg/` | Captured tensors/operations, operand slots, aliases, storage kinds and conservative data/state dependencies. No hardware resources, bandwidth, latency, engine or NumPy dependency. |
-| `engine/sbengine/mapping.py` | Existing implementation, capability, tile and lowering choices. Reference CDFG IDs, not a copied graph; keep memory-dependent selection explicit. |
-| `costs.py`, `memory.py`, `schedule.py` | Existing arithmetic/service equations, residency/traffic accounting and resource scheduling. No new allocator, alias analysis or simulation fidelity. |
-| `model.py`, `sweep.py`, CLI | Compose the stages and reuse existing enumeration, sensitivity, Monte Carlo and Pareto methods. No automatic baseline promotion or search service. |
-| `web/`, maintained reports | Consume canonical source and results. Shared-source moves update native imports and browser packaging together. No duplicate equations in presentation. |
+| `core/runner/`, `core/harness/` | Builds, instrumented execution, graph/trace capture and provenance. |
+| `core/cdfg/` | Tensors, operations, operand slots, aliases, storage classification, conservative dependencies and shared dense-work counting. Hardware-independent; standard-library only. |
+| `engine/sbengine/mapping.py` | Capability, implementation, tile, lowering and fusion selection using CDFG identities. Memory-dependent selection remains explicit. |
+| `costs.py`, `memory.py`, `schedule.py` | Arithmetic/service equations, residency/traffic accounting and resource scheduling. |
+| `model.py`, `sweep.py`, CLI | Compose evaluation and run enumeration, sensitivity, Monte Carlo and Pareto analyses. |
+| `web/`, reports | Present canonical calculations and results; update native imports and browser packaging together when shared sources move. |
 
-Lower stages do not import evaluation, presentation or dated research. Compatibility
-imports preserve old public paths without a second implementation. Share dense work
-counting only where conventions match. CPU-fit features, measured-operation grouping,
-structural fusion and rendering have distinct semantics and remain distinct.
+Lower stages do not import evaluation or presentation. Compatibility imports
+retain public paths without maintaining a second implementation. Share calculations
+where conventions match; CPU-fit features, measured-operation groups, structural
+fusion and rendering have distinct semantics.
 
-## Scientific style
+## Configurations and studies
 
-Use readable calculations, explicit units and meaningful intermediates. Introduce
-helpers for a scientific responsibility or real duplication, not line-count goals.
-Comments explain equations, dependencies, approximations and limitations; preserve
-attribution. Avoid progress narration, speculative frameworks and hardware-command
-proposals in maintained scientific source.
+The [pinned experiment](../core/experiments/qwen35-2b-q4km.json) identifies
+the source and mixed-Q4_K_M model. Reproduction names an explicit run and workload.
+[Resolved baselines](../engine/designs/README.md) record complete configurations,
+captures, assumptions, parent revisions and review provenance. Partial profiles
+retain their existing override behavior; complete profiles reject missing fields.
 
-Use capture, CDFG, mapping, lowering, schedule, baseline, decision, sweep and cost
-proxy consistently. Separate measured execution, graph-derived structure and
-assumed target behavior. Logical bytes are not measured memory traffic; a unitless
-cost proxy is not physical area, power or implementation cost. A resource knee is
-not a globally optimal design. Keep prefill and decode separate.
+[Study specifications](../engine/sweeps/README.md) declare axes, fixed assumptions,
+objectives and coupled prerequisites. Primary compute/local-memory studies hold
+external-memory and platform settings fixed. A reviewed baseline revision records
+its parent, selected configuration, supporting study and rationale; earlier
+revisions remain available.
 
-## Baselines and decisions
+## Evidence and checks
 
-Use `core/experiments/qwen35-2b-q4km.json` for exact model/source identities.
-Q4_K_M is mixed captured quantization, not uniform INT4. Reproduction names an
-explicit run and workload, not `latest`. Complete resolved profiles remain
-compatible with the existing loader; accompanying records cite captures, assumptions,
-parent revision, evidence and approval status. Defaults are provisional unless an
-approval record says otherwise.
+Keep equations readable, with explicit units and meaningful intermediates.
+Explain approximations and limitations beside the calculation. Distinguish
+measured execution, graph-derived structure and assumed target behavior: logical
+bytes are not measured traffic, and a unitless cost proxy is not physical area
+or power. Report prefill and decode separately.
 
-Compute, local-memory and joint studies declare varied paths, fixed assumptions and
-coupled prerequisites. External memory/platform assumptions stay fixed in primary
-studies. Use existing fields and methods, not another parameter or decision system.
-Freezing is manual review: add a new revision with parent, selected configuration,
-supporting study and rationale; preserve earlier revisions and rerun affected studies.
+Commit source, specifications and compact summaries; keep raw traces, candidate
+rows, weights, checkpoints and rendered intermediates in ignored `build/` or
+`work/`. Preserve dated evidence and historical models with their own assumptions.
+The recorded inventory protects the original files while allowing new research
+under the normal artifact rules. Study checks retain the original regression
+cases and accept additional valid specifications.
 
-## Evidence and validation
+Use [compatibility checks](refactor-characterization.md) for source extractions
+and the [component tests](../tests/README.md) for affected behavior. Explain
+result-changing fixes separately, retain comparison tolerances and report missing
+evidence explicitly. CPU-reference instrumentation, optional backend provenance
+and numerical comparisons retain their existing contracts.
 
-Preserve dated inputs, reports and reproduction entry points. Historical JS models
-retain their different assumptions; they are preserved consumers, not new optimization
-targets. Keep CPU-reference isolation, optional backends/diagnostics, fallback
-provenance, checkpoint bit identity and explicit missing-evidence status. CUDA
-accelerates iteration, not accelerator architecture evidence.
-
-Commit source, specifications and compact summaries. Keep weights, raw traces,
-candidate rows, timelines, checkpoints and rendered intermediates under ignored
-`work/` or `build/`. Preserve existing historical bulk until its consumers and
-retrieval/regeneration paths are verified. Do not rewrite old evidence to resolve
-configuration mismatches.
-
-The recorded inventory protects the original evidence identities, not entire
-directories. New attributable research follows the normal artifact rules, including
-inside historical directories. Study checks retain the three original regression
-cases while allowing additional valid specifications. These safeguards do not fix
-the engineering structure permanently; reviewed changes can revise it as needed.
-
-Compare graph interpretation, mapping, counts, traffic, footprints, feasibility,
-schedules and public outputs against [characterization](refactor-characterization.md).
-Unexplained differences stop an extraction. Result-changing correctness fixes are
-separate explained changes; do not relax tolerances. Run affected native/browser
-checks after source moves and all suites before handoff. Report skips and unavailable
-inference, hardware and licensed-tool checks explicitly.
-
-Keep commits small and independently usable. Use issue-linked PRs and request
-the maintainer-designated reviewers. Follow the repository's existing approval
-and merge requirements; these design rules do not change them.
-
-Ponytail is optional advisory review, not required installation, hooks or source
-policy. Scientific authorities remain [equations](../engine/docs/EQUATIONS.md),
+Technical details live in the engine's [equations](../engine/docs/EQUATIONS.md),
 [assumptions](../engine/docs/ASSUMPTIONS.md) and [validation](../engine/docs/VALIDATION.md).
+Contribution and review guidance is in [CONTRIBUTING.md](../CONTRIBUTING.md).

@@ -38,7 +38,7 @@ and full comparisons remain ignored and contained.
 Full characterization is under
 `build/refactor-characterization/0e06023/final/`; final/clean suite logs and visual
 captures are under `build/refactor-final/`. These generated packages are not part
-of Git. Native tool versions are recorded in the [current report](../REPORT.md).
+of Git. Native tool versions are recorded in the [characterization record](characterization.md).
 
 ## Unchanged scope and remaining limits
 
@@ -50,7 +50,7 @@ representation or alternate evaluator was introduced. Candidate-pricing formulas
 needed for resource-dependent lowering selection were moved intact, not recalibrated.
 
 The three skips are MAC-summary parity, measured host fallback and held-out CPU
-fit; absent traces/summaries cannot certify them. The [known defects](refactor-characterization.md)
+fit; absent traces/summaries cannot certify them. The [known defects](characterization.md)
 remain separate result-changing work: numeric domains, composite legality and
 reservations, invalid-design statistics, heterogeneous CSV rows and empty parity.
 Prior host-dependent failures remain unresolved. Missing CPU validation remains

@@ -1,98 +1,65 @@
-# Current Software analysis and refactor
+# Software analysis
 
-## Question and method
+Software combines captured workload graphs with configurable resource models to
+study compute capacity, memory service and operation mapping. The
+[stage guide](docs/DESIGN-RULES.md) describes calculation ownership;
+[engine documentation](engine/README.md) covers the analytical model.
 
-How can the existing profiling/model work support reproducible compute and
-local-memory decisions without changing its scientific meaning?
+## Baseline and reproduction
 
-Starting from reviewed main `0e06023`, the refactor extracts the existing captured
-representation into `core/cdfg/`, implementation/tile/lowering/fusion selection
-into `sbengine/mapping.py`, and makes the evaluator compose mapping, work/traffic,
-residency and scheduling explicitly. Old graph imports and costing entry points
-remain compatible. No new simulator, optimizer, search service, physical model,
-hardware command encoding or architecture choice is introduced.
+- Model: `Qwen3.5-2B-Q4_K_M.gguf`, with exact model/source identities in the
+  [pinned experiment](core/experiments/qwen35-2b-q4km.json).
+  Q4_K_M is mixed captured quantization, not uniform INT4.
+- Capture: [2026-09-27_1839_windows-2](results/2026-09-27_1839_windows-2/EVIDENCE.md),
+  containing 22 workload pairs / 44 phases.
+- Configuration: [`characterized-v1`](engine/designs/README.md), a complete,
+  provisional reproduction of the balanced configuration. Resource rates,
+  external memory, residency and cost coefficients remain model assumptions.
 
-The [design guide](docs/DESIGN-RULES.md) defines ownership and evidence policy.
-[Characterization](docs/refactor-characterization.md) records starting behavior
-and known defects. [Complete baseline/decisions](engine/designs/README.md) and
-[thin study reproduction](engine/sweeps/README.md) organize existing methods.
-No local CDFG/prototype source was included; unidentified work elsewhere is not
-discarded or presumed migrated.
+Use the [baseline evaluation](engine/designs/README.md),
+[study runner](engine/sweeps/README.md) and [component tests](tests/README.md)
+for reproduction. [Compatibility checks](docs/refactor-characterization.md)
+compare graph interpretation, mapping, costs and outputs against the recorded
+reference.
 
-## Inputs and assumptions
+## Resource studies
 
-- Exact experiment identity: [pinned Qwen configuration](core/experiments/qwen35-2b-q4km.json),
-  `Qwen3.5-2B-Q4_K_M.gguf`, llama.cpp `f46bc30`; mixed captured quantization.
-- Explicit run: [2026-09-27_1839_windows-2](results/2026-09-27_1839_windows-2/EVIDENCE.md),
-  all 22 workload pairs / 44 phases. Primary study: pp512-fa-on, batch-1 capture.
-- `characterized-v1` records the fully resolved previous balanced configuration
-  and capture/source hashes. It is provisional, not an accepted Architecture design.
-  Hardware counts/rates, external memory, residency/fusion/recurrence choices,
-  scheduling and unitless cost coefficients remain assumptions.
-- Authoritative explanations remain [equations](engine/docs/EQUATIONS.md),
-  [assumptions](engine/docs/ASSUMPTIONS.md) and [validation](engine/docs/VALIDATION.md).
-  Those component records describe their dated experiments, not newly measured results.
-
-## Results and interpretation
-
-All 76 characterized evaluations preserve exact graph interpretation, raw costs,
-feasibility, traffic, footprints, bounds, operations/reservations and public
-outputs. The separate original/new mapping audit checked 254,784 node costs
-across profiles, unavailable capabilities, fallback, recurrence, memory-fit and
-state-residency classes. Existing dense-work conventions now have one owner;
-measured CPU-fit features and structurally different grouping/rendering remain
-distinct. Historical input files and gitlink identity are preserved.
-
-[Compact study summaries](docs/sweeps/README.md) record existing-grid reproductions:
+The [compact summaries](docs/sweeps/README.md) report pp512-fa-on under the
+same baseline, with external-memory and platform assumptions held fixed.
 
 | Study | Model-feasible / sampled | Interpretation |
 |---|---:|---|
-| Matrix capacity | 3 / 4 | Eight arrays exceed the assumed usable DSP budget; feasibility for the others is not physical fit. |
-| L1 service | 4 / 4 | Banking is an assumption/cost-proxy axis; this is not a recommended SRAM organization. |
-| Matrix + L1 | 12 / 16 | Joint candidates expose interactions under fixed external/platform assumptions; no selection is promoted. |
+| Matrix capacity | 3 / 4 | Eight arrays exceed the assumed usable DSP budget. |
+| L1 service | 4 / 4 | Bank count varies modeled service and the cost proxy. |
+| Matrix + L1 | 12 / 16 | Joint candidates expose interactions between those axes. |
 
-Frontiers use explicitly defined cost-proxy/decode objectives. They are mathematical
-frontiers of sampled estimates, not calibrated architecture optima. Prefill remains
-reported separately. Candidate validity counts and record digests accompany every
-summary; complete rows remain ignored under `build/sweeps/`.
+The frontiers minimize a unitless cost proxy and decode latency; prefill is
+reported separately. Model feasibility does not establish physical fit, and
+sampled frontiers are not globally optimal hardware designs. No study candidate
+has been adopted as a hardware baseline.
 
-The dated [profiling findings](experiments/llama-cpp/2026-09-22/REPORT.md),
+## Evidence and limitations
+
+The [profiling findings](experiments/llama-cpp/2026-09-22/REPORT.md),
 [operation/dependency study](research/compute-mapping/2026-10-02-op-dependency-map/README.md)
 and [recurrence sensitivity](research/compute-mapping/2026-10-03-recurrence-multiplier-sensitivity/REPORT.md)
-remain available unchanged. Historical JS equations/schedulers are preserved,
-not silently replaced with the Python model. Optional CUDA remains an iteration
-tool; CPU-reference instrumentation, fallback labels and numerical comparisons
-are unchanged.
+retain their original inputs, methods and results. CPU measurements, historical
+JS scheduling and Python estimates have different assumptions and should not be
+treated as interchangeable evidence.
 
-## Verification and limits
+Known correctness gaps remain in numeric-domain validation, composite capability
+checks and resource reservations, infeasible-design statistics, heterogeneous
+CSV exports and empty parity comparisons. The
+[supporting characterization](docs/verification/refactor/characterization.md#known-gaps-separate-from-source-reorganization)
+records the concrete cases.
 
-[Complete local acceptance](docs/refactor-verification.md) records fresh-checkout
-results, exact comparisons, visual checks, preserved inputs and unavailable gates.
+MAC-summary parity, measured host fallback and held-out CPU fit require local
+evidence that is not included in the checkout. Their skips do not resolve earlier
+host-dependent fit failures; missing CPU validation is NOT CHECKED.
+The [model validation record](engine/docs/VALIDATION.md) and
+[assumptions](engine/docs/ASSUMPTIONS.md) distinguish accounting checks from
+uncalibrated timing, cost and lowering assumptions. Physical performance,
+FPGA/ASIC fit and numerical quality still need independent validation.
 
-Local verification uses existing Python 3.13.15, NumPy 2.5.3, Matplotlib 3.11.2,
-Node 24.19.0, Playwright 1.62.1 and native Chrome. [Explicit test commands](tests/README.md)
-cover core, engine, repository/MAC, publication and all five JS suites. Native/worker
-parity, controls, graphs, exports, study transfer and desktop/mobile workflows
-are checked after shared-source moves. Detailed logs and comparisons are contained
-in ignored `build/refactor-final/`; no generated replay package enters Git.
-
-Known numeric-domain, composite-capability/reservation, invalid-design reporting,
-heterogeneous-CSV and empty-parity defects are listed in the characterization
-audit and preserved for separate correctness changes. Three measured-evidence
-tests skip because raw traces/summaries are absent. Earlier host-dependent fit
-failures are not resolved by those skips. Analytical accounting/shape checks do
-not qualify hardware timing, physical cost, energy, numerical quality or a real
-chunked implementation. No new inference, SoC, RTL or licensed-tool qualification
-is claimed; missing CPU validation remains NOT CHECKED.
-
-Baseline freezing remains manual review, with parent, selected study, rationale
-and approval evidence. At the local verification checkpoint on 2026-10-14,
-through `2203e67`, all refactor commits were local and no branch, PR or review
-request had been published. This records that checkpoint, not later publication
-status. The Software research objective is not completed merely by source
-organization.
-
-AI assistance: OpenAI Codex assisted this refactor. Local task metadata verified
-`gpt-6.1-sol` for the latest task on 2026-10-14; exact model identifiers for
-earlier stages were not verified. Existing contributor and AI attribution is
-preserved in the component sources and documentation.
+Detailed [refactor verification records](docs/verification/refactor/README.md)
+are retained as supporting evidence.
