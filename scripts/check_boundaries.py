@@ -7,6 +7,11 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "engine"))
+from sbengine.workload import load_workload
+from sbengine.graph import Graph
+from sbengine.provenance import validate_capture, validate_captures
+
 HISTORICAL = ("experiments/", "research/", "results/")
 REGRESSION_STUDIES = ("compute/capacity.json", "local-memory/service.json", "joint/matrix-l1.json")
 
@@ -144,7 +149,11 @@ def reference_errors(root):
                 captured = reference(root, f"{record['run']}/graphs/{capture}.json.gz")
                 if hashlib.sha256(captured.read_bytes()).hexdigest() != values[0]:
                     raise ValueError(f"capture identity differs: {capture}")
-        except (KeyError, TypeError, ValueError) as error:
+                validate_capture(Graph(captured, capture.rsplit("/", 1)[1]), capture, record)
+            for workload in sorted({capture.rsplit("/", 1)[0] for capture in record["captures"]}):
+                loaded = load_workload(root / record["run"] / "graphs" / workload)
+                validate_captures(loaded, record)
+        except (OSError, KeyError, TypeError, ValueError) as error:
             errors.append(f"{path.relative_to(root)}: {error}")
     try:
         specs = study_paths(root)
@@ -158,6 +167,8 @@ def reference_errors(root):
             profile = json.loads(reference(root, baseline["profile"]).read_text(encoding="utf-8"))["config"]
             reference(root, spec["reference"])
             reference(root, f"{baseline['run']}/graphs/{spec['workload']}/prefill.json.gz")
+            loaded = load_workload(root / baseline["run"] / "graphs" / spec["workload"])
+            validate_captures(loaded, baseline)
             decisions = json.loads(reference(root, baseline["decisions"]).read_text(encoding="utf-8"))
             known = {item["id"] for item in decisions["branches"]}
             if spec["decision"] not in known or not set(spec["prerequisites"]) <= known:
@@ -166,7 +177,7 @@ def reference_errors(root):
                 value = profile
                 for part in key.split("."):
                     value = value[part]
-        except (KeyError, TypeError, ValueError) as error:
+        except (OSError, KeyError, TypeError, ValueError) as error:
             errors.append(f"{path.relative_to(root)}: {error}")
     registry = json.loads((root / "web/registry.json").read_text(encoding="utf-8"))
     for component in registry["components"]:

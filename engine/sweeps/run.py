@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "engine"))
 from sbengine import config, sweep
 from sbengine.graph import load_workload
+from sbengine.provenance import validate_captures
 from sbengine.trace import load_trace
 
 
@@ -27,6 +28,7 @@ def study(spec_path):
             raise ValueError(f"axis {path} varies a fixed platform/external assumption")
     run = ROOT / baseline["run"]
     workload = load_workload(run / "graphs" / spec["workload"])
+    validate_captures(workload, baseline)
     trace = load_trace(run, workload) if cfg["host"]["enabled"] else None
     records = sweep.run_sweep(workload, cfg, spec["axes"], trace)
     valid = [row for row in records if row["valid"]]

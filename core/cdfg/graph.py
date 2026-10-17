@@ -89,6 +89,7 @@ class Graph:
         text = (gzip.decompress(path.read_bytes()).decode("utf-8") if path.suffix == ".gz"
                 else path.read_text(encoding="utf-8"))
         raw = json.loads(text)
+        self.capture = raw  # Complete decoded input, including fields not used by the analytical model.
         self.path, self.phase, self.meta = path, phase, raw["metadata"]
         self.tensors = {}
         for t in raw["tensors"]:

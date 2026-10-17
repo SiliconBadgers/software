@@ -1,5 +1,6 @@
 """Positive and negative enforcement cases, without plugins or a new lint stack."""
 import importlib.util
+import gzip
 import hashlib
 import json
 import os
@@ -80,7 +81,20 @@ class GitEvidenceBoundaries(unittest.TestCase):
         self.write("research/original.md", b"Author: original contributor\nRecorded finding.\n")
         self.write("results/original/summary.csv", b"field,value\r\nx,1\r\n")
         self.write("results/original/trace.jsonl.gz", b"original captured bytes\0")
-        self.write("results/original/graphs/sample/prefill.json.gz", b"original graph bytes\0")
+        self.captures = {}
+        self.decoded_captures = {}
+        for phase in ("prefill", "decode"):
+            metadata = {"prompt_tokens": 512, "phase": phase}
+            raw = {"metadata": metadata, "tensors": [], "scheduled_nodes": []}
+            compressed = gzip.compress(json.dumps(raw).encode(), mtime=0)
+            self.write(f"results/original/graphs/sample/{phase}.json.gz", compressed)
+            structure = {"phase": phase, "metadata": metadata, "order": [], "tensors": [],
+                         "nodes": [], "storage": [], "deps": [], "totals": {},
+                         "metadata_nodes": 0, "zero_nodes": 0}
+            digest = hashlib.sha256(json.dumps(structure, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+            self.captures[f"sample/{phase}"] = [hashlib.sha256(compressed).hexdigest(), digest, 0, 0]
+            encoded = json.dumps(raw, sort_keys=True, separators=(",", ":")).encode()
+            self.decoded_captures[f"sample/{phase}"] = hashlib.sha256(encoded).hexdigest()
         self.git("add", ".")
         self.git("commit", "-qm", "original evidence")
         self.original_commit = self.git("rev-parse", "HEAD").strip()
@@ -95,12 +109,16 @@ class GitEvidenceBoundaries(unittest.TestCase):
             "historical_files": {"count": len(self.history), "sha256": digest},
             "historical_gitlinks": {"experiments/tool": self.original_commit}}))
         self.write("web/registry.json", json.dumps({"components": []}))
-        self.write("engine/designs/baseline.json", json.dumps({
+        self.write("engine/designs/baselines/test/record.json", json.dumps({
             "profile": "engine/designs/profile.json", "run": "results/original",
-            "decisions": "engine/designs/decisions.json"}))
-        self.write("engine/designs/profile.json", json.dumps({"config": {"matrix": {"count": 1}}}))
+            "decisions": "engine/designs/decisions.json", "captures": self.captures,
+            "decoded_capture_sha256": self.decoded_captures,
+            "experiment": "engine/designs/experiment.json", "model": {}, "llama_cpp": {},
+            "parent": None, "evidence": ["research/original.md"]}))
+        self.write("engine/designs/experiment.json", json.dumps({"model": {}, "llama_cpp": {}}))
+        self.write("engine/designs/profile.json", json.dumps({"resolved": True, "config": {"matrix": {"count": 1}}}))
         self.write("engine/designs/decisions.json", json.dumps({"branches": [{"id": "compute"}]}))
-        self.spec = {"baseline": "engine/designs/baseline.json", "workload": "sample",
+        self.spec = {"baseline": "engine/designs/baselines/test/record.json", "workload": "sample",
                      "axes": {"matrix.count": [1]}, "decision": "compute", "prerequisites": [],
                      "reference": "research/original.md"}
         for name in boundaries.REGRESSION_STUDIES:
@@ -238,6 +256,69 @@ class GitEvidenceBoundaries(unittest.TestCase):
         (self.root / "engine/sweeps/compute/capacity.json").unlink()
         self.assertTrue(any("missing regression studies: compute/capacity.json" in error
                             for error in boundaries.check(self.root)))
+
+    def test_matching_plain_overrides_pass(self):
+        for phase in ("prefill", "decode"):
+            captured = self.root / f"results/original/graphs/sample/{phase}.json.gz"
+            raw = json.loads(gzip.decompress(captured.read_bytes()))
+            self.write(f"results/original/graphs/sample/{phase}.json", json.dumps(raw, indent=1))
+        self.assertEqual(boundaries.check(self.root), [])
+
+    def test_mismatched_plain_overrides_fail_baseline_and_study_checks(self):
+        for phase in ("prefill", "decode"):
+            with self.subTest(phase=phase):
+                name = f"results/original/graphs/sample/{phase}.json"
+                captured = self.root / f"{name}.gz"
+                raw = json.loads(gzip.decompress(captured.read_bytes()))
+                raw["metadata"]["prompt_tokens"] = 128
+                self.write(name, json.dumps(raw))
+                errors = boundaries.reference_errors(self.root)
+                for prefix in ("engine/designs/baselines/test/record.json", "engine/sweeps/compute/capacity.json"):
+                    self.assertTrue(any(error.replace("\\", "/").startswith(prefix)
+                                        and f"capture identity differs: sample/{phase}" in error for error in errors), errors)
+                (self.root / name).unlink()
+
+    def test_missing_capture_and_missing_identity_fail(self):
+        baseline_path = self.root / self.spec["baseline"]
+        record = json.loads(baseline_path.read_text())
+        for phase in ("prefill", "decode"):
+            with self.subTest(phase=phase):
+                captured = self.root / f"results/original/graphs/sample/{phase}.json.gz"
+                original = captured.read_bytes()
+                captured.unlink()
+                self.assertTrue(any(f"{phase}" in error for error in boundaries.reference_errors(self.root)))
+                captured.write_bytes(original)
+                missing = {**record, "captures": {key: value for key, value in record["captures"].items()
+                                                 if key != f"sample/{phase}"}}
+                baseline_path.write_text(json.dumps(missing))
+                self.assertTrue(any(f"capture identity missing: sample/{phase}" in error
+                                    for error in boundaries.reference_errors(self.root)))
+                baseline_path.write_text(json.dumps(record))
+
+    def test_schema_only_override_is_rejected(self):
+        for phase in ("prefill", "decode"):
+            with self.subTest(phase=phase):
+                name = f"results/original/graphs/sample/{phase}.json"
+                raw = json.loads(gzip.decompress((self.root / f"{name}.gz").read_bytes()))
+                raw["schema_version"] = 999
+                self.write(name, json.dumps(raw))
+                errors = boundaries.reference_errors(self.root)
+                self.assertTrue(any(f"capture identity differs: sample/{phase}" in error for error in errors), errors)
+                (self.root / name).unlink()
+
+    def test_decoded_hash_cannot_rebind_a_changed_override_to_pinned_evidence(self):
+        name = "results/original/graphs/sample/prefill.json"
+        raw = json.loads(gzip.decompress((self.root / f"{name}.gz").read_bytes()))
+        raw["schema_version"] = 999
+        self.write(name, json.dumps(raw))
+        path = self.root / self.spec["baseline"]
+        record = json.loads(path.read_text())
+        encoded = json.dumps(raw, sort_keys=True, separators=(",", ":")).encode()
+        record["decoded_capture_sha256"]["sample/prefill"] = hashlib.sha256(encoded).hexdigest()
+        self.write(self.spec["baseline"], json.dumps(record))
+        errors = boundaries.reference_errors(self.root)
+        self.assertTrue(any(error.replace("\\", "/").startswith(self.spec["baseline"])
+                            and "capture identity differs: sample/prefill" in error for error in errors), errors)
 
 
 if __name__ == "__main__":
