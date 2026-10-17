@@ -51,3 +51,10 @@ analysis with no timing or measured traffic. Its grouping rule is maintained in
 the Python engine (`engine/sbengine/groups.py`, `memory.fusion = groups`), where
 a test reproduces this study's committed tables. The study's own script and
 outputs are frozen for reproduction and are not a second copy to evolve.
+
+The [memory-traffic study](2026-10-14-memory-traffic/README.md) uses the
+dependency map's shapes and state sizes, plus the 2026-10-12 Timeloop baseline,
+to estimate logical bytes for INT32 partial sums across K tiles, DeltaNet state
+per decode step by batch and SRAM residency, matrix-to-vector handoffs, and the
+decode weight feed each candidate SRAM port can sustain. It has no timing or
+measured traffic.
