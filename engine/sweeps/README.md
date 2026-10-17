@@ -15,6 +15,11 @@ python -B engine/sweeps/run.py engine/sweeps/local-memory/service.json
 python -B engine/sweeps/run.py engine/sweeps/joint/matrix-l1.json
 ```
 
+The `tiling/` specifications vary array shape, L1 matmul tiles and the
+fused-attention KV tile with SRAM held at the baseline. Their selected-tile
+analysis and results are in the
+[tiling study](../../research/compute-mapping/2026-10-17-tiling-sweep/REPORT.md).
+
 Full rows, CSV/meta and reproduction records go to ignored `build/sweeps/`.
 For a repeat, supply a new `--out build/sweeps/<name>` folder; prior output is not
 overwritten. [Compact summaries](../../docs/sweeps/README.md) retain provenance

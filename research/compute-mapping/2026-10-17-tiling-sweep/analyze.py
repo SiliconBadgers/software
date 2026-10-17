@@ -1,0 +1,144 @@
+"""Tiling study: run the engine/sweeps/tiling specs and record which tiles the engine chose.
+
+The sweep rows come from the existing study runner (engine/sweeps/run.py -> sbengine.run_sweep), so they are
+identical to `python -B engine/sweeps/run.py engine/sweeps/tiling/<spec>.json`. Each point is then re-evaluated
+with detail=True to read the selected matmul / fused-attention tiles and the traffic split, which the flat sweep
+record does not carry. A small robustness check re-ranks equal-PE array shapes at other L1 sizes and at the
+128-token prompt; it is a sensitivity check on the tiling ranking, not an SRAM study.
+
+Usage, from the repository root:
+    python -B research/compute-mapping/2026-10-17-tiling-sweep/analyze.py
+Writes points.csv, robustness.csv and summary.json next to this file.
+"""
+import copy
+import csv
+import hashlib
+import json
+from pathlib import Path
+import subprocess
+import sys
+
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parents[2]
+sys.path.insert(0, str(ROOT / "engine"))
+from sbengine import VERSION, config, sweep
+from sbengine.graph import load_workload
+from sbengine.model import evaluate
+from sweeps.run import study
+
+SPECS = ["engine/sweeps/tiling/array-shape.json", "engine/sweeps/tiling/matmul-tile.json",
+         "engine/sweeps/tiling/attention-tile.json"]
+ALL_AXES = sorted({axis for name in SPECS for axis in json.loads((ROOT / name).read_text())["axes"]})
+# Representative operations whose selected tile is reported (first instance in schedule order).
+PREFILL_MATMUL = "ffn_gate"       # 6144 x 2048 MLP expansion, the largest prefill matmul family
+DECODE_MATMUL = "result_output"   # 248320 x 2048 vocabulary head, the largest decode matmul
+# Equal-PE shapes re-ranked by the robustness check (count, rows, cols); all hold 4,096 or 2,048 PEs.
+ROBUST_SHAPES = [(1, 64, 64), (2, 32, 64), (2, 64, 32), (4, 16, 64), (4, 32, 32), (4, 64, 16), (8, 16, 32),
+                 (8, 32, 16), (16, 16, 16), (1, 32, 64), (1, 64, 32), (2, 32, 32), (4, 16, 32), (4, 32, 16),
+                 (8, 16, 16)]
+ROBUST_L1_MIB = [4, 8, 16]
+ROBUST_WORKLOADS = ["pp512-fa-on", "pp128-fa-on"]
+
+
+def first_note(rows, op, prefix=None):
+    for row in rows:
+        if row["op"] == op and (prefix is None or row["name"].startswith(prefix)):
+            return row["note"]
+    return ""
+
+
+def detail(workload, cfg):
+    """Selected tiles and the traffic split for one configuration (GB = 1e9 bytes)."""
+    result = evaluate(workload, cfg, detail=True)
+    pf, dc = result["phases"]["prefill"], result["phases"]["decode"]
+    m = cfg["matrix"]
+    return {
+        "total_pe": m["count"] * m["rows"] * m["cols"],
+        "tile_budget_per_unit_kib": cfg["l1"]["mib"] * 1024 * cfg["l1"]["tile_fraction"] / max(1, m["count"]),
+        "prefill_matmul_tile": first_note(pf["rows"], "MUL_MAT", PREFILL_MATMUL),
+        "decode_matmul_tile": first_note(dc["rows"], "MUL_MAT", DECODE_MATMUL),
+        "prefill_attention_tile": first_note(pf["rows"], "FLASH_ATTN_EXT"),
+        "prefill_weights_hbm_gb": pf["bytes"]["weights_hbm"] / 1e9,
+        "prefill_act_hbm_gb": pf["bytes"]["act_hbm"] / 1e9,
+        "prefill_l1_gb": pf["bytes"]["l1"] / 1e9,
+        "decode_weights_hbm_gb": dc["bytes"]["weights_hbm"] / 1e9,
+        "decode_l1_gb": dc["bytes"]["l1"] / 1e9,
+        "prefill_l1_service_s": pf["l1_service_s"],
+        "prefill_matrix_busy_s": pf["pool_busy"].get("Matrix", 0.0),
+    }
+
+
+def run_specs():
+    rows, studies = [], []
+    for name in SPECS:
+        spec, cfg, workload, records, summary = study(ROOT / name)
+        for (assignment, point_cfg), record in zip(sweep.grid(cfg, spec["axes"]), records):
+            if record["config_hash"] != config.config_hash(point_cfg):
+                raise RuntimeError(f"{spec['id']}: grid order differs from the study records")
+            keep = {k: record[k] for k in ("valid", "errors", "cost", "dsp", "prefill_s", "decode_s",
+                                           "prefill_binding", "decode_binding", "config_hash")}
+            rows.append({"study": spec["id"], **{k: assignment.get(k, "") for k in ALL_AXES},
+                         **keep, **detail(workload, point_cfg)})
+        studies.append({key: summary[key] for key in ("id", "baseline", "workload", "config_hash", "axes", "objectives",
+                                                      "points", "valid_points", "invalid_points", "frontier",
+                                                      "records_sha256")}
+                       | {"spec": name, "spec_sha256": hashlib.sha256((ROOT / name).read_bytes()).hexdigest()})
+    return rows, studies
+
+
+def robustness(base, run):
+    rows = []
+    for wl_name in ROBUST_WORKLOADS:
+        workload = load_workload(ROOT / run / "graphs" / wl_name)
+        for mib in ROBUST_L1_MIB:
+            for count, r, c in ROBUST_SHAPES:
+                cfg = copy.deepcopy(base)
+                cfg["matrix"].update(count=count, rows=r, cols=c)
+                cfg["l1"]["mib"] = mib
+                record = sweep.summarize(evaluate(workload, cfg))
+                rows.append({"workload": wl_name, "l1.mib": mib, "matrix.count": count, "matrix.rows": r,
+                             "matrix.cols": c, "total_pe": count * r * c,
+                             **{k: record[k] for k in ("valid", "errors", "prefill_s", "decode_s",
+                                                       "prefill_binding", "decode_binding")}})
+    return rows
+
+
+def write_csv(path, rows):
+    with path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=list(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def git(*args):
+    return subprocess.check_output(["git", *args], cwd=ROOT, text=True).strip()
+
+
+def main():
+    rows, studies = run_specs()
+    baseline = json.loads((ROOT / json.loads((ROOT / SPECS[0]).read_text())["baseline"]).read_text())
+    base, _ = config.load_profile(ROOT / baseline["profile"])
+    robust = robustness(base, baseline["run"])
+    write_csv(HERE / "points.csv", rows)
+    write_csv(HERE / "robustness.csv", robust)
+    summary = {
+        "method": "engine/sweeps/run.py study() per spec, then sbengine.evaluate(detail=True) per point",
+        "engine_version": VERSION, "baseline": baseline["id"], "run": baseline["run"],
+        "studies": studies,
+        "robustness": {"workloads": ROBUST_WORKLOADS, "l1_mib": ROBUST_L1_MIB, "shapes": ROBUST_SHAPES,
+                       "note": "Re-ranks equal-PE shapes; not an SRAM design study."},
+        "reproduction": {"command": "python -B research/compute-mapping/2026-10-17-tiling-sweep/analyze.py",
+                         "git_head": git("rev-parse", "HEAD"),
+                         "uncommitted_inputs": bool(git("status", "--porcelain", "--", "engine", "core",
+                                                        Path(__file__).relative_to(ROOT).as_posix())),
+                         "script_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()},
+        "limitations": ["Analytical estimates under the provisional characterized-v1 baseline; cost is a unitless proxy.",
+                        "SRAM (l1.*) is held at the baseline except in the labelled robustness check.",
+                        "Feasibility flags do not establish physical fit, timing closure or numerical quality."],
+    }
+    (HERE / "summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+    print(f"{len(rows)} sweep points, {sum(r['valid'] for r in rows)} valid; {len(robust)} robustness points")
+
+
+if __name__ == "__main__":
+    main()
