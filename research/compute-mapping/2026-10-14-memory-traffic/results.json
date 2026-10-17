@@ -1,0 +1,181 @@
+{
+ "weights_elements": 1881276416,
+ "partial_sums": [
+  {
+   "case": "ffn_gate/up decode",
+   "weight_bytes": 12582912,
+   "keep": 24576,
+   "spill_timeloop": 73728,
+   "spill_per8": 12558336
+  },
+  {
+   "case": "ffn_gate/up pp128 prefill",
+   "weight_bytes": 12582912,
+   "keep": 3145728,
+   "spill_timeloop": 9437184,
+   "spill_per8": 1607467008
+  },
+  {
+   "case": "ffn_out decode",
+   "weight_bytes": 12582912,
+   "keep": 8192,
+   "spill_timeloop": 90112,
+   "spill_per8": 12574720
+  },
+  {
+   "case": "ffn_out pp128 prefill",
+   "weight_bytes": 12582912,
+   "keep": 1048576,
+   "spill_timeloop": 11534336,
+   "spill_per8": 1609564160
+  },
+  {
+   "case": "output head",
+   "weight_bytes": 508559360,
+   "keep": 993280,
+   "spill_timeloop": 2979840,
+   "spill_per8": 507566080
+  }
+ ],
+ "deltanet_state": [
+  {
+   "batch": 1,
+   "keep": 0.0,
+   "hbm_bytes": 40402944.0,
+   "sram_bytes": 0.0,
+   "vs_INT8": 0.02147634640841636,
+   "vs_INT4": 0.04295269281683272
+  },
+  {
+   "batch": 1,
+   "keep": 0.5,
+   "hbm_bytes": 20201472.0,
+   "sram_bytes": 10100736.0,
+   "vs_INT8": 0.01073817320420818,
+   "vs_INT4": 0.02147634640841636
+  },
+  {
+   "batch": 1,
+   "keep": 1.0,
+   "hbm_bytes": 0.0,
+   "sram_bytes": 20201472.0,
+   "vs_INT8": 0.0,
+   "vs_INT4": 0.0
+  },
+  {
+   "batch": 8,
+   "keep": 0.0,
+   "hbm_bytes": 323223552.0,
+   "sram_bytes": 0.0,
+   "vs_INT8": 0.17181077126733088,
+   "vs_INT4": 0.34362154253466176
+  },
+  {
+   "batch": 8,
+   "keep": 0.5,
+   "hbm_bytes": 161611776.0,
+   "sram_bytes": 80805888.0,
+   "vs_INT8": 0.08590538563366544,
+   "vs_INT4": 0.17181077126733088
+  },
+  {
+   "batch": 8,
+   "keep": 1.0,
+   "hbm_bytes": 0.0,
+   "sram_bytes": 161611776.0,
+   "vs_INT8": 0.0,
+   "vs_INT4": 0.0
+  },
+  {
+   "batch": 32,
+   "keep": 0.0,
+   "hbm_bytes": 1292894208.0,
+   "sram_bytes": 0.0,
+   "vs_INT8": 0.6872430850693235,
+   "vs_INT4": 1.374486170138647
+  },
+  {
+   "batch": 32,
+   "keep": 0.5,
+   "hbm_bytes": 646447104.0,
+   "sram_bytes": 323223552.0,
+   "vs_INT8": 0.34362154253466176,
+   "vs_INT4": 0.6872430850693235
+  },
+  {
+   "batch": 32,
+   "keep": 1.0,
+   "hbm_bytes": 0.0,
+   "sram_bytes": 646447104.0,
+   "vs_INT8": 0.0,
+   "vs_INT4": 0.0
+  }
+ ],
+ "handoffs": [
+  {
+   "case": "ffn decode",
+   "L0": 110592,
+   "L1": 36864,
+   "L2": 12288,
+   "weight_bytes": 37748736
+  },
+  {
+   "case": "ffn pp512 prefill",
+   "L0": 56623104,
+   "L1": 18874368,
+   "L2": 6291456,
+   "weight_bytes": 37748736
+  },
+  {
+   "case": "output head",
+   "L0": 1986560,
+   "L1": 496640,
+   "L2": 0,
+   "weight_bytes": 508559360
+  }
+ ],
+ "decode_feed": [
+  {
+   "array": "8x8",
+   "port": 8,
+   "precision": "INT8",
+   "need_bytes_per_cycle": 64.0,
+   "util_bound": 0.125
+  },
+  {
+   "array": "8x8",
+   "port": 8,
+   "precision": "INT4",
+   "need_bytes_per_cycle": 32.0,
+   "util_bound": 0.25
+  },
+  {
+   "array": "16x16",
+   "port": 32,
+   "precision": "INT8",
+   "need_bytes_per_cycle": 256.0,
+   "util_bound": 0.125
+  },
+  {
+   "array": "16x16",
+   "port": 32,
+   "precision": "INT4",
+   "need_bytes_per_cycle": 128.0,
+   "util_bound": 0.25
+  },
+  {
+   "array": "32x32",
+   "port": 64,
+   "precision": "INT8",
+   "need_bytes_per_cycle": 1024.0,
+   "util_bound": 0.0625
+  },
+  {
+   "array": "32x32",
+   "port": 64,
+   "precision": "INT4",
+   "need_bytes_per_cycle": 512.0,
+   "util_bound": 0.125
+  }
+ ]
+}
