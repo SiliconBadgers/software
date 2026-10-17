@@ -12,31 +12,10 @@ that live in HBM (a real liveness footprint, replacing the explorer's peak-worki
 import bisect
 import math
 
-from . import groups
-from .costs import FUSIBLE_CONSUMERS, FUSIBLE_PRODUCERS
+from .mapping import fused_roots  # compatibility export; decisions are owned by mapping
 
 
-def fused_roots(g, policy):
-    """Roots whose producer->consumer edge is fused, so the intermediate is never stored.
 
-    "chains": the result has exactly one consumer node and that consumer is an elementwise epilogue of a compute
-    producer. Optimistic (the accelerator must support the epilogue).
-    "groups": the result stays inside one anchored fusion group (groups.py): any single-consumer edge within a
-    layer, around at most one compute anchor, including prologues (a state read feeding the recurrence), cache
-    writes and the whole attention core. More optimistic than "chains"; an upper bracket on what fusion removes."""
-    if policy == "groups":
-        return set(groups.analyze(g).fused_roots)
-    if policy != "chains":
-        return set()
-    fused = set()
-    for root, prod_idx in g.producer.items():
-        consumers = set(g.consumers.get(root, []))
-        if len(consumers) != 1:
-            continue
-        c, p = g.nodes[next(iter(consumers))], g.nodes[prod_idx]
-        if c.op in FUSIBLE_CONSUMERS and p.op in FUSIBLE_PRODUCERS:
-            fused.add(root)
-    return fused
 
 
 def drop_fused(costs, fused):

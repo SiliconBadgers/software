@@ -1,0 +1,10 @@
+{
+  "id": "joint-matrix-l1-v1",
+  "baseline": "engine/designs/baselines/characterized-v1/record.json",
+  "workload": "pp512-fa-on",
+  "axes": {"matrix.count": [1, 2, 4, 8], "l1.banks": [32, 64, 128, 256]},
+  "objectives": [["cost", "min"], ["decode_s", "min"]],
+  "decision": "joint",
+  "prerequisites": ["compute", "local-memory"],
+  "reference": "engine/README.md"
+}

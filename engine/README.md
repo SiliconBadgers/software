@@ -32,7 +32,13 @@ the default (`docs/EQUATIONS.md` 2.14).
 
 ## Run it
 
-From this directory (Python 3.13, numpy; no other dependencies):
+For pinned reproduction, use the [full resolved profile and decision record](designs/README.md)
+with an explicit run/workload; [organized studies](sweeps/README.md) reuse these
+same methods. The commands below retain the existing discovery/override behavior
+for interactive exploration. See [design rules](../docs/DESIGN-RULES.md) and the
+[current report](../REPORT.md) for stage ownership and current limitations.
+
+From this directory (Python 3.12+; NumPy for measured CPU validation and the full tests):
 
 ```
 python -m sbengine list                                   # workloads in the newest run under results/
@@ -47,7 +53,7 @@ python -m sbengine montecarlo --designs accel-balanced accel-efficient
 python -m sbengine parity                                 # MAC accounting vs every captured summary
 python -m sbengine validate-cpu                           # held-out check against measured CPU op times (--report writes per-class tables)
 python -m sbengine serve                                  # interactive modelling page: http://127.0.0.1:8765
-python -m unittest discover -s tests                      # 82 tests
+python -m unittest discover -s tests                      # includes pinned characterization and stage contracts
 ```
 
 `serve` opens the modelling web page (`sbengine/web/index.html`). Unlike the static run browser in
@@ -71,10 +77,12 @@ workload and the engine version, so a CSV can be reproduced or challenged later.
 
 | Path | What |
 |---|---|
-| `sbengine/graph.py` | Load a capture: typed nodes, view-chain roots, storage kinds (weight / KV / state / input / activation), hazards |
-| `sbengine/costs.py` | Per-node equations: matmul, fused attention, recurrence, conv, vector, memory ops; tile search |
+| `../core/cdfg/`, `sbengine/graph.py` | Canonical captured graph representation; old import path is a compatibility adapter |
+| `sbengine/workload.py` | Captured phase pairing and run discovery, separate from representation |
+| `sbengine/mapping.py` | Existing capability/implementation, tile, recurrence-lowering and fusion choices; compute prices needed for selection are retained |
+| `sbengine/costs.py` | Unit-service equations and work/traffic accounting, consuming explicit mapping records |
 | `sbengine/groups.py` | Anchored fusion groups and parallel projection groups, ported from the operation dependency map (`memory.fusion = groups`) |
-| `sbengine/memory.py` | Fusion rule and activation residency simulation (plus the explorer's spill proxy, for ablation) |
+| `sbengine/memory.py` | Apply fusion choices and simulate activation residency; legacy spill proxy and compatibility fusion import remain |
 | `sbengine/schedule.py` | Serial sum, dependency-aware list schedule, lower bound |
 | `sbengine/model.py` | `evaluate()`: one workload under one config; feasibility checks |
 | `sbengine/config.py`, `profiles/` | Defaults, validation, overrides, hashing; `accel-balanced`, `accel-efficient`, `legacy-equations` |

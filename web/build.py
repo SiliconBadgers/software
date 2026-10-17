@@ -104,11 +104,12 @@ def build(output, ref, preview=False):
             dest.parent.mkdir(parents=True, exist_ok=True)
             dest.write_text(json.dumps(data, separators=(",", ":")) + "\n")
     if any(component["id"] == "qwen-python" for component in registry["components"]):
-        sys.path.insert(0, str(ROOT / "engine"))
+        previous_path = sys.path[:]
+        sys.path[:0] = [str(ROOT / "core"), str(ROOT / "engine")]
         try:
             from sbengine.config import DEFAULTS
-            from sbengine.graph import Graph, layer_of
-            files = [{"virtual": "engine/" + asset["target"].removeprefix("assets/python/"),
+            from cdfg import Graph, layer_of
+            files = [{"virtual": asset.get("virtual", "engine/" + asset["target"].removeprefix("assets/python/")),
                       "published": asset["target"]}
                      for component in registry["components"] if component["id"] == "qwen-python"
                      for asset in component["assets"] if asset["target"].startswith("assets/python/")]
@@ -154,7 +155,7 @@ def build(output, ref, preview=False):
                         json.dumps({"nodes": nodes, "edges": edges, "author": "Raghav Iyer", "grouping": False},separators=(",", ":")) + "\n")
             (output / "assets/captures/index.json").write_text(json.dumps(capture_index) + "\n")
         finally:
-            sys.path.pop(0)
+            sys.path[:] = previous_path
     copy(ROOT / "research/compute-mapping/2026-10-03-recurrence-multiplier-sensitivity/sweeps.json",
          "assets/studies/recurrence.json")
     statuses = []

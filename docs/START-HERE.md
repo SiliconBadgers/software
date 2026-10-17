@@ -4,6 +4,9 @@ Use llama.cpp profiling and numerical evidence to guide compute-unit boundaries,
 
 ## Assignment
 
+For maintained source, baselines and reproduction boundaries, see
+[scientific code organization](DESIGN-RULES.md).
+
 - [Extend llama.cpp profiling and recommend compute boundaries](https://github.com/SiliconBadgers/software/issues/3)
 
 1. Reproduce and read the recorded 2026-09-22 baseline, report and CPU profiler methodology before extending it. Keep recorded results unchanged.
@@ -25,10 +28,14 @@ Use llama.cpp profiling and numerical evidence to guide compute-unit boundaries,
 
 ## What runs today
 
-A reproducible CPU/Metal profiling package and the small MAC reference example exist. CPU time shares are not accelerator area or speedup. Mixed Q4_K_M results do not validate the slide's custom INT4/group-64 proposal.
+A CPU-reference profiling workflow with optional Metal/CUDA execution, captured
+CDFGs and the existing analytical engine are available. See the [current report](../REPORT.md),
+[resolved baseline](../engine/designs/README.md), [study reproduction](../engine/sweeps/README.md)
+and [component checks](../tests/README.md). CPU time shares are not accelerator area
+or speedup; mixed Q4_K_M is not a custom uniform INT4 validation.
 
-These folders organize the work; they do not complete the issues. Use the
-existing evidence now and publish useful intermediate results. Arrange a team
-meeting this week to divide the work and agree on next steps.
+These structures organize the work; they do not close the research objective.
+Use explicit evidence, keep unresolved decisions provisional and publish useful
+intermediate results through the repository's existing branch/PR review process.
 
 Follow [CONTRIBUTING.md](../CONTRIBUTING.md) before editing or committing.

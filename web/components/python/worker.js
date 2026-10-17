@@ -20,7 +20,7 @@ async function initialize() {
     python.FS.writeFile(path, await fetchFile(file.published));
   }
   await python.runPythonAsync(
-    'import sys\nsys.path.insert(0, "/engine")\nfrom bridge import run\n',
+    'import sys\nsys.path[:0] = ["/core", "/engine"]\nfrom bridge import run\n',
   );
 }
 async function execute(message) {

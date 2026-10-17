@@ -17,10 +17,18 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
+import sys
+
+# Preserve the standalone analysis entry point while using the shared sibling package.
+_core = str(Path(__file__).resolve().parents[1])
+if _core not in sys.path:
+    sys.path.insert(0, _core)
+from cdfg import METADATA_OPS
+from cdfg.work import dense_macs
 
 from result_io import open_csv, output_dir, write_json, write_text
 
-VIEWS = {"NONE", "VIEW", "RESHAPE", "PERMUTE", "TRANSPOSE"}
+VIEWS = METADATA_OPS
 COLORS = {"matrix": "#dbeafe", "recurrent": "#ede9fe", "convolution": "#ccfbf1",
           "vector": "#fef3c7", "memory": "#e2e8f0", "metadata": "#f1f5f9"}
 RECURRENT_OPS = {"GATED_DELTA_NET"}
@@ -30,12 +38,7 @@ ATTENTION_OPS = {"SOFT_MAX", "FLASH_ATTN_EXT"}
 def macs_of(t, ts):
     """MAC count for the two supported dense ops, else None. Shared with fusion.py/offload.py
     so the three tools never compute this figure two different ways."""
-    op = t["op"]
-    if op == "MUL_MAT":
-        return t["elements"] * ts[t["sources"][0]["tensor"]]["shape"][0]
-    if op == "SSM_CONV":
-        return t["elements"] * ts[t["sources"][1]["tensor"]]["shape"][0]
-    return None
+    return dense_macs(t["op"], t["elements"], lambda slot: ts[t["sources"][slot]["tensor"]]["shape"])
 
 
 def category(n):
