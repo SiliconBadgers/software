@@ -61,7 +61,7 @@ class UnixLauncherTests(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 23, result.stderr)
             called = json.loads(record.read_text())
-            self.assertEqual(called["cwd"], str(cwd))
+            self.assertTrue(Path(called["cwd"]).samefile(cwd))
             self.assertEqual(called["args"], [
                 "run", "--locked", "--project", str(ROOT), "--group", "profiling",
                 "--python", "a python path with spaces", "python",
@@ -105,7 +105,7 @@ class WindowsLauncherTests(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 23, result.stderr)
             called = json.loads(record.read_text())
-            self.assertEqual(Path(called["cwd"]), cwd)
+            self.assertTrue(Path(called["cwd"]).samefile(cwd))
             self.assertEqual(called["args"], [
                 "run", "--locked", "--project", str(ROOT), "--group", "profiling",
                 "--python", "a python path with spaces", "python",
