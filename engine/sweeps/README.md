@@ -21,6 +21,11 @@ overwritten. [Compact summaries](../../docs/sweeps/README.md) retain provenance
 and key results. The cost objective is unitless, not calibrated implementation
 cost; selecting a baseline remains a separate review decision.
 
+The `sram/` specifications vary L1 capacity, banking, the static tile/state/
+activation partition and the weight path/fusion organization with compute held
+at the baseline. Their partition and traffic analysis and results are in the
+[SRAM study](../../research/compute-mapping/2026-10-18-sram-sweep/REPORT.md).
+
 Sensitivity, switch/ablation and seeded Monte Carlo are available in the native
 CLI. Use explicit `--run`, `--graph` and resolved `--profile` inputs; Monte Carlo
 design paths should name resolved configurations. Review the
