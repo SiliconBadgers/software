@@ -1,0 +1,270 @@
+{
+  "method": "engine/sweeps/run.py study() per spec, then sbengine.evaluate(detail=True) per point",
+  "engine_version": "0.1.0",
+  "baseline": "characterized-v1",
+  "run": "results/2026-09-27_1839_windows-2",
+  "studies": [
+    {
+      "id": "sram-capacity-v1",
+      "baseline": "characterized-v1",
+      "workload": "pp512-fa-on",
+      "config_hash": "bfa38d454d83",
+      "axes": {
+        "l1.mib": [
+          2,
+          4,
+          8,
+          16,
+          32,
+          64
+        ]
+      },
+      "objectives": [
+        [
+          "cost",
+          "min"
+        ],
+        [
+          "prefill_s",
+          "min"
+        ],
+        [
+          "decode_s",
+          "min"
+        ]
+      ],
+      "points": 6,
+      "valid_points": 5,
+      "invalid_points": 1,
+      "frontier": [
+        {
+          "l1.mib": 4,
+          "cost": 9720.0,
+          "prefill_s": 0.6628954204151424,
+          "decode_s": 0.014382495251831499
+        }
+      ],
+      "records_sha256": "054c15538f86798f67fbd9bb00b55ec34648d964f1a5a1098722ea17acddf4b8",
+      "spec": "engine/sweeps/sram/capacity.json",
+      "spec_sha256": "366e5e633c36ea0ebf2157ff101186807f4d8e78ad8f9c9fb83f8b06c51e76b7"
+    },
+    {
+      "id": "sram-bandwidth-v1",
+      "baseline": "characterized-v1",
+      "workload": "pp512-fa-on",
+      "config_hash": "bfa38d454d83",
+      "axes": {
+        "l1.banks": [
+          16,
+          32,
+          64,
+          128,
+          256
+        ],
+        "l1.bytes_per_bank_cycle": [
+          8,
+          16,
+          32
+        ]
+      },
+      "objectives": [
+        [
+          "cost",
+          "min"
+        ],
+        [
+          "prefill_s",
+          "min"
+        ],
+        [
+          "decode_s",
+          "min"
+        ]
+      ],
+      "points": 15,
+      "valid_points": 15,
+      "invalid_points": 0,
+      "frontier": [
+        {
+          "l1.banks": 16,
+          "l1.bytes_per_bank_cycle": 32,
+          "cost": 9848.0,
+          "prefill_s": 0.8166536445909698,
+          "decode_s": 0.027378252003205074
+        },
+        {
+          "l1.banks": 32,
+          "l1.bytes_per_bank_cycle": 32,
+          "cost": 9976.0,
+          "prefill_s": 0.6637009875946295,
+          "decode_s": 0.014382495251831499
+        },
+        {
+          "l1.banks": 64,
+          "l1.bytes_per_bank_cycle": 32,
+          "cost": 10232.0,
+          "prefill_s": 0.6613651429059848,
+          "decode_s": 0.007931068168498158
+        },
+        {
+          "l1.banks": 128,
+          "l1.bytes_per_bank_cycle": 32,
+          "cost": 10744.0,
+          "prefill_s": 0.6604900178274691,
+          "decode_s": 0.0053159048876811775
+        }
+      ],
+      "records_sha256": "e7a38cd86e69f37362165a170eece869e002e06c3b65177755901f57896d2f0c",
+      "spec": "engine/sweeps/sram/bandwidth.json",
+      "spec_sha256": "f3aef810308206500d51638d5b07a967858950863c3235d870e79f52d657f84f"
+    },
+    {
+      "id": "sram-partition-v1",
+      "baseline": "characterized-v1",
+      "workload": "pp512-fa-on",
+      "config_hash": "bfa38d454d83",
+      "axes": {
+        "l1.tile_fraction": [
+          0.25,
+          0.375,
+          0.5,
+          0.625
+        ],
+        "l1.state_reserve": [
+          0.125,
+          0.25,
+          0.375
+        ]
+      },
+      "objectives": [
+        [
+          "prefill_s",
+          "min"
+        ],
+        [
+          "decode_s",
+          "min"
+        ]
+      ],
+      "points": 12,
+      "valid_points": 11,
+      "invalid_points": 1,
+      "frontier": [
+        {
+          "l1.tile_fraction": 0.25,
+          "l1.state_reserve": 0.125,
+          "cost": 10232.0,
+          "prefill_s": 0.6627333808547028,
+          "decode_s": 0.014382495251831499
+        }
+      ],
+      "records_sha256": "0d11489440aad29081e3bb5364b3d23f89bf81e3d515d3125620f5078fabb5e3",
+      "spec": "engine/sweeps/sram/partition.json",
+      "spec_sha256": "249986928287698cb4f5bcf4f88cef1a5ef9902976384aa01b31bb2f584fcaf4"
+    },
+    {
+      "id": "sram-organization-v1",
+      "baseline": "characterized-v1",
+      "workload": "pp512-fa-on",
+      "config_hash": "bfa38d454d83",
+      "axes": {
+        "memory.weight_path": [
+          "via_l1",
+          "direct"
+        ],
+        "memory.fusion": [
+          "chains",
+          "groups",
+          "none"
+        ]
+      },
+      "objectives": [
+        [
+          "cost",
+          "min"
+        ],
+        [
+          "prefill_s",
+          "min"
+        ],
+        [
+          "decode_s",
+          "min"
+        ]
+      ],
+      "points": 6,
+      "valid_points": 6,
+      "invalid_points": 0,
+      "frontier": [
+        {
+          "memory.weight_path": "via_l1",
+          "memory.fusion": "chains",
+          "cost": 10232.0,
+          "prefill_s": 0.6637009875946295,
+          "decode_s": 0.014382495251831499
+        },
+        {
+          "memory.weight_path": "via_l1",
+          "memory.fusion": "groups",
+          "cost": 10232.0,
+          "prefill_s": 0.6637088321001242,
+          "decode_s": 0.014221879867216118
+        },
+        {
+          "memory.weight_path": "direct",
+          "memory.fusion": "chains",
+          "cost": 11256.0,
+          "prefill_s": 0.6606520573879087,
+          "decode_s": 0.005351288285117081
+        },
+        {
+          "memory.weight_path": "direct",
+          "memory.fusion": "groups",
+          "cost": 11256.0,
+          "prefill_s": 0.6608190891729064,
+          "decode_s": 0.005351021618450414
+        }
+      ],
+      "records_sha256": "7da7799d3f2bf18fea27ec4c505f760717f54d3a6545b88956e1616503ccbc2c",
+      "spec": "engine/sweeps/sram/organization.json",
+      "spec_sha256": "264a347b7569bc5f2032ab1e7dca8f504b62480962180df0e30a5873bd8dadd0"
+    }
+  ],
+  "robustness": {
+    "workloads": [
+      "pp512-fa-on",
+      "pp128-fa-on",
+      "pp512-fa-off"
+    ],
+    "matrix_count": [
+      2,
+      4,
+      8
+    ],
+    "l1_mib": [
+      4,
+      8,
+      16,
+      32
+    ],
+    "l1_banks": [
+      32,
+      64,
+      128,
+      256
+    ],
+    "note": "Re-ranks capacity and banking settings; not a compute or array-shape study."
+  },
+  "reproduction": {
+    "command": "python -B research/compute-mapping/2026-10-18-sram-sweep/analyze.py",
+    "git_head": "1073292839b565d3941dd462318e1672f7203bed",
+    "uncommitted_inputs": false,
+    "script_sha256": "c732faba26d271825fbf41dfbb88a75b2341dafa7d13f7f61bc07170a3a07172"
+  },
+  "limitations": [
+    "Analytical estimates under the provisional characterized-v1 baseline; cost is a unitless proxy.",
+    "Compute (matrix.*) is held at the baseline except in the labelled robustness check.",
+    "The cost proxy prices L1 capacity and bank count but not bank width (bytes_per_bank_cycle).",
+    "Feasibility flags do not establish physical fit, banking/routing, area, power or timing closure."
+  ]
+}
