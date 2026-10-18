@@ -1,5 +1,9 @@
 # Validation record
 
+For current reruns from `engine/`, use `uv run --locked --group engine python`
+in place of the `python` prefix in the recorded commands below. See
+[the engine setup](../README.md#run-it). Recorded settings and results are unchanged.
+
 What was checked, how, what came out, and what is **not** validated. Nothing here validates the full accelerator: the
 checks establish that the engine's *accounting* is right and that it reproduces the explorer it replaces. The accelerator
 timing equations are analytical estimates until RTL or synthesis numbers replace the placeholders in `ASSUMPTIONS.md`. No

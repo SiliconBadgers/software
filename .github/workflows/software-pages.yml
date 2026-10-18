@@ -24,13 +24,13 @@ jobs:
         env:
           PREVIEW_REF: ${{ inputs.preview_ref }}
         run: |
-          python3 - <<'PY'
-          import os, subprocess
-          ref = os.environ.get('PREVIEW_REF') or 'main'
-          subprocess.run(['git', 'check-ref-format', '--branch', ref], check=True)
-          if ref == 'gh-pages': raise SystemExit('gh-pages contains published output, not source')
-          with open(os.environ['GITHUB_OUTPUT'], 'a') as out: out.write('ref=' + ref + '\n')
-          PY
+          ref="${PREVIEW_REF:-main}"
+          git check-ref-format --branch "$ref"
+          if [ "$ref" = gh-pages ]; then
+            echo 'gh-pages contains published output, not source' >&2
+            exit 1
+          fi
+          printf 'ref=%s\n' "$ref" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v4
         with:
           ref: ${{ steps.reference.outputs.ref }}
@@ -38,33 +38,36 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
+          version: '0.12.23'
           python-version: '3.12'
+          enable-cache: true
+      - name: Sync locked analysis dependencies
+        run: uv sync --locked --group analysis
       - name: Check and build source
         env:
           SOURCE_REF: ${{ steps.reference.outputs.ref }}
           GH_TOKEN: ${{ github.token }}
         run: |
           node experiments/llama-cpp/2026-09-24-qwen35-2b/scripts/test_model.cjs
-          python3 -m pip install numpy==2.5.3
-          python3 -m unittest discover -s engine/tests -v
+          uv run --locked --group analysis python -m unittest discover -s engine/tests -v
           for script in test_sensitivity test_scheduler test_joint_resources test_recurrence_penalty; do
             node "experiments/llama-cpp/2026-09-24-qwen35-2b/scripts/$script.cjs"
           done
-          python3 -m unittest discover -s tests/web -v
+          uv run --locked --group analysis python -m unittest discover -s tests/web -v
           if [ "$SOURCE_REF" = main ]; then
-            python3 web/build.py --ref "$SOURCE_REF"
+            uv run --locked --group analysis python web/build.py --ref "$SOURCE_REF"
           else
-            python3 web/build.py --ref "$SOURCE_REF" --preview
+            uv run --locked --group analysis python web/build.py --ref "$SOURCE_REF" --preview
           fi
       - name: Check the rendered workspace
         run: |
           npm install --prefix build/browser-tests --no-save --ignore-scripts playwright@1.62.1
           build/browser-tests/node_modules/.bin/playwright install --with-deps chromium
-          python3 -m http.server 8767 --directory build/site > /tmp/software-web-server.log 2>&1 &
-          NODE_PATH="$PWD/build/browser-tests/node_modules" node tests/web/smoke.cjs
-          NODE_PATH="$PWD/build/browser-tests/node_modules" node tests/web/python.cjs
+          uv run --locked --group analysis python -m http.server 8767 --directory build/site > /tmp/software-web-server.log 2>&1 &
+          NODE_PATH="$PWD/build/browser-tests/node_modules" uv run --locked --group analysis node tests/web/smoke.cjs
+          NODE_PATH="$PWD/build/browser-tests/node_modules" uv run --locked --group analysis node tests/web/python.cjs
       - uses: actions/upload-artifact@v4
         with:
           name: workspace-build
@@ -85,6 +88,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: main
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: '0.12.23'
+          python-version: '3.12'
+          enable-cache: true
       - uses: actions/download-artifact@v4
         with:
           name: workspace-build
@@ -93,8 +101,8 @@ jobs:
         env:
           SOURCE_REF: ${{ needs.build.outputs.ref }}
         run: |
-          python3 web/publish.py --build build/site --ref "$SOURCE_REF"
-          python3 - <<'PY'
+          uv run --locked python web/publish.py --build build/site --ref "$SOURCE_REF"
+          uv run --locked python - <<'PY'
           import hashlib, os, re
           ref = os.environ['SOURCE_REF']
           slug = re.sub(r'[^a-zA-Z0-9-]+', '-', ref).strip('-').lower()[:55] or 'branch'
@@ -105,7 +113,7 @@ jobs:
       - name: Read assembled publication
         run: |
           git clone --depth 1 --branch gh-pages "$(git remote get-url origin)" build/publication
-          python3 -c "import shutil; shutil.rmtree('build/publication/.git')"
+          uv run --locked python -c "import shutil; shutil.rmtree('build/publication/.git')"
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
