@@ -1,12 +1,15 @@
-.PHONY: setup doctor test
-PYTHON ?= python3
-setup:
-	$(PYTHON) -c "import sys; assert sys.version_info >= (3, 11), 'Python 3.11+ required'; print('PASS setup: standard-library starter, no packages required')"
+.PHONY: setup doctor test vectors
+UV ?= uv
+PYTHON ?= 3.12
+UV_RUN = $(UV) run --locked --no-default-groups --python "$(PYTHON)"
 CONTRACT ?= ../architecture/contracts/mac-v0.json
 OUT ?= build/mac-vectors.txt
-.PHONY: vectors
+
+setup:
+	$(UV) sync --locked --no-default-groups --python "$(PYTHON)"
+	$(UV_RUN) python -c "import sys; assert sys.version_info >= (3, 11), 'Python 3.11+ required'; print('PASS setup: standard-library starter, no packages required')"
 doctor: setup
 test:
-	$(PYTHON) -m unittest discover -s tests -v
+	$(UV_RUN) python -m unittest discover -s tests -v
 vectors:
-	$(PYTHON) generate_vectors.py --contract "$(CONTRACT)" --output "$(OUT)"
+	$(UV_RUN) python generate_vectors.py --contract "$(CONTRACT)" --output "$(OUT)"

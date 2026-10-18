@@ -1,4 +1,4 @@
-"""Command line: python -m sbengine <command> [options]   (run from the engine/ directory)
+"""Command line: uv run --locked --group engine python -m sbengine <command> [options]   (run from the engine/ directory)
 
   list                      workloads in a run
   eval                      one workload, one profile: timing, bytes, bounds, binding resource
@@ -80,7 +80,7 @@ def cmd_eval(args):
     if optimistic:
         print("assumes (switches off their pessimistic setting): "
               + ", ".join(f"{s['path']}={json.dumps(s['value'])}" for s in optimistic))
-        print("  `python -m sbengine switches` shows what each one is worth")
+        print("  `uv run --locked --group engine python -m sbengine switches` shows what each one is worth")
     for phase in ("prefill", "decode"):
         p = r["phases"][phase]
         b, by = p["bytes"], p["time_by_bound"]

@@ -4,6 +4,19 @@ OS-neutral profiling code. Nothing here assumes a shell, a compiler or a directo
 The OS-specific parts live in [`../unix/`](../unix/) (Linux and macOS) and [`../windows/`](../windows/);
 runs are written to [`../results/`](../results/README.md).
 
+## Python environment
+
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/) 0.12.23 or newer.
+Both entry points use the root `pyproject.toml` and `uv.lock` with the `profiling`
+group. uv creates/synchronizes `.venv` and selects Python 3.12; set `PYTHON` to a
+Python 3.12+ executable/version to override it. There are no manual pip installs,
+activation steps, or requirements-hash stamps. Native compilers and optional
+CUDA/Graphviz still need their normal system installation.
+
+For analysis-only work, run `uv run --locked --group analysis python ...` from the
+repository root. The root MAC tests remain standard-library-only; see
+[SETUP.md](../SETUP.md) for dependency groups and lockfile updates.
+
 ## One command
 
 ```sh
@@ -110,8 +123,8 @@ skips this stage.
 | `harness/` | `profile.cpp` preserves the 2026-09-22 measurement loop with added placement metadata and an optional `NO_HOST` argument. `tests/test_harness_equivalence.py` compares the logit writer, inputs, context settings and timed loop against the recorded program and checks mutation detection. `backend_metadata.h` is shared by the two timing harnesses; `sb-cpu-profile.patch` remains byte-identical to the original. `capture_graph.cpp` (Zeb Taylor's, see its header), `compat_win.h` (`setenv` shim), and `CMakeLists.txt` complete the harness. |
 | `prompts/` | `prompts.json` and the 8 prompt texts (narrative, code, math, JSON records, dialogue, hardware prose, multilingual, repetitive). Add a prompt by adding a file and a line in `prompts.json`. |
 | `runner/` | `cli.py` and the pipeline: `fetch`, `build`, `measure`, `capture`, `hostinfo`, `runpaths`, `platform_profile`. |
-| `analysis/` | `summarize`, `ops`, `validate`, `plot`, `graph`; `result_io` writes LF-only files so outputs are byte-stable across OSes. Recorded `experiments/` is write-protected. `fusion`, `offload` and `compute_mapping` derive operation-sharing and boundary evidence from an existing run's graphs and traces (`python core/analysis/compute_mapping.py results/<run>`); they never re-run the model. `site` builds `results/index.html`, a self-contained browser over one run's graphs (`--no-raw-links` for the committed copy). |
-| `tests/` | `python core/tests/test_regression_0922.py` reproduces the recorded 09-22 analysis outputs from their raw evidence (needs only Python + numpy). |
+| `analysis/` | `summarize`, `ops`, `validate`, `plot`, `graph`; `result_io` writes LF-only files so outputs are byte-stable across OSes. Recorded `experiments/` is write-protected. `fusion`, `offload` and `compute_mapping` derive operation-sharing and boundary evidence from an existing run's graphs and traces (`uv run --locked --group analysis python core/analysis/compute_mapping.py results/<run>`); they never re-run the model. `site` builds `results/index.html`, a self-contained browser over one run's graphs (`--no-raw-links` for the committed copy). |
+| `tests/` | `uv run --locked --group analysis python core/tests/test_regression_0922.py` reproduces the recorded 09-22 analysis outputs from their raw evidence (uses the locked analysis dependencies). |
 
 ## Platform profiles
 

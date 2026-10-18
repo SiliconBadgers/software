@@ -16,6 +16,11 @@ CPU reference, CUDA execution and instrumented CPU use separate build directorie
 
 ## Commands
 
+For current reruns, the platform wrapper uses uv's locked `profiling` group.
+Run core unit tests with `uv run --locked --group profiling python -m unittest
+discover -s core/tests`. The host details and commands below document the original
+verification run.
+
 From the repository root, using the existing local environment and cached model:
 
 ```powershell
