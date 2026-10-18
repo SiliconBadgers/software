@@ -18,6 +18,7 @@ from sbengine.provenance import validate_captures
 from characterization import graph_record
 from sweeps import run as study_runner
 from sweeps.run import study
+from sweeps.specs import NUMERIC_METRICS
 
 
 class Studies(unittest.TestCase):
@@ -79,7 +80,7 @@ class Studies(unittest.TestCase):
         spec = json.loads(path.read_text())
         spec["baseline"] = "engine/designs/missing.json"
         path.write_text(json.dumps(spec))
-        with self.assertRaises(FileNotFoundError):
+        with self.assertRaisesRegex(ValueError, "missing repository reference"):
             study(path)
         path.unlink()
         with self.assertRaisesRegex(ValueError, "missing regression studies: compute/capacity.json"):
@@ -108,7 +109,8 @@ class CaptureIdentities(unittest.TestCase):
         self.path.write_text(json.dumps(self.spec))
         self.baseline_path = self.root / self.spec["baseline"]
         self.baseline = json.loads((ENGINE.parent / self.spec["baseline"]).read_text())
-        for relative in (self.spec["baseline"], self.baseline["profile"]):
+        for relative in (self.spec["baseline"], self.baseline["profile"], self.baseline["decisions"],
+                         self.spec["reference"]):
             destination = self.root / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(ENGINE.parent / relative, destination)
@@ -272,6 +274,175 @@ class CaptureIdentities(unittest.TestCase):
             evaluate.assert_not_called()
             write.assert_not_called()
         self.assertFalse(out.exists())
+
+
+class StudyContract(unittest.TestCase):
+    """Exercise the public runner and CLI, not just the shared validator."""
+
+    def setUp(self):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.directory = Path(temporary.name)
+        self.path = self.directory / "study.json"
+        self.spec = json.loads((ENGINE / "sweeps/compute/capacity.json").read_text())
+        self.spec.update(axes={"matrix.count": [1, 2]}, objectives=[["prefill_s", "min"]])
+
+    def reject_before_use(self, spec=None, raw=None):
+        self.path.write_text(json.dumps(spec) if raw is None else raw)
+        out = self.directory / "must-not-exist"
+        with mock.patch.object(sys, "argv", ["run.py", str(self.path), "--out", str(out)]), \
+                mock.patch.object(study_runner, "load_workload", side_effect=AssertionError("loaded before validation")), \
+                mock.patch.object(study_runner, "load_trace") as trace, \
+                mock.patch.object(study_runner.sweep, "run_sweep") as evaluate, \
+                mock.patch.object(study_runner.sweep, "write_sweep") as write:
+            with self.assertRaises((ValueError, KeyError)):
+                study_runner.main()
+            trace.assert_not_called()
+            evaluate.assert_not_called()
+            write.assert_not_called()
+        self.assertFalse(out.exists())
+
+    def test_malformed_objectives_fail_before_capture_trace_evaluation_or_output(self):
+        invalid = [None, [], {}, "prefill_s", True, 1, ["prefill_s"], [["prefill_s"]],
+                   [["prefill_s", "min", "extra"]], [{"prefill_s": "min"}],
+                   [["missing", "min"]], [[[], "min"]], [[1, "min"]],
+                   [["valid", "min"]], [["prefill_binding", "min"]], [["config_hash", "min"]],
+                   [["prefill_s", "min"], ["prefill_s", "min"]],
+                   [["prefill_s", "min"], ["prefill_s", "max"]]]
+        invalid += [[["prefill_s", direction]] for direction in ("maximize", "minimize", "MIN", "sideways", "", None,
+                                                               True, 1, [], {})]
+        for objectives in invalid:
+            with self.subTest(objectives=objectives):
+                self.reject_before_use({**self.spec, "objectives": objectives})
+        self.reject_before_use({key: value for key, value in self.spec.items() if key != "objectives"})
+
+    def test_invalid_axes_metadata_and_references_fail_before_use(self):
+        patches = [
+            {"axes": []}, {"axes": None}, {"axes": {"matrix.count": []}},
+            {"axes": {"matrix.count": "12"}}, {"axes": {"matrix.count": {"value": 1}}},
+            {"axes": {"matrix.count": 1}}, {"axes": {"matrix.unknown": [1]}},
+            {"axes": {"matrix": [{}], "matrix.count": [1]}}, {"axes": {"hbm.gbs": [230, 460]}},
+            {"decision": "missing"}, {"decision": []}, {"prerequisites": "local-memory"},
+            {"prerequisites": ["missing"]}, {"prerequisites": [[]]}, {"prerequisites": None},
+            {"reference": "missing.md"}, {"reference": "../outside.md"}, {"reference": []},
+            {"baseline": "../outside.json"}, {"baseline": str(ENGINE / "designs/baselines/characterized-v1/record.json")},
+            {"id": "../outside"}, {"id": ""}, {"id": []}, {"workload": "../pp512-fa-on"},
+        ]
+        for patch in patches:
+            with self.subTest(patch=patch):
+                self.reject_before_use({**self.spec, **patch})
+        for raw in ("[]", "null", "true", '{"id":"one","id":"two"}'):
+            self.reject_before_use(raw=raw)
+        for constant in ("NaN", "Infinity", "-Infinity", "1e999"):
+            raw = json.dumps(self.spec).replace('"matrix.count": [1, 2]', f'"matrix.count": [{constant}]')
+            self.reject_before_use(raw=raw)
+        raw = json.dumps(self.spec).replace('"matrix.count": [1, 2]', '"matrix.count": [1], "matrix.count": [2]')
+        self.reject_before_use(raw=raw)
+
+    def test_valid_min_max_and_numeric_axis_objectives_keep_their_direction(self):
+        for metric in ("prefill_s", "matrix.count"):
+            for direction in ("min", "max"):
+                with self.subTest(metric=metric, direction=direction):
+                    self.path.write_text(json.dumps({**self.spec, "objectives": [[metric, direction]]}))
+                    *_, records, summary = study(self.path)
+                    selected = (min if direction == "min" else max)(records, key=lambda row: row[metric])
+                    self.assertEqual(summary["frontier"][0]["matrix.count"], selected["matrix.count"])
+                    numeric = {key for key, value in records[0].items() if type(value) in (int, float)} - {"matrix.count"}
+                    self.assertEqual(NUMERIC_METRICS, numeric)
+
+    def test_baseline_only_and_categorical_axes_are_legitimate_studies(self):
+        for axes in ({}, {"matrix.tile_mode": ["search", "fixed"]},
+                     {"matrix.caps": [["gemm", "requant"], ["gemm"]]}):
+            with self.subTest(axes=axes):
+                self.path.write_text(json.dumps({**self.spec, "id": "additional-v2.1", "axes": axes}))
+                *_, summary = study(self.path)
+                self.assertGreater(summary["points"], 0)
+        self.reject_before_use({**self.spec, "axes": {"matrix.tile_mode": ["search", "fixed"]},
+                                "objectives": [["matrix.tile_mode", "min"]]})
+
+    def test_extreme_numeric_literals_reject_before_use_in_any_location(self):
+        literals = ["1" + "0" * 310, "-1" + "0" * 310, str(int(sys.float_info.max) + 1),
+                    str(-int(sys.float_info.max) - 1), "1" * 5000, "1e309", "-1e309", "NaN", "Infinity",
+                    "-Infinity", "1e-10000", "-1e-10000", "2.4e-324", "-2.4e-324"]
+        for literal in literals:
+            for location in ("axis", "metadata", "nested-axis"):
+                with self.subTest(literal=literal[:32], location=location):
+                    spec = copy.deepcopy(self.spec)
+                    if location == "axis":
+                        spec["axes"]["matrix.count"] = ["LITERAL"]
+                    elif location == "nested-axis":
+                        spec["axes"] = {"matrix.caps": [["LITERAL"]]}
+                    else:
+                        spec["metadata"] = {"nested": ["LITERAL"]}
+                    self.reject_before_use(raw=json.dumps(spec).replace('"LITERAL"', literal))
+
+    def test_numeric_representation_controls_preserve_values_and_types(self):
+        from sweeps.specs import load_spec
+
+        for literal, expected in ((str(int(sys.float_info.max)), int(sys.float_info.max)),
+                                  (str(-int(sys.float_info.max)), -int(sys.float_info.max)),
+                                  (str(2**53 + 1), 2**53 + 1), (repr(sys.float_info.max), sys.float_info.max),
+                                  (repr(sys.float_info.min), sys.float_info.min), ("5e-324", 5e-324),
+                                  ("-5e-324", -5e-324), ("0e-10000", 0.0), ("-0.0", -0.0),
+                                  ('"1e309"', "1e309"), ("true", True)):
+            with self.subTest(literal=literal[:32]):
+                self.path.write_text(json.dumps({**self.spec, "metadata": {"value": "LITERAL"}})
+                                     .replace('"LITERAL"', literal))
+                spec, _, _ = load_spec(ENGINE.parent, self.path)
+                value = spec["metadata"]["value"]
+                self.assertIs(type(value), type(expected))
+                self.assertEqual(value, expected)
+                self.assertEqual(json.dumps(value), json.dumps(expected))
+        for values in (["1", "2"], [True, False], [None]):
+            self.reject_before_use({**self.spec, "axes": {"matrix.count": values},
+                                    "objectives": [["matrix.count", "min"]]})
+
+    def test_every_supported_objective_is_present_and_correct_in_frontier(self):
+        expected_digest = None
+        objectives = [[[metric, direction]] for metric in sorted(NUMERIC_METRICS | {"matrix.count"})
+                      for direction in ("min", "max")]
+        objectives.append([["decode_tps_total", "max"], ["hbm_required_gib", "min"]])
+        for choices in objectives:
+            with self.subTest(objectives=choices):
+                self.path.write_text(json.dumps({**self.spec, "objectives": choices}))
+                spec, _, _, records, summary = study(self.path)
+                selected = sweep.pareto(records, [tuple(item) for item in choices])
+                keys = [*spec["axes"], "cost", "prefill_s", "decode_s"]
+                keys += [metric for metric, _ in choices if metric not in keys]
+                self.assertEqual(summary["frontier"], [{key: row[key] for key in keys} for row in selected])
+                self.assertEqual(json.loads(json.dumps(summary))["frontier"], summary["frontier"])
+                for row in summary["frontier"]:
+                    self.assertEqual(list(row), keys)
+                expected_digest = expected_digest or summary["records_sha256"]
+                self.assertEqual(summary["records_sha256"], expected_digest)
+
+    def test_fixed_descendant_cannot_be_varied_through_parent(self):
+        from sweeps import specs
+
+        original = specs._read
+
+        def fixed_child(path):
+            value = original(path)
+            if path.name == "record.json":
+                value["fixed_assumptions"] = ["hbm.gbs"]
+            return value
+
+        with mock.patch.object(specs, "_read", side_effect=fixed_child):
+            self.reject_before_use({**self.spec, "axes": {"hbm": [{"gbs": 230}]}})
+
+    def test_nonfinite_or_nonnumeric_feasible_results_do_not_reach_output(self):
+        self.path.write_text(json.dumps(self.spec))
+        out = self.directory / "must-not-exist"
+        for value in (None, True, "fast", float("nan"), float("inf"), float("-inf"),
+                      10**310, -(10**310), int(sys.float_info.max) + 1):
+            with self.subTest(value=value), \
+                    mock.patch.object(sys, "argv", ["run.py", str(self.path), "--out", str(out)]), \
+                    mock.patch.object(study_runner.sweep, "run_sweep", return_value=[{"valid": True, "prefill_s": value}]), \
+                    mock.patch.object(study_runner.sweep, "write_sweep") as write:
+                with self.assertRaisesRegex(ValueError, "result for objective"):
+                    study_runner.main()
+                write.assert_not_called()
+                self.assertFalse(out.exists())
 
 
 if __name__ == "__main__":

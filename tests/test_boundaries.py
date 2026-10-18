@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import unittest
 from unittest import mock
@@ -14,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location("boundaries", ROOT / "scripts/check_boundaries.py")
 boundaries = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(boundaries)
+from sbengine import config
 
 
 class Boundaries(unittest.TestCase):
@@ -35,6 +37,32 @@ class Boundaries(unittest.TestCase):
         self.assertIsNone(boundaries.tracked_path_error("results/recorded/trace.jsonl.gz", preserved=True))
         for path in ("build/replay.json", "work/model.gguf", "docs/full/records.json", "new/trace.jsonl.gz"):
             self.assertIsNotNone(boundaries.tracked_path_error(path))
+
+    def test_bulk_families_are_case_and_wrapper_independent(self):
+        names = ("model.gguf", "model.safetensors", "trace.f32", "trace.jsonl",
+                 "records.json", "timeline.json", "pool-schedule.json")
+        wrappers = ("", ".gz", ".gzip", ".bz2", ".xz", ".lzma", ".zst", ".zstd", ".lz4", ".br",
+                    ".zip", ".7z", ".rar", ".tar", ".tgz", ".tbz2", ".txz", ".tar.gz", ".gz.xz")
+        for folder in ("research/new", "experiments/new", "results/new"):
+            for name in names:
+                for wrapper in wrappers:
+                    for variant in ((name + wrapper), (name + wrapper).upper(), (name + wrapper).title()):
+                        with self.subTest(folder=folder, name=variant):
+                            self.assertIsNotNone(boundaries.tracked_path_error(f"{folder}/{variant}"))
+        for path in ("Build/file.txt", "WORK/file.txt", ".VENV/file.txt", "build./file.txt", "Work /file.txt",
+                     "Build\\file.txt", "new/model.GGUF. ", "new/model.gguf:payload", "new/MODEL.GGUF .GZ"):
+            with self.subTest(path=path):
+                self.assertIsNotNone(boundaries.tracked_path_error(path))
+
+    def test_bulk_normalization_preserves_legitimate_research_and_historical_exemption(self):
+        for path in ("research/new/record.json", "research/new/study.json.gz", "research/new/model.gguf.md",
+                     "research/new/MODEL.GGUF.MD", "research/new/model.gguf.md.7z",
+                     "research/new/records.json.md.gz", "research/new/build-notes.md",
+                     "building/source.py", "workload/spec.json", "research/new/build/README.md"):
+            with self.subTest(path=path):
+                self.assertIsNone(boundaries.tracked_path_error(path))
+        self.assertIsNone(boundaries.tracked_path_error("results/original/TRACE.F32.GZ", preserved=True))
+        self.assertIsNotNone(boundaries.tracked_path_error("Build/file.txt", preserved=True))
 
     def test_broken_or_escaping_reference_fails(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -110,17 +138,19 @@ class GitEvidenceBoundaries(unittest.TestCase):
             "historical_gitlinks": {"experiments/tool": self.original_commit}}))
         self.write("web/registry.json", json.dumps({"components": []}))
         self.write("engine/designs/baselines/test/record.json", json.dumps({
+            "id": "test-baseline", "source_commit": self.original_commit,
             "profile": "engine/designs/profile.json", "run": "results/original",
             "decisions": "engine/designs/decisions.json", "captures": self.captures,
             "decoded_capture_sha256": self.decoded_captures,
             "experiment": "engine/designs/experiment.json", "model": {}, "llama_cpp": {},
-            "parent": None, "evidence": ["research/original.md"]}))
+            "parent": None, "evidence": ["research/original.md"],
+            "config_hash": config.config_hash(config.make_config()), "fixed_assumptions": ["hbm"]}))
         self.write("engine/designs/experiment.json", json.dumps({"model": {}, "llama_cpp": {}}))
-        self.write("engine/designs/profile.json", json.dumps({"resolved": True, "config": {"matrix": {"count": 1}}}))
+        self.write("engine/designs/profile.json", json.dumps({"resolved": True, "config": config.make_config()}))
         self.write("engine/designs/decisions.json", json.dumps({"branches": [{"id": "compute"}]}))
-        self.spec = {"baseline": "engine/designs/baselines/test/record.json", "workload": "sample",
+        self.spec = {"id": "fixture-study", "baseline": "engine/designs/baselines/test/record.json", "workload": "sample",
                      "axes": {"matrix.count": [1]}, "decision": "compute", "prerequisites": [],
-                     "reference": "research/original.md"}
+                     "reference": "research/original.md", "objectives": [["decode_s", "min"]]}
         for name in boundaries.REGRESSION_STUDIES:
             self.write(f"engine/sweeps/{name}", json.dumps(self.spec))
         self.git("add", ".")
@@ -165,6 +195,23 @@ class GitEvidenceBoundaries(unittest.TestCase):
         for path in paths:
             with self.subTest(path=path):
                 self.assertIn(f"new bulk output tracked: {path}", errors)
+
+    def test_real_git_rejects_case_and_compression_variants_but_allows_research(self):
+        prohibited = [f"{folder}/new-study/{name}" for folder in ("experiments", "research", "results")
+                      for name in ("MODEL.GGUF", "CHECKPOINT.SAFETENSORS.ZST", "TRACE.F32.GZ", "RUN.JSONL.XZ",
+                                   "RECORDS.JSON.GZ", "TIMELINE.JSON.TAR.GZ", "POOL-SCHEDULE.JSON.ZIP",
+                                   "model.gguf.7z", "model.safetensors.rar")]
+        prohibited += ["Build/probe.txt", "Work/probe.txt", ".VENV/probe.txt"]
+        allowed = ["research/new-study/record.json", "research/new-study/model.gguf.md", "results/new-study/study.json.gz"]
+        for path in prohibited + allowed:
+            self.write(path, "fixture, not actual bulk data")
+        self.git("add", ".")
+        errors = boundaries.check(self.root)
+        self.assertEqual(len(errors), len(prohibited))
+        for path in prohibited:
+            self.assertTrue(any(error.endswith(": " + path) for error in errors), path)
+        for path in allowed:
+            self.assertFalse(any(error.endswith(": " + path) for error in errors), path)
 
     def test_modified_original_fails_unstaged_staged_and_committed(self):
         self.write("research/original.md", "changed finding\n")
@@ -243,6 +290,11 @@ class GitEvidenceBoundaries(unittest.TestCase):
         absent = subprocess.run(["git", "cat-file", "-e", self.original_commit], cwd=checkout, capture_output=True)
         self.assertNotEqual(absent.returncode, 0)
         self.assertEqual(boundaries.check(checkout), [])
+        (checkout / "research/new").mkdir()
+        (checkout / "research/new/MODEL.GGUF.GZ").write_text("fixture")
+        (checkout / "research/new/record.json").write_text("{}")
+        subprocess.run(["git", "add", "."], cwd=checkout, check=True, capture_output=True)
+        self.assertEqual(boundaries.check(checkout), ["new bulk output tracked: research/new/MODEL.GGUF.GZ"])
 
     def test_catalog_additions_are_checked_and_missing_originals_fail(self):
         additional = "engine/sweeps/compute/fourth.json"
@@ -256,6 +308,73 @@ class GitEvidenceBoundaries(unittest.TestCase):
         (self.root / "engine/sweeps/compute/capacity.json").unlink()
         self.assertTrue(any("missing regression studies: compute/capacity.json" in error
                             for error in boundaries.check(self.root)))
+
+    def test_checker_and_runner_reject_the_same_invalid_study_semantics(self):
+        from sweeps import run as runner
+
+        patches = [{"objectives": []}, {"objectives": [["decode_s", "maximize"]]},
+                   {"objectives": [["decode_s", None]]}, {"objectives": [["decode_s"]]},
+                   {"objectives": [["no_metric", "min"]]}, {"objectives": [["valid", "min"]]},
+                   {"objectives": [["decode_s", "min"], ["decode_s", "max"]]},
+                   {"decision": "no_decision"}, {"prerequisites": "compute"},
+                   {"reference": "missing.md"}, {"axes": {"hbm.gbs": [100]}},
+                   {"axes": {"matrix.count": []}}, {"axes": {"matrix.count": "12"}}]
+        path = self.root / "engine/sweeps/compute/fourth.json"
+        for patch in patches:
+            with self.subTest(patch=patch):
+                self.write(str(path.relative_to(self.root)), json.dumps({**self.spec, **patch}))
+                errors = boundaries.reference_errors(self.root)
+                self.assertTrue(any("fourth.json:" in error for error in errors), errors)
+                with mock.patch.object(runner, "ROOT", self.root), \
+                        mock.patch.object(runner, "load_workload", side_effect=AssertionError("loaded before validation")), \
+                        mock.patch.object(runner.sweep, "run_sweep") as evaluate:
+                    with self.assertRaises(ValueError):
+                        runner.study(path)
+                    evaluate.assert_not_called()
+
+    def test_numeric_limits_use_normal_errors_in_checker_and_runner(self):
+        from sweeps import run as runner
+
+        path = self.root / "engine/sweeps/compute/fourth.json"
+        literals = ["1" + "0" * 310, "-1" + "0" * 310, str(int(sys.float_info.max) + 1),
+                    "1" * 5000, "1e999", "-1e999", "1e-10000", "-1e-10000", "NaN", "Infinity"]
+        for literal in literals:
+            for location in ("axis", "metadata"):
+                with self.subTest(literal=literal[:32], location=location):
+                    spec = dict(self.spec)
+                    if location == "axis":
+                        spec["axes"] = {"matrix.count": ["LITERAL"]}
+                    else:
+                        spec["metadata"] = {"nested": ["LITERAL"]}
+                    self.write(str(path.relative_to(self.root)), json.dumps(spec).replace('"LITERAL"', literal))
+                    errors = boundaries.reference_errors(self.root)
+                    found = [error for error in errors if "fourth.json:" in error]
+                    self.assertEqual(len(found), 1, errors)
+                    with mock.patch.object(runner, "ROOT", self.root), \
+                            mock.patch.object(runner, "load_workload", side_effect=AssertionError("loaded before validation")), \
+                            mock.patch.object(runner.sweep, "run_sweep") as evaluate:
+                        with self.assertRaises(ValueError) as caught:
+                            runner.study(path)
+                        self.assertTrue(found[0].endswith(str(caught.exception)), found)
+                        evaluate.assert_not_called()
+
+    def test_representable_numeric_metadata_is_accepted_by_both_entry_points(self):
+        from sweeps import run as runner
+        from sweeps.specs import load_spec
+
+        path = self.root / "engine/sweeps/compute/fourth.json"
+        for literal in (str(int(sys.float_info.max)), str(2**53 + 1), repr(sys.float_info.max),
+                        repr(sys.float_info.min), "5e-324", "-5e-324", "0e-10000", "-0.0"):
+            with self.subTest(literal=literal[:32]):
+                raw = json.dumps({**self.spec, "metadata": ["LITERAL"]}).replace('"LITERAL"', literal)
+                self.write(str(path.relative_to(self.root)), raw)
+                self.assertEqual(boundaries.reference_errors(self.root), [])
+                spec, _, _ = load_spec(self.root, path)
+                self.assertEqual(spec["metadata"], json.loads(raw)["metadata"])
+                with mock.patch.object(runner, "ROOT", self.root), \
+                        mock.patch.object(runner.sweep, "run_sweep", return_value=[]) as enumerate_points:
+                    runner.study(path)
+                    enumerate_points.assert_called_once()
 
     def test_matching_plain_overrides_pass(self):
         for phase in ("prefill", "decode"):

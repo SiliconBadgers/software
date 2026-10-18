@@ -11,9 +11,12 @@ sys.path.insert(0, str(ROOT / "engine"))
 from sbengine.workload import load_workload
 from sbengine.graph import Graph
 from sbengine.provenance import validate_capture, validate_captures
+from sweeps.specs import load_spec, reference
 
 HISTORICAL = ("experiments/", "research/", "results/")
 REGRESSION_STUDIES = ("compute/capacity.json", "local-memory/service.json", "joint/matrix-l1.json")
+COMPRESSION_SUFFIXES = {".gz", ".gzip", ".bz2", ".xz", ".lzma", ".zst", ".zstd", ".lz4", ".br",
+                        ".zip", ".7z", ".rar", ".tar", ".tgz", ".tbz2", ".txz"}
 
 
 def tracked_files(root):
@@ -109,24 +112,22 @@ def import_errors(path, source):
 
 
 def tracked_path_error(path, preserved=False):
-    parts = PurePosixPath(path).parts
+    # Git uses slash-separated paths. Account for case and Win32 trailing-dot/
+    # space aliases, without banning unrelated research or prose extensions.
+    parts = tuple(part.casefold().rstrip(" .") for part in PurePosixPath(path.replace("\\", "/")).parts)
     if not parts:
         return None
     if parts[0] in {"build", "work", ".venv"}:
         return f"generated/local path tracked: {path}"
     if preserved:
         return None
-    if path.endswith((".gguf", ".safetensors", ".f32", ".f32.gz", ".jsonl", ".jsonl.gz")) or parts[-1] in {
+    name = parts[-1].split(":", 1)[0].rstrip(" .")  # NTFS stream spelling does not change the base family.
+    while PurePosixPath(name).suffix in COMPRESSION_SUFFIXES:
+        name = name[:-len(PurePosixPath(name).suffix)].rstrip(" .")
+    if name.endswith((".gguf", ".safetensors", ".f32", ".jsonl")) or name in {
             "records.json", "timeline.json", "pool-schedule.json"}:
         return f"new bulk output tracked: {path}"
     return None
-
-
-def reference(root, name):
-    path = (root / name).resolve()
-    if not path.is_relative_to(root.resolve()) or not path.is_file():
-        raise ValueError(f"missing or escaping repository reference: {name}")
-    return path
 
 
 def reference_errors(root):
@@ -162,21 +163,10 @@ def reference_errors(root):
         specs = []
     for path in specs:
         try:
-            spec = json.loads(path.read_text(encoding="utf-8"))
-            baseline = json.loads(reference(root, spec["baseline"]).read_text(encoding="utf-8"))
-            profile = json.loads(reference(root, baseline["profile"]).read_text(encoding="utf-8"))["config"]
-            reference(root, spec["reference"])
+            spec, baseline, _ = load_spec(root, path)
             reference(root, f"{baseline['run']}/graphs/{spec['workload']}/prefill.json.gz")
             loaded = load_workload(root / baseline["run"] / "graphs" / spec["workload"])
             validate_captures(loaded, baseline)
-            decisions = json.loads(reference(root, baseline["decisions"]).read_text(encoding="utf-8"))
-            known = {item["id"] for item in decisions["branches"]}
-            if spec["decision"] not in known or not set(spec["prerequisites"]) <= known:
-                raise ValueError("unknown decision/prerequisite")
-            for key in spec["axes"]:
-                value = profile
-                for part in key.split("."):
-                    value = value[part]
         except (OSError, KeyError, TypeError, ValueError) as error:
             errors.append(f"{path.relative_to(root)}: {error}")
     registry = json.loads((root / "web/registry.json").read_text(encoding="utf-8"))
