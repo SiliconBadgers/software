@@ -6,6 +6,10 @@ with detail=True to read the selected matmul / fused-attention tiles and the tra
 record does not carry. A small robustness check re-ranks equal-PE array shapes at other L1 sizes and at the
 128-token prompt; it is a sensitivity check on the tiling ranking, not an SRAM study.
 
+Every evaluated workload, including the robustness workloads loaded outside the study runner, is checked against
+the baseline record's decoded capture SHA-256 before use, so a substituted or edited capture fails instead of
+being reported under the pinned workload name. The base configuration comes from the same validated spec loader.
+
 Usage, from the repository root:
     python -B research/compute-mapping/2026-10-17-tiling-sweep/analyze.py
 Writes points.csv, robustness.csv and summary.json next to this file.
@@ -24,7 +28,9 @@ sys.path.insert(0, str(ROOT / "engine"))
 from sbengine import VERSION, config, sweep
 from sbengine.graph import load_workload
 from sbengine.model import evaluate
+from sbengine.provenance import validate_captures
 from sweeps.run import study
+from sweeps.specs import load_spec
 
 SPECS = ["engine/sweeps/tiling/array-shape.json", "engine/sweeps/tiling/matmul-tile.json",
          "engine/sweeps/tiling/attention-tile.json"]
@@ -52,6 +58,7 @@ def detail(workload, cfg):
     result = evaluate(workload, cfg, detail=True)
     pf, dc = result["phases"]["prefill"], result["phases"]["decode"]
     m = cfg["matrix"]
+    matmuls = [row for row in pf["rows"] if row["op"] == "MUL_MAT"]
     return {
         "total_pe": m["count"] * m["rows"] * m["cols"],
         "tile_budget_per_unit_kib": cfg["l1"]["mib"] * 1024 * cfg["l1"]["tile_fraction"] / max(1, m["count"]),
@@ -65,13 +72,35 @@ def detail(workload, cfg):
         "decode_l1_gb": dc["bytes"]["l1"] / 1e9,
         "prefill_l1_service_s": pf["l1_service_s"],
         "prefill_matrix_busy_s": pf["pool_busy"].get("Matrix", 0.0),
+        # Per-operation compute vs shared-L1 service, summed over prefill matmuls: an operation is L1-bound when
+        # its L1 term exceeds its compute term, which is what moves a shape off the matrix-bound regime.
+        "prefill_matmul_compute_s": sum(row["compute_s"] for row in matmuls),
+        "prefill_matmul_l1_s": sum(row["l1_s"] for row in matmuls),
+        "prefill_matmul_l1_bound_s": sum(row["duration_s"] for row in matmuls if row["dominant"] == "l1"),
     }
 
 
-def run_specs():
+def checked(workload, baseline, captures):
+    """Require both phases of an already loaded workload to match the baseline's decoded capture identity."""
+    validate_captures(workload, baseline)
+    for phase in ("prefill", "decode"):
+        key = f"{workload.name}/{phase}"
+        captures[key] = baseline["decoded_capture_sha256"][key]
+    return workload
+
+
+def pinned_workload(baseline, name, captures):
+    return checked(load_workload(ROOT / baseline["run"] / "graphs" / name), baseline, captures)
+
+
+def run_specs(baseline, captures):
     rows, studies = [], []
     for name in SPECS:
+        if load_spec(ROOT, ROOT / name)[1]["id"] != baseline["id"]:
+            raise ValueError(f"{name}: all tiling specs must share one baseline")
         spec, cfg, workload, records, summary = study(ROOT / name)
+        # study() validated these captures; re-check the same object that detail() re-evaluates below.
+        checked(workload, baseline, captures)
         for (assignment, point_cfg), record in zip(sweep.grid(cfg, spec["axes"]), records):
             if record["config_hash"] != config.config_hash(point_cfg):
                 raise RuntimeError(f"{spec['id']}: grid order differs from the study records")
@@ -86,10 +115,10 @@ def run_specs():
     return rows, studies
 
 
-def robustness(base, run):
+def robustness(base, baseline, captures):
     rows = []
     for wl_name in ROBUST_WORKLOADS:
-        workload = load_workload(ROOT / run / "graphs" / wl_name)
+        workload = pinned_workload(baseline, wl_name, captures)
         for mib in ROBUST_L1_MIB:
             for count, r, c in ROBUST_SHAPES:
                 cfg = copy.deepcopy(base)
@@ -103,9 +132,34 @@ def robustness(base, run):
     return rows
 
 
+def l1_size_control(base, baseline, captures):
+    """Separate the larger-L1 prefill increase into causal attention granularity and everything else.
+
+    A larger L1 enlarges the fused-attention query tile; causal skipping works at tile granularity, so fewer,
+    larger tiles skip less work. Dense attention (causal_skip off) removes that effect from the comparison.
+    """
+    workload = pinned_workload(baseline, "pp512-fa-on", captures)
+    rows = []
+    for count, r, c in [(1, 64, 64), (1, 32, 64), (1, 64, 32)]:
+        for causal in (True, False):
+            seconds = {}
+            for mib in (8, 16):
+                cfg = copy.deepcopy(base)
+                cfg["matrix"].update(count=count, rows=r, cols=c)
+                cfg["l1"]["mib"] = mib
+                cfg["attention"]["causal_skip"] = causal
+                phase = evaluate(workload, cfg, detail=True)["phases"]["prefill"]
+                attention = sum(row["duration_s"] for row in phase["rows"] if row["op"] == "FLASH_ATTN_EXT")
+                seconds[mib] = (phase["seconds"], attention)
+            rows.append({"shape": [count, r, c], "causal_skip": causal,
+                         "prefill_increase_8_to_16_mib_s": seconds[16][0] - seconds[8][0],
+                         "attention_increase_8_to_16_mib_s": seconds[16][1] - seconds[8][1]})
+    return rows
+
+
 def write_csv(path, rows):
     with path.open("w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=list(rows[0]))
+        writer = csv.DictWriter(f, fieldnames=list(rows[0]), lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
 
@@ -115,10 +169,12 @@ def git(*args):
 
 
 def main():
-    rows, studies = run_specs()
-    baseline = json.loads((ROOT / json.loads((ROOT / SPECS[0]).read_text())["baseline"]).read_text())
-    base, _ = config.load_profile(ROOT / baseline["profile"])
-    robust = robustness(base, baseline["run"])
+    # Same validated loader as the study runner: resolved profile whose hash matches the baseline record.
+    _, baseline, base = load_spec(ROOT, ROOT / SPECS[0])
+    captures = {}
+    rows, studies = run_specs(baseline, captures)
+    robust = robustness(base, baseline, captures)
+    control = l1_size_control(base, baseline, captures)
     write_csv(HERE / "points.csv", rows)
     write_csv(HERE / "robustness.csv", robust)
     summary = {
@@ -127,16 +183,21 @@ def main():
         "studies": studies,
         "robustness": {"workloads": ROBUST_WORKLOADS, "l1_mib": ROBUST_L1_MIB, "shapes": ROBUST_SHAPES,
                        "note": "Re-ranks equal-PE shapes; not an SRAM design study."},
+        "l1_size_control": {"workload": "pp512-fa-on", "rows": control,
+                            "note": "Model accounting check (causal tile granularity), not a physical SRAM penalty."},
+        # Every capture evaluated above, validated against the baseline record before use.
+        "validated_decoded_capture_sha256": dict(sorted(captures.items())),
         "reproduction": {"command": "python -B research/compute-mapping/2026-10-17-tiling-sweep/analyze.py",
                          "git_head": git("rev-parse", "HEAD"),
-                         "uncommitted_inputs": bool(git("status", "--porcelain", "--", "engine", "core",
-                                                        Path(__file__).relative_to(ROOT).as_posix())),
+                         # Source paths only; capture identity is the validated hashes above.
+                         "uncommitted_source_paths": bool(git("status", "--porcelain", "--", "engine", "core",
+                                                              Path(__file__).relative_to(ROOT).as_posix())),
                          "script_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()},
         "limitations": ["Analytical estimates under the provisional characterized-v1 baseline; cost is a unitless proxy.",
                         "SRAM (l1.*) is held at the baseline except in the labelled robustness check.",
                         "Feasibility flags do not establish physical fit, timing closure or numerical quality."],
     }
-    (HERE / "summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+    (HERE / "summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8", newline="\n")
     print(f"{len(rows)} sweep points, {sum(r['valid'] for r in rows)} valid; {len(robust)} robustness points")
 
 
