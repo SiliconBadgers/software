@@ -10,28 +10,25 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "engine"))
 from sbengine import config, sweep
 from sbengine.graph import load_workload
+from sbengine.provenance import validate_captures
 from sbengine.trace import load_trace
+from sweeps.specs import load_spec, validate_objective_values
 
 
 def study(spec_path):
     spec_path = Path(spec_path).resolve()
-    spec = json.loads(spec_path.read_text(encoding="utf-8"))
-    baseline_path = ROOT / spec["baseline"]
-    baseline = json.loads(baseline_path.read_text(encoding="utf-8"))
-    cfg, profile = config.load_profile(ROOT / baseline["profile"])
-    if not profile.get("resolved") or config.config_hash(cfg) != baseline["config_hash"]:
-        raise ValueError("study baseline must be a complete matching resolved profile")
-    for path in spec["axes"]:
-        config.get_path(cfg, path)
-        if any(path == fixed or path.startswith(fixed + ".") for fixed in baseline["fixed_assumptions"]):
-            raise ValueError(f"axis {path} varies a fixed platform/external assumption")
+    spec, baseline, cfg = load_spec(ROOT, spec_path)
     run = ROOT / baseline["run"]
     workload = load_workload(run / "graphs" / spec["workload"])
+    validate_captures(workload, baseline)
     trace = load_trace(run, workload) if cfg["host"]["enabled"] else None
     records = sweep.run_sweep(workload, cfg, spec["axes"], trace)
     valid = [row for row in records if row["valid"]]
     objectives = [tuple(item) for item in spec["objectives"]]
+    validate_objective_values(records, objectives)
     frontier = sweep.pareto(records, objectives)
+    frontier_keys = list(dict.fromkeys([*spec["axes"], "cost", "prefill_s", "decode_s",
+                                       *(metric for metric, _ in objectives)]))
     summary = {
         "id": spec["id"], "method": "existing sbengine.run_sweep + pareto", "baseline": baseline["id"],
         "baseline_record": spec["baseline"], "source_baseline": baseline["source_commit"],
@@ -39,7 +36,7 @@ def study(spec_path):
         "axes": spec["axes"], "objectives": spec["objectives"],
         "fixed_assumptions": {path: config.get_path(cfg, path) for path in baseline["fixed_assumptions"]},
         "points": len(records), "valid_points": len(valid), "invalid_points": len(records) - len(valid),
-        "frontier": [{key: row[key] for key in [*spec["axes"], "cost", "prefill_s", "decode_s"]} for row in frontier],
+        "frontier": [{key: row[key] for key in frontier_keys} for row in frontier],
         "records_sha256": hashlib.sha256(json.dumps(records, sort_keys=True, separators=(",", ":")).encode()).hexdigest(),
         "limitations": ["Analytical estimates under provisional assumptions; cost is a unitless proxy.",
                         "Feasibility flags do not establish physical fit or numerical quality.",

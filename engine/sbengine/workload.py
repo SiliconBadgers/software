@@ -22,8 +22,13 @@ class Workload:
 
 def load_workload(directory):
     directory = Path(directory)
-    return Workload(directory.name, directory, Graph(capture_path(directory, "prefill"), "prefill"),
-                    Graph(capture_path(directory, "decode"), "decode"))
+    graphs = {}
+    for phase in ("prefill", "decode"):
+        path = capture_path(directory, phase)
+        if path is None:
+            raise ValueError(f"missing captured phase: {directory.name}/{phase} in {directory}")
+        graphs[phase] = Graph(path, phase)
+    return Workload(directory.name, directory, graphs["prefill"], graphs["decode"])
 
 
 def latest_run(results_dir):

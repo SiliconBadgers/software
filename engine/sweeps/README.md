@@ -7,6 +7,22 @@ axis separately. Fixed settings come from the resolved provisional baseline,
 including external memory, platform, precision and cost coefficients.
 Prerequisites record related decision questions; they do not schedule studies.
 
+The runner and repository checker share the same specification contract.
+Objectives are nonempty `[metric, "min"|"max"]` pairs using numeric summary
+metrics (cost/DSP, latency, throughput, bounds, memory service and footprint) or
+numeric declared axes. Labels and validity flags are not optimization metrics;
+each metric appears once, so duplicate or conflicting directions are rejected.
+Axes use nonempty value lists; an empty axes object evaluates the baseline alone.
+Categorical and capability-list axes remain supported. References and decisions
+must resolve, axes cannot overlap or vary fixed assumptions, and malformed,
+duplicate-key or nonfinite JSON declarations fail before evaluation or output.
+JSON numbers must stay within the finite binary64 range; oversized integers and
+nonzero literals that underflow to zero are rejected. Integers in range retain
+their exact integer values; ordinary finite/subnormal floats use binary64 rounding.
+Frontier summaries retain the axes, cost and phase latencies and include every
+selected objective's value, without duplicating fields.
+Configuration/physical feasibility remains the evaluator's responsibility.
+
 From the repository root:
 
 ```text
