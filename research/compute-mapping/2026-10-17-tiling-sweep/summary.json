@@ -318,11 +318,83 @@
     ],
     "note": "Re-ranks equal-PE shapes; not an SRAM design study."
   },
+  "l1_size_control": {
+    "workload": "pp512-fa-on",
+    "rows": [
+      {
+        "shape": [
+          1,
+          64,
+          64
+        ],
+        "causal_skip": true,
+        "prefill_increase_8_to_16_mib_s": 0.003518242161172358,
+        "attention_increase_8_to_16_mib_s": 0.0034952533333333334
+      },
+      {
+        "shape": [
+          1,
+          64,
+          64
+        ],
+        "causal_skip": false,
+        "prefill_increase_8_to_16_mib_s": 2.2988827838910098e-05,
+        "attention_increase_8_to_16_mib_s": 0.0
+      },
+      {
+        "shape": [
+          1,
+          32,
+          64
+        ],
+        "causal_skip": true,
+        "prefill_increase_8_to_16_mib_s": 0.00701349549450625,
+        "attention_increase_8_to_16_mib_s": 0.006990506666666667
+      },
+      {
+        "shape": [
+          1,
+          32,
+          64
+        ],
+        "causal_skip": false,
+        "prefill_increase_8_to_16_mib_s": 2.298882783957623e-05,
+        "attention_increase_8_to_16_mib_s": 0.0
+      },
+      {
+        "shape": [
+          1,
+          64,
+          32
+        ],
+        "causal_skip": true,
+        "prefill_increase_8_to_16_mib_s": 0.007013495494506472,
+        "attention_increase_8_to_16_mib_s": 0.006990506666666667
+      },
+      {
+        "shape": [
+          1,
+          64,
+          32
+        ],
+        "causal_skip": false,
+        "prefill_increase_8_to_16_mib_s": 2.2988827839798276e-05,
+        "attention_increase_8_to_16_mib_s": 0.0
+      }
+    ],
+    "note": "Model accounting check (causal tile granularity), not a physical SRAM penalty."
+  },
+  "validated_decoded_capture_sha256": {
+    "pp128-fa-on/decode": "5e3bae3e6fec671ea74af08b21ecfe8f43f37ff55893639ac4ace1b4e4b0bb4b",
+    "pp128-fa-on/prefill": "6cf6142a2f7aa8a009b6813faf9ca27e2dfb1856d9a6a23ef48be62c0887bd1c",
+    "pp512-fa-on/decode": "e3a0b94335ee58b0f2d3ee6ba349a7477daa98802a48c8bb43c210f51d42639b",
+    "pp512-fa-on/prefill": "a0dde2b84d8ec9cd0e6e9ac5ec0b9a6dadeb4dff81b3a41b1e63bc5df6709a4b"
+  },
   "reproduction": {
     "command": "python -B research/compute-mapping/2026-10-17-tiling-sweep/analyze.py",
-    "git_head": "2df9b3fc54d8357407d068f043bfee08549a2a60",
-    "uncommitted_inputs": false,
-    "script_sha256": "c56beec1ef738be6f64312cf25e051da877b43ff23db92a0a450c7c559493744"
+    "git_head": "29ca92801701931169a8dccfb426c597fe0ba68b",
+    "uncommitted_source_paths": false,
+    "script_sha256": "9a5996d5d5c0cdd48fc1a46943ec16fff8c868f2d985cb2bc2736ecee7fe97c5"
   },
   "limitations": [
     "Analytical estimates under the provisional characterized-v1 baseline; cost is a unitless proxy.",
