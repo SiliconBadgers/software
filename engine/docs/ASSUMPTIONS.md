@@ -1,5 +1,9 @@
 # Assumption register
 
+For current reruns from `engine/`, use `uv run --locked --group engine python`
+in place of the `python` prefix in the recorded commands below. See
+[the engine setup](../README.md#run-it). Recorded settings and results are unchanged.
+
 Every constant the engine uses is either **derived** from the captured graphs, **measured** (CPU op traces) or an
 **assumption**. Nothing here is a Compute-, Memory- or Control-team decision. The last columns say how much the answer moves
 and who could replace the placeholder with a measurement.

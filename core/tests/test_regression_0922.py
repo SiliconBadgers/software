@@ -1,7 +1,7 @@
 """The core analysis must reproduce the recorded 2026-09-22 outputs from its raw evidence.
 
 Needs no llama.cpp, model or compiler: only Python and numpy. Run from anywhere:
-    python core/tests/test_regression_0922.py
+    uv run --locked --group analysis python core/tests/test_regression_0922.py
 """
 import gzip
 import json

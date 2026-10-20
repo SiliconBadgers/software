@@ -1,0 +1,28 @@
+[project]
+name = "siliconbadgers-software"
+version = "0.1.0"
+description = "Software profiling, runtime evidence, and MAC reference tools"
+requires-python = ">=3.11"
+dependencies = []
+
+[dependency-groups]
+engine = ["numpy==2.5.3"]
+analysis = [
+    { include-group = "engine" },
+    "matplotlib==3.11.2",
+]
+profiling = [
+    { include-group = "analysis" },
+    "cmake==4.4.3",
+    "ninja==1.13.2",
+]
+
+[tool.uv]
+package = false
+required-version = ">=0.12.23"
+default-groups = []
+
+[tool.uv.dependency-groups]
+engine = { requires-python = ">=3.12" }
+analysis = { requires-python = ">=3.12" }
+profiling = { requires-python = ">=3.12" }

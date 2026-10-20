@@ -6,6 +6,27 @@ on:
 permissions:
   contents: read
 jobs:
+  python-tooling:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python: '3.11'
+          - os: macos-latest
+            python: '3.12'
+          - os: windows-latest
+            python: '3.12'
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: '0.12.23'
+          python-version: ${{ matrix.python }}
+          enable-cache: true
+      - name: Standard-library reference and launcher checks
+        run: uv run --locked --no-default-groups --python "${{ matrix.python }}" python -m unittest discover -s tests -v
   check:
     runs-on: ubuntu-latest
     steps:
@@ -13,39 +34,45 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
+          version: '0.12.23'
           python-version: '3.12'
+          enable-cache: true
+      - name: Sync locked profiling dependencies
+        run: uv sync --locked --group profiling
+      - name: Check compatibility export
+        run: |
+          uv export --locked --group profiling --no-hashes --output-file core/requirements.txt
+          git diff --exit-code -- core/requirements.txt
+      - name: MAC reference checks
+        run: uv run --locked python -m unittest discover -s tests -v
       - name: Existing model checks
         run: node experiments/llama-cpp/2026-09-24-qwen35-2b/scripts/test_model.cjs
       - name: Contributor engine checks
         run: |
-          python3 -m pip install numpy==2.5.3
-          python3 -m unittest discover -s engine/tests -v
+          uv run --locked --group analysis python -m unittest discover -s engine/tests -v
           for script in test_sensitivity test_scheduler test_joint_resources test_recurrence_penalty; do
             node "experiments/llama-cpp/2026-09-24-qwen35-2b/scripts/$script.cjs"
           done
       - name: Profiler core checks
         run: |
-          python3 -m pip install matplotlib==3.11.2
-          python3 -m unittest discover -s core/tests -v
+          uv run --locked --group profiling python -m unittest discover -s core/tests -v
       - name: Workspace and publication checks
-        run: python3 -m unittest discover -s tests/web -v
-      - name: Repository boundaries and MAC reference
-        run: |
-          python3 scripts/check_boundaries.py
-          python3 -m unittest discover -s tests -v
+        run: uv run --locked --group analysis python -m unittest discover -s tests/web -v
+      - name: Repository boundaries
+        run: uv run --locked python -B scripts/check_boundaries.py
       - name: Build workspace
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python3 web/build.py --ref check
+        run: uv run --locked --group analysis python web/build.py --ref check
       - name: Browser checks
         run: |
           npm install --prefix build/browser-tests --no-save --ignore-scripts playwright@1.62.1
           build/browser-tests/node_modules/.bin/playwright install --with-deps chromium
-          python3 -m http.server 8767 --directory build/site > /tmp/software-web-server.log 2>&1 &
-          NODE_PATH="$PWD/build/browser-tests/node_modules" node tests/web/smoke.cjs
-          NODE_PATH="$PWD/build/browser-tests/node_modules" node tests/web/python.cjs
+          uv run --locked --group analysis python -m http.server 8767 --directory build/site > /tmp/software-web-server.log 2>&1 &
+          NODE_PATH="$PWD/build/browser-tests/node_modules" uv run --locked --group analysis node tests/web/smoke.cjs
+          NODE_PATH="$PWD/build/browser-tests/node_modules" uv run --locked --group analysis node tests/web/python.cjs
       - uses: actions/upload-artifact@v4
         with:
           name: software-workspace

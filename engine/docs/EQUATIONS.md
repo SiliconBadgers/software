@@ -1,5 +1,9 @@
 # Equations: what changed from the explorer, and why
 
+For current reruns from `engine/`, use `uv run --locked --group engine python`
+in place of the `python` prefix in the recorded commands below. See
+[the engine setup](../README.md#run-it). Recorded settings and results are unchanged.
+
 **Explorer** = `experiments/llama-cpp/2026-09-24-qwen35-2b/explorer/engine.js` (Zeb Taylor, origin/main `11d36ed`).
 **Engine** = `engine/sbengine/`. Every change below has a switch that restores the explorer's version, so its effect is
 measured by `python -m sbengine ablation`, not argued. Numbers are from run `2026-09-27_1839_windows-2`, balanced design

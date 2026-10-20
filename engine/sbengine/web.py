@@ -1,4 +1,4 @@
-"""Local web app: `python -m sbengine serve` -> http://127.0.0.1:8765
+"""Local web app: `uv run --locked --group engine python -m sbengine serve` -> http://127.0.0.1:8765
 
 A stdlib-only HTTP server that serves one page (web/index.html) and a small JSON API over the real engine, so every
 slider re-runs the actual model. It binds to the loopback interface by default, accepts only known routes, validates every

@@ -26,7 +26,7 @@ numbers on the explorer's own graphs (prefill within 0.001 %, decode within 1 %;
   either, and says so in the result.
 
 Default results depend on modelling switches that are off their pessimistic setting (chunked recurrence, pool scheduling, fusion
-and others). `eval` names them and every result carries the full list; `python -m sbengine switches` shows what each is worth.
+and others). `eval` names them and every result carries the full list; `uv run --locked --group engine python -m sbengine switches` shows what each is worth.
 At pp512 flash-attention-on, balanced design, the all-pessimistic result is 49 % slower in prefill and 11 % slower in decode than
 the default (`docs/EQUATIONS.md` 2.14).
 
@@ -38,27 +38,30 @@ same methods. The commands below retain the existing discovery/override behavior
 for interactive exploration. See [design rules](../docs/DESIGN-RULES.md) and the
 [current report](../REPORT.md) for stage ownership and current limitations.
 
-From this directory (Python 3.12+; NumPy for measured CPU validation and the full tests):
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/) 0.12.23 or newer.
+From this directory, uv finds the repository's locked project and installs only
+the `engine` group (NumPy). Python 3.12+ is supported; 3.12 is selected by default.
+No manual environment activation or pip install is needed:
 
 ```
-python -m sbengine list                                   # workloads in the newest run under results/
-python -m sbengine eval --graph pp512-fa-on               # timing, bytes, bounds, binding resource
-python -m sbengine eval --graph pp512-fa-on --set memory.weight_path=\"direct\" --nodes 10
-python -m sbengine sweep --graph pp512-fa-on --axis matrix.count=1,2,4,8 --axis l1.banks=32,64,128,256 --out out
-python -m sbengine ablation --graph pp512-fa-off          # each equation, explorer version -> this engine
-python -m sbengine switches --graph pp512-fa-on           # every modelling switch, and the result without it
-python -m sbengine groups --graph pp512-fa-off            # dependency-map parallel and fusion groups
-python -m sbengine sensitivity --graph pp512-fa-on        # which assumptions decide the answer
-python -m sbengine montecarlo --designs accel-balanced accel-efficient
-python -m sbengine parity                                 # MAC accounting vs every captured summary
-python -m sbengine validate-cpu                           # held-out check against measured CPU op times (--report writes per-class tables)
-python -m sbengine serve                                  # interactive modelling page: http://127.0.0.1:8765
-python -m unittest discover -s tests                      # includes pinned characterization and stage contracts
+uv run --locked --group engine python -m sbengine list                                   # workloads in the newest run under results/
+uv run --locked --group engine python -m sbengine eval --graph pp512-fa-on               # timing, bytes, bounds, binding resource
+uv run --locked --group engine python -m sbengine eval --graph pp512-fa-on --set memory.weight_path=\"direct\" --nodes 10
+uv run --locked --group engine python -m sbengine sweep --graph pp512-fa-on --axis matrix.count=1,2,4,8 --axis l1.banks=32,64,128,256 --out out
+uv run --locked --group engine python -m sbengine ablation --graph pp512-fa-off          # each equation, explorer version -> this engine
+uv run --locked --group engine python -m sbengine switches --graph pp512-fa-on           # every modelling switch, and the result without it
+uv run --locked --group engine python -m sbengine groups --graph pp512-fa-off            # dependency-map parallel and fusion groups
+uv run --locked --group engine python -m sbengine sensitivity --graph pp512-fa-on        # which assumptions decide the answer
+uv run --locked --group engine python -m sbengine montecarlo --designs accel-balanced accel-efficient
+uv run --locked --group engine python -m sbengine parity                                 # MAC accounting vs every captured summary
+uv run --locked --group engine python -m sbengine validate-cpu                           # held-out check against measured CPU op times (--report writes per-class tables)
+uv run --locked --group engine python -m sbengine serve                                  # interactive modelling page: http://127.0.0.1:8765
+uv run --locked --group engine python -m unittest discover -s tests                      # includes pinned characterization and stage contracts
 ```
 
 `serve` opens the modelling web page (`sbengine/web/index.html`). Unlike the static run browser in
 [`results/index.html`](../results/index.html), it is a live app: every control re-runs the engine through a
-local JSON API, so it needs `python -m sbengine serve` running and cannot be opened as a plain file. It binds to
+local JSON API, so it needs `uv run --locked --group engine python -m sbengine serve` running and cannot be opened as a plain file. It binds to
 127.0.0.1 only.
 
 **Data from a fresh clone.** The committed run keeps each graph as `graphs/<name>/{prefill,decode}.json.gz`

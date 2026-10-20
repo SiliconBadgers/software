@@ -13,7 +13,7 @@ to its original source.
 
 ## Build locally
 
-Prerequisites: Python 3.12 or newer and Node.js 22 or newer. No model download
+Prerequisites: [uv](https://docs.astral.sh/uv/getting-started/installation/) 0.12.23 or newer and Node.js 22 or newer. uv selects Python 3.12 from the repository configuration. No model download
 is required. The Python component loads a pinned
 [Pyodide runtime](https://pyodide.org/en/stable/usage/webworker.html) from jsDelivr
 on first use. Its calculations run in a Web Worker; no inference server or paid
@@ -25,9 +25,9 @@ From the repository root:
 
 ```sh
 node experiments/llama-cpp/2026-09-24-qwen35-2b/scripts/test_model.cjs
-python3 -m unittest discover -s tests/web -v
-python3 web/build.py --ref local --preview
-python3 -m http.server 8080 --directory build/site
+uv run --locked python -m unittest discover -s tests/web -v
+uv run --locked python web/build.py --ref local --preview
+uv run --locked python -m http.server 8080 --directory build/site
 ```
 
 Open `http://localhost:8080`. All model calculations run in the browser.
@@ -41,10 +41,15 @@ For functional browser checks, with that server running:
 npm install --prefix build/browser-tests --no-save --ignore-scripts playwright@1.62.1
 build/browser-tests/node_modules/.bin/playwright install chromium
 NODE_PATH="$PWD/build/browser-tests/node_modules" \
-  SB_WORKSPACE_URL=http://localhost:8080/ node tests/web/smoke.cjs
+  SB_WORKSPACE_URL=http://localhost:8080/ uv run --locked --group engine node tests/web/smoke.cjs
 NODE_PATH="$PWD/build/browser-tests/node_modules" \
-  SB_WORKSPACE_URL=http://localhost:8080/ node tests/web/python.cjs
+  SB_WORKSPACE_URL=http://localhost:8080/ uv run --locked --group engine node tests/web/python.cjs
 ```
+
+Run the Node checks under uv as shown: the native Python comparison inherits
+`.venv` on PATH. `SB_NATIVE_PYTHON` can explicitly override that interpreter.
+The `engine` group supplies NumPy for native engine checks; Pyodide's browser
+runtime remains separately pinned and is unaffected by the host lockfile.
 
 The checks exercise navigation, hardware edits, comparisons, capture inspection,
 timeline exports, invalid inputs and mobile layout. CI runs them before publication.

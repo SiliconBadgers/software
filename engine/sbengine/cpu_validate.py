@@ -191,7 +191,7 @@ def report_markdown(res, run_name, top=8):
 
     skipped = res.get("not_checked", [])
     lines = [f"# CPU accounting check: {run_name}", "",
-             f"Generated from `engine/` by `python -m sbengine validate-cpu --run ../results/{run_name} --report <path>` "
+             f"Generated from `engine/` by `uv run --locked --group engine python -m sbengine validate-cpu --run ../results/{run_name} --report <path>` "
              "(`engine/sbengine/cpu_validate.py`). It needs the run's local-only operation traces and captured graphs.", ""]
     if not res.get("checked", bool(res["heldout"])):
         lines += [f"**Status: NOT CHECKED.** {res.get('not_checked_reason') or 'No held-out graph was compared'}. "
