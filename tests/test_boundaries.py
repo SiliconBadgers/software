@@ -69,7 +69,7 @@ class Boundaries(unittest.TestCase):
             root = Path(temp)
             good = root / "record.json"
             good.write_text("{}")
-            self.assertEqual(boundaries.reference(root, "record.json"), good)
+            self.assertTrue(boundaries.reference(root, "record.json").samefile(good))
             for path in ("missing.json", "../elsewhere.json"):
                 with self.assertRaisesRegex(ValueError, "reference"):
                     boundaries.reference(root, path)
