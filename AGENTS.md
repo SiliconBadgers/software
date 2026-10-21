@@ -12,8 +12,10 @@ canonical ownership, evidence preservation and affected checks.
   build/simulation databases.
 - Keep issue scope intact; source moves and documentation do not authorize a new design.
 - Keep changes and generated artifacts contained. Never overwrite dated evidence.
-- Use a branch and issue-linked PR. Request the maintainer-designated reviewers
-  and follow the repository's existing approval and merge requirements.
+- Use a branch and issue-linked PR. Request review from @akanksha-sc and
+  Software contributors familiar with the affected work; involve other teams
+  when their interfaces are affected. Follow the existing approval and merge
+  requirements.
 
 ## AI assistance
 

@@ -11,7 +11,8 @@ model comparisons, captured graphs, execution estimates and source links.
 1. Read [the current assignment and artifact locations](docs/START-HERE.md).
 2. Read the [current report](REPORT.md), [scientific code organization](docs/DESIGN-RULES.md)
    and [contribution guide](CONTRIBUTING.md). Work on a branch and open an
-   issue-linked PR for review under the repository's existing requirements.
+   issue-linked PR. Request review from `@akanksha-sc` and Software contributors
+   familiar with the affected work, following the repository's merge requirements.
 
 ## Current issues
 
