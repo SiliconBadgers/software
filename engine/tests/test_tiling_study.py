@@ -79,5 +79,32 @@ class RobustnessCaptureIdentity(unittest.TestCase):
             self.robustness()
 
 
+class OutputAndRecordedSummary(unittest.TestCase):
+    def setUp(self):
+        self.analysis = load_analysis()
+
+    def test_output_stays_in_a_new_build_sweeps_folder(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            self.analysis.OUTPUT_ROOT = root / "build/sweeps"
+            fresh = root / "build/sweeps/tiling-analysis"
+            self.assertEqual(self.analysis.output_folder(fresh), fresh)
+            fresh.mkdir(parents=True)
+            self.assertEqual(self.analysis.output_folder(fresh), fresh)  # existing but empty
+            (fresh / "points.csv").write_text("kept\n", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "not overwritten"):
+                self.analysis.output_folder(fresh)
+            self.assertEqual((fresh / "points.csv").read_text(encoding="utf-8"), "kept\n")
+            for outside in (root / "build/sweeps", root / "research", root / "build/elsewhere"):
+                with self.subTest(path=outside), self.assertRaisesRegex(ValueError, "under build/sweeps"):
+                    self.analysis.output_folder(outside)
+
+    def test_analysis_reproduces_the_recorded_compact_summary(self):
+        recorded = json.loads((ROOT / "docs/sweeps/tiling-v1.json").read_text(encoding="utf-8"))
+        *_, summary = self.analysis.analysis()
+        recorded.pop("reproduction")
+        self.assertEqual(json.loads(json.dumps(summary)), recorded)
+
+
 if __name__ == "__main__":
     unittest.main()
