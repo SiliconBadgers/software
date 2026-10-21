@@ -1,0 +1,404 @@
+{
+  "method": "engine/sweeps/run.py study() per spec, then sbengine.evaluate(detail=True) per point",
+  "engine_version": "0.1.0",
+  "baseline": "characterized-v1",
+  "run": "results/2026-09-27_1839_windows-2",
+  "studies": [
+    {
+      "id": "tiling-array-shape-v1",
+      "baseline": "characterized-v1",
+      "workload": "pp512-fa-on",
+      "config_hash": "bfa38d454d83",
+      "axes": {
+        "matrix.count": [
+          1,
+          2,
+          4,
+          8,
+          16
+        ],
+        "matrix.rows": [
+          16,
+          32,
+          64
+        ],
+        "matrix.cols": [
+          16,
+          32,
+          64
+        ]
+      },
+      "objectives": [
+        [
+          "cost",
+          "min"
+        ],
+        [
+          "prefill_s",
+          "min"
+        ],
+        [
+          "decode_s",
+          "min"
+        ]
+      ],
+      "points": 45,
+      "valid_points": 26,
+      "invalid_points": 19,
+      "frontier": [
+        {
+          "matrix.count": 1,
+          "matrix.rows": 16,
+          "matrix.cols": 16,
+          "cost": 6392.0,
+          "prefill_s": 8.392346210354097,
+          "decode_s": 0.02598867903388284
+        },
+        {
+          "matrix.count": 1,
+          "matrix.rows": 32,
+          "matrix.cols": 16,
+          "cost": 6648.0,
+          "prefill_s": 4.499938266227128,
+          "decode_s": 0.015087124162087916
+        },
+        {
+          "matrix.count": 1,
+          "matrix.rows": 64,
+          "matrix.cols": 16,
+          "cost": 7160.0,
+          "prefill_s": 2.308873237851051,
+          "decode_s": 0.014148916982600724
+        },
+        {
+          "matrix.count": 2,
+          "matrix.rows": 16,
+          "matrix.cols": 16,
+          "cost": 6648.0,
+          "prefill_s": 4.491935971526268,
+          "decode_s": 0.015459956982600723
+        },
+        {
+          "matrix.count": 2,
+          "matrix.rows": 32,
+          "matrix.cols": 16,
+          "cost": 7160.0,
+          "prefill_s": 2.3048884009279726,
+          "decode_s": 0.014429630828754576
+        },
+        {
+          "matrix.count": 2,
+          "matrix.rows": 64,
+          "matrix.cols": 16,
+          "cost": 8184.0,
+          "prefill_s": 1.2122557089621575,
+          "decode_s": 0.014100074739010976
+        },
+        {
+          "matrix.count": 4,
+          "matrix.rows": 16,
+          "matrix.cols": 16,
+          "cost": 7160.0,
+          "prefill_s": 2.300066247081822,
+          "decode_s": 0.014993618521062263
+        },
+        {
+          "matrix.count": 4,
+          "matrix.rows": 32,
+          "matrix.cols": 16,
+          "cost": 8184.0,
+          "prefill_s": 1.2093904453724142,
+          "decode_s": 0.014382495251831499
+        },
+        {
+          "matrix.count": 4,
+          "matrix.rows": 64,
+          "matrix.cols": 16,
+          "cost": 10232.0,
+          "prefill_s": 0.6636329178510397,
+          "decode_s": 0.014100074739010976
+        },
+        {
+          "matrix.count": 8,
+          "matrix.rows": 16,
+          "matrix.cols": 16,
+          "cost": 8184.0,
+          "prefill_s": 1.207490104859595,
+          "decode_s": 0.01494733627747252
+        },
+        {
+          "matrix.count": 8,
+          "matrix.rows": 32,
+          "matrix.cols": 16,
+          "cost": 10232.0,
+          "prefill_s": 0.6634921328937753,
+          "decode_s": 0.014382495251831499
+        }
+      ],
+      "records_sha256": "06407ce543a2800a4c4cb7b8b6fec36815a5c682a69f94b0c72b3dacd67f6b2b",
+      "spec": "engine/sweeps/tiling/array-shape.json",
+      "spec_sha256": "384e7bed34573423281315046da552888126e68615290c0bde8fe550cff6dee1"
+    },
+    {
+      "id": "tiling-matmul-tile-v1",
+      "baseline": "characterized-v1",
+      "workload": "pp512-fa-on",
+      "config_hash": "bfa38d454d83",
+      "axes": {
+        "matrix.tile_mode": [
+          "search",
+          "fixed"
+        ],
+        "matrix.legacy_tile_n": [
+          16,
+          32,
+          64,
+          128,
+          256
+        ],
+        "matrix.tile_k": [
+          64,
+          256,
+          1024
+        ]
+      },
+      "objectives": [
+        [
+          "prefill_s",
+          "min"
+        ],
+        [
+          "decode_s",
+          "min"
+        ]
+      ],
+      "points": 30,
+      "valid_points": 30,
+      "invalid_points": 0,
+      "frontier": [
+        {
+          "matrix.tile_mode": "search",
+          "matrix.legacy_tile_n": 16,
+          "matrix.tile_k": 64,
+          "cost": 10232.0,
+          "prefill_s": 0.6637009875946295,
+          "decode_s": 0.014382495251831499
+        }
+      ],
+      "records_sha256": "d2057dc89710185d5f0c7d0b60d980eb76e214d68e58e31445dca7ad3bf7b500",
+      "spec": "engine/sweeps/tiling/matmul-tile.json",
+      "spec_sha256": "cb80a6dbaff69549dd6f87bf7c5e1096cec1ab2d307ba76bdb9321d35bf04021"
+    },
+    {
+      "id": "tiling-attention-tile-v1",
+      "baseline": "characterized-v1",
+      "workload": "pp512-fa-on",
+      "config_hash": "bfa38d454d83",
+      "axes": {
+        "attention.kv_tile": [
+          32,
+          64,
+          128,
+          256,
+          512
+        ]
+      },
+      "objectives": [
+        [
+          "prefill_s",
+          "min"
+        ],
+        [
+          "decode_s",
+          "min"
+        ]
+      ],
+      "points": 5,
+      "valid_points": 4,
+      "invalid_points": 1,
+      "frontier": [
+        {
+          "attention.kv_tile": 256,
+          "cost": 10232.0,
+          "prefill_s": 0.6630046675946295,
+          "decode_s": 0.014382495251831499
+        }
+      ],
+      "records_sha256": "d59f9a9b44bf5931b73a099d6a2459bcce95d82536bacc2088d7f3fc37683834",
+      "spec": "engine/sweeps/tiling/attention-tile.json",
+      "spec_sha256": "0eca26346b624a30e7f457c40590c22a85b9e5027cef2dd2f8235e883e015662"
+    }
+  ],
+  "robustness": {
+    "workloads": [
+      "pp512-fa-on",
+      "pp128-fa-on"
+    ],
+    "l1_mib": [
+      4,
+      8,
+      16
+    ],
+    "shapes": [
+      [
+        1,
+        64,
+        64
+      ],
+      [
+        2,
+        32,
+        64
+      ],
+      [
+        2,
+        64,
+        32
+      ],
+      [
+        4,
+        16,
+        64
+      ],
+      [
+        4,
+        32,
+        32
+      ],
+      [
+        4,
+        64,
+        16
+      ],
+      [
+        8,
+        16,
+        32
+      ],
+      [
+        8,
+        32,
+        16
+      ],
+      [
+        16,
+        16,
+        16
+      ],
+      [
+        1,
+        32,
+        64
+      ],
+      [
+        1,
+        64,
+        32
+      ],
+      [
+        2,
+        32,
+        32
+      ],
+      [
+        4,
+        16,
+        32
+      ],
+      [
+        4,
+        32,
+        16
+      ],
+      [
+        8,
+        16,
+        16
+      ]
+    ],
+    "note": "Re-ranks equal-PE shapes; not an SRAM design study."
+  },
+  "l1_size_control": {
+    "workload": "pp512-fa-on",
+    "rows": [
+      {
+        "shape": [
+          1,
+          64,
+          64
+        ],
+        "causal_skip": true,
+        "prefill_increase_8_to_16_mib_s": 0.003518242161172358,
+        "attention_increase_8_to_16_mib_s": 0.0034952533333333334
+      },
+      {
+        "shape": [
+          1,
+          64,
+          64
+        ],
+        "causal_skip": false,
+        "prefill_increase_8_to_16_mib_s": 2.2988827838910098e-05,
+        "attention_increase_8_to_16_mib_s": 0.0
+      },
+      {
+        "shape": [
+          1,
+          32,
+          64
+        ],
+        "causal_skip": true,
+        "prefill_increase_8_to_16_mib_s": 0.00701349549450625,
+        "attention_increase_8_to_16_mib_s": 0.006990506666666667
+      },
+      {
+        "shape": [
+          1,
+          32,
+          64
+        ],
+        "causal_skip": false,
+        "prefill_increase_8_to_16_mib_s": 2.298882783957623e-05,
+        "attention_increase_8_to_16_mib_s": 0.0
+      },
+      {
+        "shape": [
+          1,
+          64,
+          32
+        ],
+        "causal_skip": true,
+        "prefill_increase_8_to_16_mib_s": 0.007013495494506472,
+        "attention_increase_8_to_16_mib_s": 0.006990506666666667
+      },
+      {
+        "shape": [
+          1,
+          64,
+          32
+        ],
+        "causal_skip": false,
+        "prefill_increase_8_to_16_mib_s": 2.2988827839798276e-05,
+        "attention_increase_8_to_16_mib_s": 0.0
+      }
+    ],
+    "note": "Model accounting check (causal tile granularity), not a physical SRAM penalty."
+  },
+  "validated_decoded_capture_sha256": {
+    "pp128-fa-on/decode": "5e3bae3e6fec671ea74af08b21ecfe8f43f37ff55893639ac4ace1b4e4b0bb4b",
+    "pp128-fa-on/prefill": "6cf6142a2f7aa8a009b6813faf9ca27e2dfb1856d9a6a23ef48be62c0887bd1c",
+    "pp512-fa-on/decode": "e3a0b94335ee58b0f2d3ee6ba349a7477daa98802a48c8bb43c210f51d42639b",
+    "pp512-fa-on/prefill": "a0dde2b84d8ec9cd0e6e9ac5ec0b9a6dadeb4dff81b3a41b1e63bc5df6709a4b"
+  },
+  "reproduction": {
+    "command": "python -B research/compute-mapping/2026-10-17-tiling-sweep/analyze.py",
+    "git_head": "29ca92801701931169a8dccfb426c597fe0ba68b",
+    "uncommitted_source_paths": false,
+    "script_sha256": "9a5996d5d5c0cdd48fc1a46943ec16fff8c868f2d985cb2bc2736ecee7fe97c5"
+  },
+  "limitations": [
+    "Analytical estimates under the provisional characterized-v1 baseline; cost is a unitless proxy.",
+    "SRAM (l1.*) is held at the baseline except in the labelled robustness check.",
+    "Feasibility flags do not establish physical fit, timing closure or numerical quality."
+  ]
+}
