@@ -7,8 +7,11 @@ Use llama.cpp profiling and numerical evidence to guide compute-unit boundaries,
 - Read README.md, CONTRIBUTING.md, docs/START-HERE.md and the linked issue.
 - Do not commit secrets, licensed collateral, model weights or generated
   build/simulation databases.
-- Use a branch and PR for @abhinavnandwani's review. Keep the issue's technical
-  scope intact; scaffolding and tone changes do not authorize a new design.
+- Use a branch and issue-linked PR. Request review from @akanksha-sc and
+  Software contributors familiar with the affected work; involve other teams
+  when their interfaces are affected. Follow the existing approval and merge
+  requirements. Keep the issue's technical scope intact; scaffolding and tone
+  changes do not authorize a new design.
 
 ## AI assistance
 

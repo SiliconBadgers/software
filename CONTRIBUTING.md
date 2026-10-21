@@ -16,9 +16,11 @@ the issue. Use existing evidence and explicit assumptions to work in parallel.
    unrun, not passed. Keep secrets, licenses, PDKs, model weights and generated
    build/simulation databases out of Git.
 5. Commit your changes with a clear description.
-6. Push the branch and open a PR linked to the issue for `@abhinavnandwani` to
-   review. Main requires one approving review; admins can bypass. Do not
-   close research/scaffold issues just because folders or templates exist.
+6. Push the branch and open a PR linked to the issue. Request review from
+   `@akanksha-sc` and Software contributors familiar with the affected work;
+   include affected teams where relevant. Main requires one approving review;
+   admins can bypass. Do not close research/scaffold issues just because folders
+   or templates exist.
 
 Preserve recorded experiments and slide baselines. Put new runs and proposals
 in their own locations so reviewers can compare them. A change in architecture
