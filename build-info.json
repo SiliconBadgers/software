@@ -1,18 +1,28 @@
 {
   "schemaVersion": 1,
-  "sha": "f8a969a930517550f3909d0fbeb9851bff2a65cd",
+  "sha": "5d307b7778a499ae7e0315db0be420c922172203",
   "ref": "main",
   "preview": false,
   "work": [
+    {
+      "merged_at": "2026-10-21T19:44:02Z",
+      "number": 26,
+      "state": "closed"
+    },
+    {
+      "merged_at": null,
+      "number": 25,
+      "state": "open"
+    },
     {
       "merged_at": "2026-10-18T19:19:30Z",
       "number": 24,
       "state": "closed"
     },
     {
-      "merged_at": null,
+      "merged_at": "2026-10-21T02:50:05Z",
       "number": 23,
-      "state": "open"
+      "state": "closed"
     },
     {
       "merged_at": null,
