@@ -26,11 +26,27 @@ class Boundaries(unittest.TestCase):
         for path, source in (("core/cdfg/graph.py", "import numpy"),
                              ("core/cdfg/graph.py", "from sbengine import model"),
                              ("engine/sbengine/mapping.py", "from .costs import Ctx"),
+                             ("engine/sbengine/codegen/lower.py", "from ..model import evaluate"),
                              ("engine/sbengine/memory.py", "from . import model")):
             with self.subTest(path=path):
                 self.assertTrue(boundaries.import_errors(path, source))
         self.assertEqual(boundaries.import_errors("core/cdfg/graph.py", "import json\nfrom .work import dense_macs"), [])
         self.assertEqual(boundaries.import_errors("engine/sbengine/mapping.py", "from . import groups"), [])
+        self.assertEqual(boundaries.import_errors("engine/sbengine/codegen/lower.py",
+                                                 "from ..provenance import decoded_capture_sha256"), [])
+
+    def test_compiler_subpackage_is_checked_recursively(self):
+        original = Path.read_text
+
+        def invalid_import(path, *args, **kwargs):
+            if path == ROOT / "engine/sbengine/codegen/lower.py":
+                return "from ..model import evaluate"
+            return original(path, *args, **kwargs)
+
+        with mock.patch.object(Path, "read_text", invalid_import):
+            errors = boundaries.check(ROOT)
+        self.assertTrue(any("codegen/lower.py" in error and "evaluation/presentation" in error
+                            for error in errors))
 
     def test_bulk_policy_allows_specs_and_preserved_evidence(self):
         self.assertIsNone(boundaries.tracked_path_error("engine/sweeps/compute/capacity.json"))

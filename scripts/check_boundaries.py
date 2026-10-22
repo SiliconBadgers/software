@@ -108,6 +108,10 @@ def import_errors(path, source):
             if path in {"engine/sbengine/memory.py", "engine/sbengine/schedule.py"} and any(
                     part in {"model", "sweep", "web", "cli"} for part in name.split(".")):
                 errors.append(f"{path}:{node.lineno}: simulation imports later stage {name}")
+            if path.startswith("engine/sbengine/codegen/") and any(
+                    part in {"costs", "model", "sweep", "web", "cli", "cpu_validate", "trace"}
+                    for part in name.split(".")):
+                errors.append(f"{path}:{node.lineno}: codegen imports evaluation/presentation {name}")
     return errors
 
 
@@ -182,7 +186,7 @@ def reference_errors(root):
 def check(root=ROOT):
     errors = []
     for folder in ("core/cdfg", "engine/sbengine"):
-        for path in sorted((root / folder).glob("*.py")):
+        for path in sorted((root / folder).rglob("*.py")):
             errors.extend(import_errors(path.relative_to(root), path.read_text(encoding="utf-8")))
     tracked = tracked_files(root)
     preserved = set()
