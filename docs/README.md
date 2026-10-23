@@ -7,6 +7,9 @@ Start with [current work](START-HERE.md) and the [analysis report](../REPORT.md)
 - [Baselines](../engine/designs/README.md) and [studies](../engine/sweeps/README.md):
   evaluate a fixed configuration and reproduce resource comparisons.
 - [Study summaries](sweeps/README.md): compact results with assumptions and provenance.
+- [Memory-traffic study](../research/compute-mapping/2026-10-14-memory-traffic/README.md):
+  logical-byte estimates for partial sums, DeltaNet state, matrix-to-vector
+  handoffs and decode SRAM feed.
 - [Component tests](../tests/README.md) and
   [compatibility checks](refactor-characterization.md): verification commands.
 - [Profiling next steps](profiling-next-steps.md): workload and hardware investigations.
