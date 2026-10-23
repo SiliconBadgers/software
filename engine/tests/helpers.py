@@ -1,4 +1,4 @@
-"""Shared test helpers: a tiny synthetic-graph builder and access to the real captured run (tests skip without it)."""
+"""Shared helpers; real tests select the committed reference, never an implicit latest run."""
 import json
 import math
 import sys
@@ -9,16 +9,14 @@ ENGINE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ENGINE))
 
 from sbengine import formats  # noqa: E402
-from sbengine.graph import Graph, Workload, latest_run  # noqa: E402
+from sbengine.graph import Graph, Workload  # noqa: E402
 
 RESULTS = ENGINE.parent / "results"
 
 
 def real_run():
-    try:
-        return latest_run(RESULTS)
-    except SystemExit:
-        return None
+    run = RESULTS / "2026-09-27_1839_windows-2"
+    return run if (run / "graphs").is_dir() else None
 
 
 class Builder:

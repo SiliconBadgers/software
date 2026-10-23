@@ -13,7 +13,8 @@ from pathlib import Path
 
 from . import VERSION, sweep
 from .config import DEFAULTS, PROFILE_DIR, get_path, load_profile, make_config, validate
-from .graph import has_capture, latest_run, load_workload
+from cdfg import has_capture
+from .workload import latest_run, load_workload
 from .model import evaluate
 from .trace import load_trace
 

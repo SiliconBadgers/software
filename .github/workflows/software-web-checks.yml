@@ -60,6 +60,8 @@ jobs:
           uv run --locked --group profiling python -m unittest discover -s core/tests -v
       - name: Workspace and publication checks
         run: uv run --locked --group analysis python -m unittest discover -s tests/web -v
+      - name: Repository boundaries
+        run: uv run --locked python -B scripts/check_boundaries.py
       - name: Build workspace
         env:
           GH_TOKEN: ${{ github.token }}

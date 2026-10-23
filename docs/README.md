@@ -1,10 +1,20 @@
-# Software design and contribution guides
+# Software documentation
 
-Use this directory for backend/runtime design, operation mapping, shared-interface proposals, decisions and learning material. Link the measurements or references that inform a proposal, and mark unresolved assumptions.
+Start with [current work](START-HERE.md) and the [analysis report](../REPORT.md).
 
-- [Profiling next steps](profiling-next-steps.md): extend the completed baseline and support parallel hardware investigations.
-- [Profiling findings](../experiments/llama-cpp/2026-09-22/REPORT.md) and [reproduction](../experiments/llama-cpp/2026-09-22/README.md).
+- [Scientific stages](DESIGN-RULES.md): calculation ownership and dependencies.
+- [Engine](../engine/README.md): equations, configuration and CLI usage.
+- [Baselines](../engine/designs/README.md) and [studies](../engine/sweeps/README.md):
+  evaluate a fixed configuration and reproduce resource comparisons.
+- [Study summaries](sweeps/README.md): compact results with assumptions and provenance.
+- [Component tests](../tests/README.md) and
+  [compatibility checks](refactor-characterization.md): verification commands.
+- [Profiling next steps](profiling-next-steps.md): workload and hardware investigations.
+- [Recorded profiling](../experiments/llama-cpp/2026-09-22/README.md):
+  original procedure and findings.
+- [Refactor verification](verification/refactor/README.md): supporting historical
+  characterization and acceptance records.
 
-This is a suggested home for work supporting the [charter](../CHARTER.md) and
-[objectives](../OBJECTIVES.md). The team can reorganize or extend it as its work
-develops. A directory’s presence does not assign a task or require an artifact.
+Keep maintained guides focused on architecture and reproduction. Detailed
+verification records belong with their subject; PR discussion carries revision
+progress and review context.

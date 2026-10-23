@@ -1,0 +1,10 @@
+{
+  "id": "tiling-attention-tile-v1",
+  "baseline": "engine/designs/baselines/characterized-v1/record.json",
+  "workload": "pp512-fa-on",
+  "axes": {"attention.kv_tile": [32, 64, 128, 256, 512]},
+  "objectives": [["prefill_s", "min"], ["decode_s", "min"]],
+  "decision": "local-memory",
+  "prerequisites": [],
+  "reference": "engine/docs/EQUATIONS.md"
+}

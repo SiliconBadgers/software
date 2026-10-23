@@ -19,7 +19,8 @@ from pathlib import Path
 
 from . import VERSION
 from .config import apply_sets, load_profile
-from .graph import has_capture, latest_run, load_workload
+from cdfg import has_capture
+from .workload import latest_run, load_workload
 from .model import evaluate
 from .trace import load_trace
 

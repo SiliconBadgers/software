@@ -1,0 +1,10 @@
+{
+  "id": "compute-capacity-v1",
+  "baseline": "engine/designs/baselines/characterized-v1/record.json",
+  "workload": "pp512-fa-on",
+  "axes": {"matrix.count": [1, 2, 4, 8]},
+  "objectives": [["cost", "min"], ["decode_s", "min"]],
+  "decision": "compute",
+  "prerequisites": ["local-memory"],
+  "reference": "engine/README.md"
+}

@@ -4,14 +4,18 @@ Use llama.cpp profiling and numerical evidence to guide compute-unit boundaries,
 
 ## Before editing or committing
 
+Follow [scientific code organization](docs/DESIGN-RULES.md) for stage boundaries,
+canonical ownership, evidence preservation and affected checks.
+
 - Read README.md, CONTRIBUTING.md, docs/START-HERE.md and the linked issue.
 - Do not commit secrets, licensed collateral, model weights or generated
   build/simulation databases.
+- Keep issue scope intact; source moves and documentation do not authorize a new design.
+- Keep changes and generated artifacts contained. Never overwrite dated evidence.
 - Use a branch and issue-linked PR. Request review from @akanksha-sc and
   Software contributors familiar with the affected work; involve other teams
   when their interfaces are affected. Follow the existing approval and merge
-  requirements. Keep the issue's technical scope intact; scaffolding and tone
-  changes do not authorize a new design.
+  requirements.
 
 ## AI assistance
 
