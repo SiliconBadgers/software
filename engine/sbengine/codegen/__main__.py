@@ -1,6 +1,7 @@
 """Print a symbolic compiler plan; unsupported work fails unless explicitly inventoried."""
 import argparse
 import sys
+import zlib
 
 from cdfg import Graph
 from .lower import compile_graph
@@ -17,7 +18,7 @@ def main(argv=None):
     try:
         plan = compile_graph(Graph(args.capture, args.phase), tensor_id=args.tensor_id)
         output = plan.to_json()
-    except (OSError, KeyError, TypeError, ValueError) as error:
+    except (EOFError, OSError, KeyError, TypeError, ValueError, zlib.error) as error:
         parser.error(str(error))
     sys.stdout.write(output)
     if plan.diagnostics:

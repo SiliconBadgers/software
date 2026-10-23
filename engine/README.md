@@ -1,8 +1,7 @@
 # engine: analytical accelerator model driven by captured graphs
 
-The initial [compiler workflow](../docs/compiler.md) adds a separate symbolic
-CDFG-to-matmul-plan CLI under `sbengine.codegen`. It reports unsupported work
-explicitly; executable target lowering and runtime integration are later stages.
+The [compiler foundation](../docs/compiler.md) provides a symbolic plan and
+coverage CLI under `sbengine.codegen`. Executable target lowering is follow-up work.
 
 `sbengine` estimates prefill and decode time, memory traffic, footprint and a unitless resource cost for
 Qwen3.5-2B on a parameterised accelerator (matrix, vector and recurrence units, shared L1, HBM). It reads the

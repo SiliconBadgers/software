@@ -26,7 +26,10 @@ class Boundaries(unittest.TestCase):
         for path, source in (("core/cdfg/graph.py", "import numpy"),
                              ("core/cdfg/graph.py", "from sbengine import model"),
                              ("engine/sbengine/mapping.py", "from .costs import Ctx"),
+                             ("engine/sbengine/mapping.py", "from sbengine import costs"),
                              ("engine/sbengine/codegen/lower.py", "from ..model import evaluate"),
+                             ("engine/sbengine/codegen/lower.py", "from sbengine import model"),
+                             ("engine/sbengine/codegen/lower.py", "from .. import cli"),
                              ("engine/sbengine/memory.py", "from . import model")):
             with self.subTest(path=path):
                 self.assertTrue(boundaries.import_errors(path, source))

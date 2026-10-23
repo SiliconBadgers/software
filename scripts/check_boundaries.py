@@ -91,9 +91,12 @@ def import_errors(path, source):
     errors = []
     path = str(path).replace("\\", "/")
     for node in ast.walk(ast.parse(source)):
-        names = ([item.name for item in node.names] if isinstance(node, ast.Import) else
-                 [node.module] if isinstance(node, ast.ImportFrom) and node.module else
-                 [item.name for item in node.names] if isinstance(node, ast.ImportFrom) else [])
+        names = []
+        if isinstance(node, ast.Import):
+            names = [item.name for item in node.names]
+        elif isinstance(node, ast.ImportFrom):
+            names = ([node.module] + [f"{node.module}.{item.name}" for item in node.names]
+                     if node.module else [item.name for item in node.names])
         for name in names:
             root = name.split(".")[0]
             if path.startswith("core/cdfg/"):
