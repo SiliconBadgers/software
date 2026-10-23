@@ -59,8 +59,31 @@
           "target": "assets/python/sbengine/graph.py"
         },
         {
+          "source": "core/cdfg/__init__.py",
+          "target": "assets/python/cdfg/__init__.py",
+          "virtual": "core/cdfg/__init__.py"
+        },
+        {
+          "source": "core/cdfg/graph.py",
+          "target": "assets/python/cdfg/graph.py",
+          "virtual": "core/cdfg/graph.py"
+        },
+        {
+          "source": "core/cdfg/work.py",
+          "target": "assets/python/cdfg/work.py",
+          "virtual": "core/cdfg/work.py"
+        },
+        {
+          "source": "engine/sbengine/workload.py",
+          "target": "assets/python/sbengine/workload.py"
+        },
+        {
           "source": "engine/sbengine/costs.py",
           "target": "assets/python/sbengine/costs.py"
+        },
+        {
+          "source": "engine/sbengine/mapping.py",
+          "target": "assets/python/sbengine/mapping.py"
         },
         {
           "source": "engine/sbengine/groups.py",
@@ -81,6 +104,18 @@
         {
           "source": "engine/sbengine/model.py",
           "target": "assets/python/sbengine/model.py"
+        },
+        {
+          "source": "engine/designs/baselines/characterized-v1/profile.json",
+          "target": "assets/designs/characterized-v1/profile.json"
+        },
+        {
+          "source": "engine/designs/baselines/characterized-v1/record.json",
+          "target": "assets/designs/characterized-v1/record.json"
+        },
+        {
+          "source": "engine/designs/decisions.json",
+          "target": "assets/designs/decisions.json"
         }
       ]
     }
@@ -160,6 +195,16 @@
       "title": "Expanded captured workloads",
       "path": "results/2026-09-27_1839_windows-2",
       "description": "Recorded Q4_K_M graphs, prompt-specific workloads, flash-attention variants and evidence limits."
+    },
+    {
+      "title": "Shared captured graph representation",
+      "path": "core/cdfg",
+      "description": "Canonical tensors, aliases, work conventions and conservative dependencies; no hardware assumptions."
+    },
+    {
+      "title": "Resolved baseline and open decisions",
+      "path": "engine/designs",
+      "description": "Provisional reproducible configuration and compute/local-memory/joint decision questions."
     }
   ]
 }

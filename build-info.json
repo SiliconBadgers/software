@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "sha": "5d307b7778a499ae7e0315db0be420c922172203",
+  "sha": "47e158603eefa1492ee6705b18a34cb138c5f5cf",
   "ref": "main",
   "preview": false,
   "work": [
@@ -30,9 +30,9 @@
       "state": "open"
     },
     {
-      "merged_at": null,
+      "merged_at": "2026-10-23T22:29:20Z",
       "number": 21,
-      "state": "open"
+      "state": "closed"
     },
     {
       "merged_at": "2026-10-11T19:32:28Z",

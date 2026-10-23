@@ -17,7 +17,7 @@
   {
     "source": "web/registry.json",
     "published": "registry.json",
-    "sha256": "19241219ce9382f749cc58cec7199bb814853996a6af1c5d1e1b0abb420e542b"
+    "sha256": "36fcdb448bdcfe2b21a6e9dc73637aa0f574f71612830931cac541db0cfb6477"
   },
   {
     "source": "web/graph.js",
@@ -57,22 +57,22 @@
   {
     "source": "web/components/python/worker.js",
     "published": "components/python/worker.js",
-    "sha256": "1fd929008dcec8a5c93a0b03148189991811f87da82e54c34301a35085725cbd"
+    "sha256": "102704372376ebe79e7c2d716f3cca22a3a77d256b7da745727c47ef7bbecf2d"
   },
   {
     "source": "web/components/python/bridge.py",
     "published": "assets/python/bridge.py",
-    "sha256": "13dbaec4ab3e3e1b2276491f60e61b5eb9cb970a1b624588e3c7fef05b79fc5a"
+    "sha256": "cad23b689290863ccad1d0d1c9a2258e9338414c4fa488b575e5f1d156cf7b12"
   },
   {
     "source": "engine/sbengine/__init__.py",
     "published": "assets/python/sbengine/__init__.py",
-    "sha256": "514b7bc7f0c5a383ff2fedb98b958e59f684b5590cbae99e104a76e6f507cd48"
+    "sha256": "8052d8a38de3f967b616e6a1d3ea189f3ed95cb8d2d1ba400e5cd1f7e1b6445e"
   },
   {
     "source": "engine/sbengine/config.py",
     "published": "assets/python/sbengine/config.py",
-    "sha256": "eae7045152251af7d355f3ba63b8e3faf63a116f2838ec170c6ae6b21dccba89"
+    "sha256": "99062ee2a8d5ecbe2ab6a6b453eb8e33441442b1e63a432a837d511d4d6002d1"
   },
   {
     "source": "engine/sbengine/formats.py",
@@ -82,22 +82,47 @@
   {
     "source": "engine/sbengine/graph.py",
     "published": "assets/python/sbengine/graph.py",
-    "sha256": "8034fb2f65f53d7422a943d85b179cde045c86b81421325d95c68787713c162e"
+    "sha256": "05b367215fe1a5c0eaaf2c4e1adcfb4b7663da96aa03fcf337d0420f98291f86"
+  },
+  {
+    "source": "core/cdfg/__init__.py",
+    "published": "assets/python/cdfg/__init__.py",
+    "sha256": "8677a2cf8d47f2526b4c7c7a340bd176abaf77e6af68ec1b811c0643237e6d70"
+  },
+  {
+    "source": "core/cdfg/graph.py",
+    "published": "assets/python/cdfg/graph.py",
+    "sha256": "183dc4727fa98b3c7fd39334445c6f92a070f4749db7a586914b6b1563a69701"
+  },
+  {
+    "source": "core/cdfg/work.py",
+    "published": "assets/python/cdfg/work.py",
+    "sha256": "4e3e77e267deac02fb3ded662170fa9a07d666dacaf7bcae1d9e12c72f3c07f9"
+  },
+  {
+    "source": "engine/sbengine/workload.py",
+    "published": "assets/python/sbengine/workload.py",
+    "sha256": "46ce40e93e95219ba96cc295a5fbc0172eb6939559f04e79c855f8d26f38c340"
   },
   {
     "source": "engine/sbengine/costs.py",
     "published": "assets/python/sbengine/costs.py",
-    "sha256": "5ca27431e9a789ae0b3bb35bc2f309bafe956ecb9fb790a877b484746f6dae76"
+    "sha256": "23426e5abfa52c7bbf791850af4e0dadd6ec532b03b1a3e362129415469977b8"
+  },
+  {
+    "source": "engine/sbengine/mapping.py",
+    "published": "assets/python/sbengine/mapping.py",
+    "sha256": "be5606fab418ba4b901ff07b9cecb67ba020039401853b7042a9c0fd6b71a4d2"
   },
   {
     "source": "engine/sbengine/groups.py",
     "published": "assets/python/sbengine/groups.py",
-    "sha256": "88fb26210bdb10d01d7beda4403b542b3a2b87c980802c2bc5710b11b1ea4d39"
+    "sha256": "217f75ebf789d5d180bb06f33ac3b20b400852e25956166f190a0fa7db4d6c22"
   },
   {
     "source": "engine/sbengine/memory.py",
     "published": "assets/python/sbengine/memory.py",
-    "sha256": "0c060ec4c293a0306b26cc932d76a356b30331f918a72567a864b268c67cc884"
+    "sha256": "08e6f567db8e9199e3c513a3a83a825de31de09ac003618fdeaac6f916d6c4c1"
   },
   {
     "source": "engine/sbengine/resources.py",
@@ -112,7 +137,22 @@
   {
     "source": "engine/sbengine/model.py",
     "published": "assets/python/sbengine/model.py",
-    "sha256": "d88900fc5c369f4d674134b11831209f0063b88b35b90364844de06d843d75bf"
+    "sha256": "d8e8b526bf2e7bc16d51107a16fed97900953a78f1ffa26a44bdfc0129a3a383"
+  },
+  {
+    "source": "engine/designs/baselines/characterized-v1/profile.json",
+    "published": "assets/designs/characterized-v1/profile.json",
+    "sha256": "4b4c861d72282bb29476b61c2d542150e634eff4f322a30d8eed825b1abb3240"
+  },
+  {
+    "source": "engine/designs/baselines/characterized-v1/record.json",
+    "published": "assets/designs/characterized-v1/record.json",
+    "sha256": "4f41e914a738c3ca7d56024102382f084fff2787f9300e9864aa917d532f8c18"
+  },
+  {
+    "source": "engine/designs/decisions.json",
+    "published": "assets/designs/decisions.json",
+    "sha256": "d18cd0850618734ec992e8a14a554a12813eb7dfa775b0959513f36a62803723"
   },
   {
     "source": "experiments/llama-cpp/2026-09-24-qwen35-2b/graphs/pp128/prefill.json",

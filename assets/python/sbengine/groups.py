@@ -26,7 +26,7 @@ Groups are candidates the dependencies allow. They do not claim that a kernel or
 import re
 from dataclasses import dataclass, field
 
-from .graph import MEMORY_OPS
+from cdfg import MEMORY_OPS
 
 ANCHOR_CATEGORIES = {"weight_matrix", "act_matrix", "conv", "recurrent"}
 _LAYER = re.compile(r"-(\d+)\b|_l(\d+)\b")

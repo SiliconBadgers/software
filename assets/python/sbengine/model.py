@@ -1,8 +1,8 @@
 """evaluate(): one workload (captured prefill + decode graphs) under one hardware/assumption config.
 
 Pipeline per phase:
-  1. per-node compute time and traffic (costs.py)
-  2. fusion: drop single-consumer epilogue intermediates (memory.fused_roots)
+  1. resource-dependent mapping (mapping.py), then per-node work/traffic (costs.py)
+  2. fusion choices (mapping.fused_roots), applied to traffic by memory.drop_fused
   3. activation residency: which intermediates stay in L1, what round-trips through HBM (memory.py)
   4. node duration = max(compute, L1 service, HBM service) + launch   (or their sum if within_op_overlap is off)
   5. whole-graph time: serial sum, dependency-aware list schedule, lower bound (schedule.py)
@@ -13,7 +13,8 @@ import math
 from . import VERSION
 from .config import config_hash, switch_report
 from .costs import Ctx, node_cost
-from .memory import drop_fused, fused_roots, per_op_spill, simulate_residency
+from .mapping import fused_roots, map_node
+from .memory import drop_fused, per_op_spill, simulate_residency
 from .resources import resources
 from .schedule import schedule
 
@@ -51,7 +52,8 @@ def evaluate_phase(ctx, g, cfg, trace_phase=None, detail=False):
     state_seq = sum(g.tensors[r].elements for r in g.roots_of_kind("state")) * ctx.state_b
     ctx.state_resident = min(1.0, ctx.state_cap / (state_seq * ctx.B)) if state_seq else 1.0
 
-    costs = [node_cost(ctx, g, n) for n in g.nodes]
+    mappings = [map_node(ctx, g, n) for n in g.nodes]
+    costs = [node_cost(ctx, g, n, selected) for n, selected in zip(g.nodes, mappings)]
     for n, c in zip(g.nodes, costs):
         _host_fallback(ctx, cfg, g, n, c, trace_phase)
     errors = sorted({c.error for c in costs if c.error})
