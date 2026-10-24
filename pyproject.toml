@@ -16,6 +16,10 @@ profiling = [
     "cmake==4.4.3",
     "ninja==1.13.2",
 ]
+model-inspection = [
+    { include-group = "engine" },
+    "gguf==0.19.0",
+]
 
 [tool.uv]
 package = false
@@ -26,3 +30,4 @@ default-groups = []
 engine = { requires-python = ">=3.12" }
 analysis = { requires-python = ">=3.12" }
 profiling = { requires-python = ">=3.12" }
+model-inspection = { requires-python = ">=3.12" }

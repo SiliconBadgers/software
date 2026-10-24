@@ -1,0 +1,31 @@
+{
+  "name": "qwen35-2b-zeb-compact",
+  "description": "Selected custom workload; verified semantic import, not a runnable llama.cpp profiling experiment.",
+  "source": {
+    "repo": "ZebTaylor/Qwen3.5-2B-W4G16-A8G32-Q824-KV8G8-GGUF",
+    "revision": "65ef4dd4495494fb671c2ca41276df5ffccf098c"
+  },
+  "upstream_model": {
+    "repo": "Qwen/Qwen3.5-2B",
+    "revision": "15852e8c16360a2fea060d615a32b45270f8a8fc"
+  },
+  "architecture": "qwen3_5_compact_q824_kv8",
+  "embedded_graph_sha256": "9a5989d83c84f25fcff78ae114459e7ef48314d78eaa2478642322c6cee715dd",
+  "artifacts": {
+    "graph": {
+      "file": "Qwen3.5-2B-v1-W4G16-A8G32-Q824-KV8G8-graph.gguf",
+      "size_bytes": 730720,
+      "sha256": "1771716fc43e01c4b41b4d4d50f44f59cc8496de6b1de932cb0d6bbc0228e8eb"
+    },
+    "model": {
+      "file": "Qwen3.5-2B-v1-W4G16-A8G32-Q824-KV8G8.gguf",
+      "size_bytes": 1856852896,
+      "sha256": "a008857b01657c395592742c0d57e50ab944a4e5a9eb3e8a30e62d3690a4a723"
+    }
+  },
+  "runtime": {
+    "status": "inspection-only",
+    "reason": "Pinned llama.cpp rejects the custom architecture. The embedded numerical runtime loads safetensors, not GGUF; it is not an integrated execution/capture backend.",
+    "tested_llama_cpp": "f46bc30cb6a7f68a67e34a00061e20a4ad1eff43"
+  }
+}
