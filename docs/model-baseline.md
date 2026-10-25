@@ -1,6 +1,6 @@
 # Custom quantized workload
 
-New model-dependent work targets Zeb's
+This guide covers Software's pinned import of Zeb's
 [W4G16/A8G32/Q8.24/KV8G8 export](https://huggingface.co/ZebTaylor/Qwen3.5-2B-W4G16-A8G32-Q824-KV8G8-GGUF/tree/65ef4dd4495494fb671c2ca41276df5ffccf098c).
 The [workload definition](../core/experiments/qwen35-2b-zeb-compact.json) pins
 the export revision, both GGUF files, sizes and SHA-256 identities separately
@@ -12,6 +12,10 @@ experiment. Explicitly selecting the custom definition for `profile` or `doctor`
 fails before building, downloading or producing a run. The existing
 Q4_K_M definition, `characterized-v1`, captures and historical equations remain
 unchanged. Older studies are not results for the custom model.
+
+This is a workload reference, not an accelerator size or format limit. FPGA
+exploration is not constrained to a tapeout-sized implementation or this GGUF;
+each target retains its own resource and implementation constraints.
 
 ## Import
 

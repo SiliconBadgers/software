@@ -27,7 +27,8 @@ model comparisons, captured graphs, execution estimates and source links.
 
 ## Current material and scope
 
-New model-dependent work targets [Zeb's custom quantized workload](docs/model-baseline.md).
+[Zeb's custom quantized workload](docs/model-baseline.md) provides a pinned reference
+for shared workload studies.
 Its identity-checked semantic import is available; a compatible execution/capture
 backend is not yet established. Existing Q4_K_M/BF16 experiments retain their own
 identities and remain the runnable historical references.
