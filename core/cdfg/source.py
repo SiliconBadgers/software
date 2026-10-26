@@ -55,6 +55,7 @@ def validate_source(graph):
     raw = {t["id"]: t for t in tensors}
     if len(raw) != len(tensors):
         raise ValueError("duplicate tensor IDs in capture")
+    classified_ops = METADATA_OPS | {"CPY"}
     for t in tensors:
         if (not _integer(t["id"]) or len(t["shape"]) != 4
                 or any(not _integer(v) for v in t["shape"])
@@ -62,8 +63,8 @@ def validate_source(graph):
             raise ValueError(f"tensor {t['id']}: invalid shape or captured element count")
         if any(not isinstance(t[key], str) or not t[key] for key in ("op", "op_desc", "dtype")):
             raise ValueError(f"tensor {t['id']}: operation and format names are required")
-        if (t["op"] in METADATA_OPS or t["op_desc"] in METADATA_OPS) and t["op"] != t["op_desc"]:
-            raise ValueError(f"tensor {t['id']}: inconsistent metadata operation classification")
+        if (t["op"] in classified_ops or t["op_desc"] in classified_ops) and t["op"] != t["op_desc"]:
+            raise ValueError(f"tensor {t['id']}: inconsistent metadata/copy operation classification")
         if not _integer(t["span_bytes"]) or not _integer(t["logical_bytes"]):
             raise ValueError(f"tensor {t['id']}: invalid captured byte extents")
         slots = []
@@ -90,7 +91,22 @@ def validate_source(graph):
               if raw[tid]["op_desc"] not in METADATA_OPS and raw[tid]["elements"]]
     if len(graph.nodes) != len(active):
         raise ValueError("cached active nodes differ from the retained capture")
-    roots = {tid: storage_chain(raw, tid)[-1] for tid in raw}
+    roots, offsets = {}, {}
+    for tid in raw:
+        chain = storage_chain(raw, tid)
+        roots[tid] = chain[-1]
+        offsets[tid] = sum(raw[parent]["view_offset_bytes"] for parent in chain)
+    for tid, tensor in raw.items():
+        if tensor["op_desc"] in {"VIEW", "RESHAPE", "PERMUTE", "TRANSPOSE", "CPY"}:
+            slot = 1 if tensor["op_desc"] == "CPY" else 0
+            expected_slots = {0, 1} if slot == 1 else {0}
+            slots = {s["slot"]: s["tensor"] for s in tensor["sources"]}
+            if set(slots) != expected_slots:
+                raise ValueError(f"tensor {tid}: {tensor['op_desc']} requires operand slots {sorted(expected_slots)}")
+            if tensor["view_source"] < 0 or roots[tid] != roots[slots[slot]]:
+                raise ValueError(f"tensor {tid}: {tensor['op_desc']} backing storage differs from operand {slot}")
+            if tensor["op_desc"] != "VIEW" and offsets[tid] != offsets[slots[slot]]:
+                raise ValueError(f"tensor {tid}: {tensor['op_desc']} backing offset differs from operand {slot}")
     for idx, (node, (pos, tid)) in enumerate(zip(graph.nodes, active)):
         slots = {slot: expected[sid] for slot, sid in expected[tid].sources}
         srcs = tuple(dict.fromkeys(slots.values()))
@@ -111,25 +127,30 @@ def source_dependencies(graph, tensors):
     memo, visiting = {}, set()
 
     def producers(tid):
-        if tid in memo:
-            return memo[tid]
-        if tid in visiting:
-            raise ValueError(f"tensor {tid}: cycle in source descriptors")
-        t = tensors[tid]
-        if t["op_desc"] not in METADATA_OPS and t["elements"]:
-            if tid not in indexes:
-                raise ValueError(f"tensor {tid}: source computation is missing from captured order")
-            result = {indexes[tid]}
-        else:
-            visiting.add(tid)
-            result = set()
-            parents = {s["tensor"] for s in t["sources"]}
-            if t["view_source"] >= 0:
-                parents.add(t["view_source"])
-            for parent in parents:
-                result.update(producers(parent))
-            visiting.remove(tid)
-        memo[tid] = frozenset(result)
+        stack = [(tid, None)]
+        while stack:
+            current, parents = stack.pop()
+            if current in memo:
+                continue
+            if parents is not None:
+                memo[current] = frozenset(dep for parent in parents for dep in memo[parent])
+                visiting.remove(current)
+                continue
+            if current in visiting:
+                raise ValueError(f"tensor {current}: cycle in source descriptors")
+            tensor = tensors[current]
+            if tensor["op_desc"] not in METADATA_OPS and tensor["elements"]:
+                if current not in indexes:
+                    raise ValueError(f"tensor {current}: source computation is missing from captured order")
+                memo[current] = frozenset((indexes[current],))
+            else:
+                visiting.add(current)
+                parents = {s["tensor"] for s in tensor["sources"]}
+                if tensor["view_source"] >= 0:
+                    parents.add(tensor["view_source"])
+                # Revisit after every parent has a memoized producer set.
+                stack.append((current, parents))
+                stack.extend((parent, None) for parent in parents if parent not in memo)
         return memo[tid]
 
     dependencies, last_write, readers = [], {}, {}

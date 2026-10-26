@@ -192,6 +192,39 @@ class SymbolicMatmul(unittest.TestCase):
         with self.assertRaises(LoweringError):
             lower_matmul(graph, 30)
 
+    def test_backing_must_agree_with_source_in_api_and_cli(self):
+        raw = copy.deepcopy(self.capture)
+        for tensor in raw["tensors"]:
+            size = 2 if tensor["dtype"] == "bf16" else 4
+            tensor.update(shape=[1] * 4, strides_bytes=[size] * 4, elements=1,
+                          span_bytes=size, logical_bytes=size)
+        unrelated = copy.deepcopy(raw["tensors"][1])
+        unrelated.update(id=22, name="fixture.unrelated")
+        view = copy.deepcopy(raw["tensors"][1])
+        view.update(id=21, name="fixture.view", sources=[{"slot": 0, "tensor": 20}])
+        raw["tensors"].extend([unrelated, view])
+        raw["tensors"][2]["sources"][1]["tensor"] = 21
+        raw["scheduled_nodes"] = [21, 30]
+        for operation in ("VIEW", "RESHAPE", "PERMUTE", "TRANSPOSE", "CPY"):
+            sources = ([{"slot": 0, "tensor": 22}, {"slot": 1, "tensor": 20}]
+                       if operation == "CPY" else [{"slot": 0, "tensor": 20}])
+            view.update(op=operation, op_desc=operation, view_source=20,
+                        sources=sources,
+                        op_params_i32=([0, 1, 2, 3] + [0] * 12 if operation == "PERMUTE" else [0] * 16))
+            self.assertEqual(lower_matmul(self.graph(raw), 30).b.storage_id, 20)
+            for backing in (-1, 22):
+                with self.subTest(operation=operation, backing=backing):
+                    view["view_source"] = backing
+                    graph = self.graph(raw)
+                    with self.assertRaisesRegex(ValueError, "backing storage"):
+                        compile_graph(graph)
+                    for flags in ((), ("--allow-partial",)):
+                        result = self.cli(graph, *flags)
+                        self.assertEqual(result.returncode, 2, result.stderr)
+                        self.assertEqual(result.stdout, "")
+                        self.assertIn("backing storage", result.stderr)
+                        self.assertNotIn("Traceback", result.stderr)
+
     def test_selectors_require_integer_tensor_ids(self):
         raw = copy.deepcopy(self.capture)
         raw["tensors"][2]["id"] = 1
@@ -265,6 +298,26 @@ class SymbolicMatmul(unittest.TestCase):
                 raw["scheduled_nodes"] = [70]
                 with self.assertRaisesRegex(ValueError, "missing"):
                     compile_graph(self.graph(raw))
+
+    def test_deep_flattened_metadata_chain_retains_producer_in_api_and_cli(self):
+        raw = self.with_matmul_chain()
+        previous = 30
+        view_ids = range(1000, 1000 + sys.getrecursionlimit() + 10)
+        for tensor_id in view_ids:
+            view = copy.deepcopy(raw["tensors"][2])
+            view.update(id=tensor_id, name=f"fixture.view_{tensor_id}", op="VIEW", op_desc="VIEW",
+                        view_source=30, sources=[{"slot": 0, "tensor": previous}])
+            raw["tensors"].append(view)
+            previous = tensor_id
+        raw["tensors"][4]["sources"][1]["tensor"] = previous
+        raw["scheduled_nodes"] = [30, *view_ids, 70]
+        graph = self.graph(raw)
+        report = json.loads(compile_graph(graph, tensor_id=70).to_json())
+        self.assertEqual(report["plans"][0]["dependencies"], [30])
+        self.assertEqual(report["source"]["external_dependency_tensor_ids"], [30])
+        result = self.cli(graph, "--tensor-id", "70")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout), report)
 
     def test_json_is_deterministic_and_decoded_identity_ignores_gzip(self):
         plain = compile_graph(self.graph())

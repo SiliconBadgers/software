@@ -71,6 +71,118 @@ class SourceValidationTests(unittest.TestCase):
         capture["scheduled_nodes"] = [21, 30]
         return capture
 
+    def metadata_views(self, count=2, op="VIEW"):
+        capture = self.copy_into_input()
+        previous = 21
+        ids = range(100, 100 + count)
+        for tid in ids:
+            view = deepcopy(self.tensor(capture, 20))
+            view.update(id=tid, name=f"fixture.view_{tid}", op=op, op_desc=op,
+                        view_source=20, sources=[{"slot": 0, "tensor": previous}])
+            capture["tensors"].append(view)
+            previous = tid
+        self.tensor(capture, 30)["sources"][1]["tensor"] = previous
+        capture["scheduled_nodes"] = [21, *ids, 30]
+        return capture
+
+    def test_metadata_backing_matches_resolved_source_not_immediate_id(self):
+        for op in ("VIEW", "RESHAPE", "PERMUTE", "TRANSPOSE"):
+            with self.subTest(op=op):
+                graph = self.graph(self.metadata_views(op=op))
+                raw = validate_source(graph)
+                self.assertEqual(raw[101]["sources"][0]["tensor"], 100)
+                self.assertEqual(storage_chain(raw, 101), (101, 20))
+                self.assertEqual(source_dependencies(graph, raw), [[], [0]])
+
+    def test_alias_operations_require_consistent_backing_and_exact_slots(self):
+        for op in ("VIEW", "RESHAPE", "PERMUTE", "TRANSPOSE", "CPY"):
+            for corruption in ("own storage", "unrelated storage", "missing slot", "extra slot"):
+                with self.subTest(op=op, corruption=corruption):
+                    capture = self.copy_into_input() if op == "CPY" else self.metadata_views(op=op)
+                    tensor = self.tensor(capture, 21 if op == "CPY" else 101)
+                    if corruption == "own storage":
+                        tensor["view_source"] = -1
+                    elif corruption == "unrelated storage":
+                        tensor["view_source"] = 22
+                    elif corruption == "missing slot":
+                        tensor["sources"].pop()
+                    else:
+                        tensor["sources"].append({"slot": len(tensor["sources"]), "tensor": 20})
+                    with self.assertRaisesRegex(ValueError, "backing storage|operand slots"):
+                        validate_source(self.graph(capture))
+
+    def test_source_less_none_alias_remains_valid(self):
+        capture = self.copy_into_input()
+        alias = deepcopy(self.tensor(capture, 20))
+        alias.update(id=23, name="fixture.external_alias", view_source=20, sources=[])
+        capture["tensors"].append(alias)
+        self.tensor(capture, 30)["sources"][1]["tensor"] = 23
+        graph = self.graph(capture)
+        raw = validate_source(graph)
+        self.assertEqual(storage_chain(raw, 23), (23, 20))
+        self.assertEqual(source_dependencies(graph, raw), [[], [0]])
+
+    def test_alias_operation_requires_explicit_backing_even_if_unused(self):
+        for op in ("VIEW", "RESHAPE", "PERMUTE", "TRANSPOSE", "CPY"):
+            with self.subTest(op=op):
+                capture = deepcopy(self.capture)
+                view = deepcopy(self.tensor(capture, 20))
+                inputs = [20, 23] if op == "CPY" else [23]
+                view.update(id=23, op=op, op_desc=op,
+                            sources=[{"slot": slot, "tensor": tid} for slot, tid in enumerate(inputs)])
+                capture["tensors"].append(view)
+                with self.assertRaisesRegex(ValueError, "backing storage"):
+                    validate_source(self.graph(capture))
+
+    def test_copy_classification_cannot_bypass_alias_checks(self):
+        for op, desc in (("CPY", "ADD"), ("ADD", "CPY")):
+            with self.subTest(op=op, desc=desc):
+                capture = self.copy_into_input()
+                self.tensor(capture, 21).update(op=op, op_desc=desc)
+                with self.assertRaisesRegex(ValueError, "operation classification"):
+                    validate_source(self.graph(capture))
+
+    def test_shape_metadata_and_copy_preserve_resolved_operand_offset(self):
+        for op in ("RESHAPE", "PERMUTE", "TRANSPOSE", "CPY", "VIEW"):
+            with self.subTest(op=op):
+                capture = self.copy_into_input()
+                for tensor in capture["tensors"]:
+                    tensor.update(dtype="f32", shape=[1, 1, 1, 1], strides_bytes=[4, 4, 4, 4],
+                                  elements=1, span_bytes=4, logical_bytes=4)
+                self.tensor(capture, 20).update(shape=[2, 1, 1, 1], strides_bytes=[4, 8, 8, 8],
+                                                elements=2, span_bytes=8, logical_bytes=8)
+                source = deepcopy(self.tensor(capture, 21))
+                source.update(id=23, op="VIEW", op_desc="VIEW", sources=[{"slot": 0, "tensor": 20}])
+                capture["tensors"].append(source)
+                inputs = [22, 23] if op == "CPY" else [20 if op == "VIEW" else 23]
+                target = self.tensor(capture, 21)
+                target.update(op=op, op_desc=op,
+                              sources=[{"slot": slot, "tensor": tid} for slot, tid in enumerate(inputs)])
+                capture["scheduled_nodes"] = [23, 21, 30]
+                # Both zero-offset descriptors are valid; the root has space for
+                # a four-byte shift, so bounds alone cannot detect the contradiction.
+                validate_source(self.graph(capture))
+                target["view_offset_bytes"] = 4
+                if op == "VIEW":
+                    validate_source(self.graph(capture))
+                else:
+                    with self.assertRaisesRegex(ValueError, "backing offset"):
+                        validate_source(self.graph(capture))
+
+    def test_metadata_producer_walk_exceeds_python_recursion_limit(self):
+        count = sys.getrecursionlimit() + 50
+        graph = self.graph(self.metadata_views(count))
+        self.assertEqual(graph.metadata_nodes, count)
+        self.assertEqual(self.dependencies(graph), {21: [], 30: [21]})
+
+    def test_metadata_source_cycle_is_rejected_with_valid_storage(self):
+        capture = self.metadata_views()
+        self.tensor(capture, 100)["sources"][0]["tensor"] = 101
+        graph = self.graph(capture)
+        raw = validate_source(graph)
+        with self.assertRaisesRegex(ValueError, "cycle in source descriptors"):
+            source_dependencies(graph, raw)
+
     def test_copy_to_input_is_a_direct_producer_without_changing_analytical_deps(self):
         graph = self.graph(self.copy_into_input())
         self.assertEqual(graph.deps(), [[], []])
