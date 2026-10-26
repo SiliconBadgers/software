@@ -27,6 +27,12 @@ model comparisons, captured graphs, execution estimates and source links.
 
 ## Current material and scope
 
+[Zeb's custom quantized workload](docs/model-baseline.md) provides a pinned reference
+for shared workload studies.
+Its identity-checked semantic import is available; a compatible execution/capture
+backend is not yet established. Existing Q4_K_M/BF16 experiments retain their own
+identities and remain the runnable historical references.
+
 The profiling runner supports CPU reference execution, Metal and optional CUDA
 iteration. [Shared CDFG source](core/cdfg/), [mapping and evaluation](engine/README.md),
 [resolved baselines](engine/designs/README.md) and [reproducible studies](engine/sweeps/README.md)

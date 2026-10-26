@@ -27,6 +27,11 @@ def positive(value):
     return number
 
 
+def require_execution(experiment):
+    if experiment.get("runtime", {}).get("status") == "inspection-only":
+        sys.exit("error: this workload is inspection-only, not supported by the profiling runtime; use import-workload")
+
+
 def build_parser():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--platform-dir", help="unix or windows (default: detected from the OS)")
@@ -71,11 +76,17 @@ def build_parser():
     d.add_argument("--dry-run", action="store_true")
     p = sub.add_parser("analyze", help="Re-run the analysis for an existing run folder")
     p.add_argument("run_dir", type=Path)
+    p = sub.add_parser("import-workload", help="Verify/import a published semantic GGUF; does not execute or estimate it")
+    p.add_argument("gguf", type=Path)
+    p.add_argument("--experiment", default="qwen35-2b-zeb-compact")
+    p.add_argument("--artifact", choices=("model", "graph"), required=True)
+    p.add_argument("--out", type=Path, default=REPO / "build/workloads/zeb-compact-v1")
     return parser
 
 
 def make_context(args):
     exp = load_experiment(args.experiment)
+    require_execution(exp)
     work = exp["workload"]
     profile, os_label = platform_profile.load(args.platform_dir)
     lengths = args.lengths or work["prompt_lengths"]
@@ -136,6 +147,7 @@ def analyze_command(args):
     runpaths.assert_writable(run_dir)
     manifest = json.loads((run_dir / "run-manifest.json").read_text(encoding="utf-8"))
     exp = load_experiment(manifest["experiment"]["name"])
+    require_execution(exp)
     cfg = manifest["config"]
     result = pipeline.analyze_run(run_dir, exp, cfg["prompt_lengths"], cfg["trace"], cfg["backends"],
                                   manifest["plot_subtitle"], include_controls=cfg.get("cuda_controls", False))
@@ -155,11 +167,23 @@ def analyze_command(args):
 
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
-    args = build_parser().parse_args(argv)
+    parser = build_parser()
+    args = parser.parse_args(argv)
     if args.command == "profile":
         profile_command(args, ["cli.py"] + argv)
     elif args.command == "doctor":
         doctor_command(args)
+    elif args.command == "import-workload":
+        from import_workload import import_workload
+        message = None
+        try:
+            result = import_workload(args.gguf, load_experiment(args.experiment), args.artifact, args.out)
+        except (ValueError, OSError, ImportError) as error:
+            message = str(error)
+        if message is not None:
+            parser.error(message)
+        print(json.dumps(result["inventory"], indent=2))
+        print("Imported semantic evidence (not execution/capture):", args.out.resolve())
     else:
         analyze_command(args)
 
