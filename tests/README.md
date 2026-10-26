@@ -57,6 +57,12 @@ uv run --locked --group profiling python -m unittest discover -s core/tests -v
 uv run --locked python -m unittest discover -s tests/web -v
 ```
 
+To include the custom GGUF import tests, add `--group model-inspection` to the
+core command. Without that optional group only the GGUF-dependent cases skip;
+the existing profiling workflows and standard-library CDFG checks remain available.
+See the [custom workload guide](../docs/model-baseline.md) for a real pinned-artifact
+import, its output safeguards and the distinction from execution/capture evidence.
+
 See [workspace checks](../web/README.md) for browser tests. Use the committed
 lockfile; dependency changes and compatibility-export regeneration are described
 in [SETUP.md](../SETUP.md).
