@@ -41,6 +41,20 @@ class HbmCounterModel(unittest.TestCase):
             self.assertGreaterEqual(c["makespan_cycles"], s["makespan_cycles"])
             self.assertEqual(s["publish_delay_cycles"], 0.0)
 
+    def test_probe_replay_matches_measurement(self):
+        for row in self.sim.validate_against_probe():
+            self.assertGreater(row["ratio"], 0.85, row)
+            self.assertLess(row["ratio"], 1.15, row)
+
+    def test_measured_histogram_has_all_probe_samples(self):
+        self.assertEqual(sum(self.sim.MEASURED_FIRST_BEAT.values()), 128)
+
+    def test_bigger_buffer_never_hurts(self):
+        for row in self.sim.min_buffer_table(quick=True):
+            fractions = [c["fraction_of_ideal"] for c in row["curve"]]
+            self.assertEqual(fractions, sorted(fractions), row)
+            self.assertLessEqual(fractions[-1], 1.0 + 1e-9, row)
+
     def test_wait_on_future_command_is_rejected(self):
         bad = [self.sim.Transfer("load", 512, "matrix", False, 1.0, [("matrix", 3)])]
         with self.assertRaises(ValueError):

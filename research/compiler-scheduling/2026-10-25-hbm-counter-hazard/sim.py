@@ -34,11 +34,12 @@ Model (all times in 450 MHz AXI cycles, the F2 HBM IP clock):
   consumers, completion otherwise. A streaming consumer cannot finish before
   its data has physically arrived.
 
-Every latency here is a modeling assumption. The `prior` distribution uses
-public Alveo U280 HBM measurements (Shuhai, Wang et al., FCCM 2020: 55/62/69
-cycle page hit/closed/miss with the switch on, periodic refresh stalls) and
-the F2 IP's 75 % page-hit setting. It is not a measurement of the F2 AMD
-model; see README.md for the calibration plan.
+The `measured` latency and port efficiency come from the rtl latency probe on
+AMD's F2 HBM simulation model (constants below; README.md has the provenance).
+The `prior` distribution, kept for comparison, uses public Alveo U280 HBM
+measurements (Shuhai, Wang et al., FCCM 2020: 55/62/69 cycle page
+hit/closed/miss with the switch on, periodic refresh stalls) and the F2 IP's
+75 % page-hit setting. Neither is a hardware measurement of our design.
 
 Usage, from the repository root:
     python research/compiler-scheduling/2026-10-25-hbm-counter-hazard/sim.py [--out DIR] [--force] [--quick]
@@ -87,6 +88,20 @@ WEIGHT_BYTES_PER_LAYER_INT4 = int((1881276416 - 508559360) / 24 * 0.5)
 # only that burst: other IDs on the port may return around it, as AXI allows
 # for different transaction IDs.
 
+# Measured on the AWS F2 two-stack AMD HBM simulation model with the rtl latency
+# probe (rtl branch yoon/hbm-latency-probe, b642ad2; VCS Y-2026.03_Full64; seed 1;
+# 2026-10-28). Phase 3 depth-1 sequential reads on port 0: address acceptance to
+# first data beat, 128 samples, as {cycles: count}.
+MEASURED_FIRST_BEAT = {54: 91, 55: 3, 57: 1, 61: 29, 66: 1, 68: 1, 103: 1, 138: 1}
+# Phase 5: all 32 ports streaming reached 907.9 of 1024 B/cycle.
+MEASURED_PORT_EFFICIENCY = 907.9 / 1024
+# Phase 3: one port's read bandwidth (B/cycle) by outstanding bursts.
+MEASURED_DEPTH_BYTES_PER_CYCLE = {1: 6.89, 2: 13.58, 4: 24.77, 8: 30.61, 16: 28.42,
+                                  32: 27.90, 64: 27.85}
+# Phase 2: a different row in the same bank costs 68 cycles versus 54.
+MEASURED_ROW_CONFLICT_CYCLES = 68
+
+
 def fixed_latency(cycles):
     def sample(rng, port):
         return cycles, 0.0
@@ -104,6 +119,20 @@ def prior_latency(stall_scale=1.0, page_hit=0.75, refresh_prob=0.04):
         stall = rng.uniform(0, stall_max) if rng.random() < refresh_prob else 0.0
         return base, stall
     sample.label = f"prior(stall x{stall_scale:g})"
+    return sample
+
+
+def measured_latency():
+    """Draw from the measured first-beat histogram. Anything above a row
+    conflict counts as a stall that delays only its own burst."""
+    values = list(MEASURED_FIRST_BEAT)
+    weights = list(MEASURED_FIRST_BEAT.values())
+
+    def sample(rng, port):
+        value = rng.choices(values, weights)[0]
+        base = min(value, MEASURED_ROW_CONFLICT_CYCLES)
+        return base, float(value - base)
+    sample.label = "measured"
     return sample
 
 
@@ -169,13 +198,14 @@ def decode_mix(layers, tile_bytes, matrix_rate, vector_rate,
 # --------------------------------------------------------------------------
 
 def simulate(transfers, scheme, latency, rob_slots=64, drain="in_order",
-             issue_per_cycle=4, row_bytes=4096, seed=1):
+             issue_per_cycle=4, row_bytes=512, seed=1, ports=PORTS,
+             port_efficiency=1.0):
     if scheme not in ("counter", "scoreboard"):
         raise ValueError(scheme)
     if drain not in ("in_order", "arrival"):
         raise ValueError(drain)
     rng = random.Random(seed)
-    bus_free = [0.0] * PORTS   # one data bus per port, shared by reads and writes
+    bus_free = [0.0] * ports   # one data bus per port, shared by reads and writes
     rob = collections.deque() if drain == "in_order" else []
     last_retire = 0.0
     issue_t = -1.0 / issue_per_cycle
@@ -200,9 +230,9 @@ def simulate(transfers, scheme, latency, rob_slots=64, drain="in_order",
         row_event = done_event = 0.0
         for i in range(n_bursts):
             nbytes = min(BURST_BYTES, t.size - i * BURST_BYTES)
-            beats = max(1, math.ceil(nbytes / BEAT_BYTES))
+            beats = max(1, math.ceil(nbytes / BEAT_BYTES)) / port_efficiency
             at = max(issue_t + 1.0 / issue_per_cycle, ready)
-            port = port_cursor % PORTS
+            port = port_cursor % ports
             port_cursor += 1
             base, stall = latency(rng, port)
             if t.kind == "load":
@@ -257,7 +287,9 @@ def simulate(transfers, scheme, latency, rob_slots=64, drain="in_order",
         "makespan_cycles": makespan,
         "makespan_us": makespan / AXI_MHZ,
         "read_bytes": read_bytes,
-        "hbm_read_util": read_bytes / (makespan * PEAK_BYTES_PER_CYCLE) if makespan else 0.0,
+        "hbm_read_util": (read_bytes / (makespan * ports * BEAT_BYTES)
+                          if makespan else 0.0),
+        "read_bytes_per_cycle": read_bytes / makespan if makespan else 0.0,
         "matrix_busy": busy["matrix"] / makespan if makespan else 0.0,
         "vector_busy": busy["vector"] / makespan if makespan else 0.0,
         "publish_delay_cycles": publish_delay,
@@ -324,6 +356,9 @@ def run_checks():
     r = compare(wl, prior_latency(stall_scale=4), rob_slots=32)
     check("counter never faster", r["counter_loss"] >= -1e-12,
           str(r["counter_loss"]))
+    # 7. The calibrated model replays the probe's one-port depth phase within 15 %.
+    for v in validate_against_probe():
+        check(f"probe replay depth {v['depth']}", 0.85 <= v["ratio"] <= 1.15, str(v))
     return failures
 
 
@@ -357,7 +392,61 @@ def run_variants(transfers, latency, **kw):
 SWEEP_SCALE = 0.25
 
 LATENCIES = {"fixed62": fixed_latency(62), "prior": prior_latency(1),
-             "prior_x4": prior_latency(4), "prior_x16": prior_latency(16)}
+             "prior_x4": prior_latency(4), "prior_x16": prior_latency(16),
+             "measured": measured_latency()}
+
+
+def validate_against_probe(seed=1):
+    """Replay the probe's depth phase (one port, N bursts outstanding) and compare
+    read bandwidth with the measurement."""
+    out = []
+    for depth, measured in MEASURED_DEPTH_BYTES_PER_CYCLE.items():
+        wl = single_stream(1, 128 * BURST_BYTES, consume_rate=1e9, buffers=1)
+        res = simulate(wl, "scoreboard", measured_latency(), rob_slots=depth,
+                       drain="arrival", ports=1, seed=seed,
+                       port_efficiency=MEASURED_PORT_EFFICIENCY)
+        model = res["read_bytes_per_cycle"]
+        out.append({"depth": depth, "measured": measured, "model": round(model, 2),
+                    "ratio": round(model / measured, 3)})
+    return out
+
+
+# Buffer sizes (512 B slots) for the smallest-buffer search.
+MIN_BUFFER_SLOTS = [16, 32, 48, 64, 96, 128, 160, 192, 256, 384, 512]
+REFERENCE_SLOTS = 2048
+
+
+def min_buffer_table(targets=(0.90, 0.95), quick=False):
+    """Smallest shared reorder buffer (in-order drain, counter publication) that
+    reaches each target fraction of the unlimited-buffer ideal, using the
+    measured latency and port efficiency."""
+    tiles = [64 * 1024, 1 * MIB] if quick else [64 * 1024, 256 * 1024, 1 * MIB]
+    rates = [4.0] if quick else [4.0, 0.25]
+    slots_list = [32, 128, 512] if quick else MIN_BUFFER_SLOTS
+    kw = {"port_efficiency": MEASURED_PORT_EFFICIENCY}
+    rows = []
+    for rate in rates:
+        for tile in tiles:
+            wl = decode_mix(3, tile, matrix_rate=rate * PEAK_BYTES_PER_CYCLE,
+                            vector_rate=0.25 * PEAK_BYTES_PER_CYCLE,
+                            weight_bytes=int(WEIGHT_BYTES_PER_LAYER_INT4 * SWEEP_SCALE),
+                            state_bytes=int(STATE_BYTES_PER_LAYER * SWEEP_SCALE))
+            ref = simulate(wl, "scoreboard", measured_latency(), drain="arrival",
+                           rob_slots=REFERENCE_SLOTS, **kw)["makespan_cycles"]
+            curve = []
+            for slots in slots_list:
+                spec = simulate(wl, "counter", measured_latency(), drain="in_order",
+                                rob_slots=slots, **kw)["makespan_cycles"]
+                curve.append((slots, ref / spec))
+            row = {"matrix_rate_vs_peak": rate, "tile_kib": tile // 1024,
+                   "curve": [{"rob_kib": s * BURST_BYTES // 1024,
+                              "fraction_of_ideal": round(f, 4)} for s, f in curve]}
+            for target in targets:
+                hit = next((s for s, f in curve if f >= target), None)
+                row[f"min_rob_kib_{int(target * 100)}"] = (
+                    hit * BURST_BYTES // 1024 if hit else None)
+            rows.append(row)
+    return rows
 
 
 def _sweep_point(cfg):
@@ -382,13 +471,15 @@ def sweep(quick=False):
     rob_list = [32, 64, 128, 256, 512]
     tiles = [16 * 1024, 64 * 1024, 256 * 1024, 1 * MIB]
     lats = [(k, v) for k, v in LATENCIES.items() if k != "prior_x4"]
+    if quick:
+        lats = [lats[0], lats[-1]]
     # Matrix consumption relative to HBM peak: below 1 means the array is the
     # bottleneck (PR #22 decode finding), above 1 means HBM is.
     rates = [0.25, 4.0]
     batches, streams = (1, 32), (False, True)
     if quick:
         rob_list, tiles, rates = [32, 128, 512], [64 * 1024, 1 * MIB], [4.0]
-        lats, batches = lats[:2], (1,)
+        batches = (1,)
     configs = [(b, st, ra, ti, ro, ln) for b in batches for st in streams
                for ra in rates for ti in tiles for ro in rob_list
                for ln, _ in lats]
@@ -398,14 +489,14 @@ def sweep(quick=False):
         return pool.map(_sweep_point, configs, chunksize=4)
 
 
-def write_outputs(out, rows, force):
+def write_outputs(out, rows, force, extra=None):
     os.makedirs(out, exist_ok=True)
     target = os.path.join(out, "results.json")
     if os.path.exists(target) and not force:
         raise FileExistsError(f"{target} exists; pass --force to replace it")
     fd, tmp = tempfile.mkstemp(dir=out, suffix=".tmp")
     with os.fdopen(fd, "w") as f:
-        json.dump({"rows": rows}, f, indent=1)
+        json.dump({"rows": rows, **(extra or {})}, f, indent=1)
     os.replace(tmp, target)
     csv_path = os.path.join(out, "sweep.csv")
     with open(csv_path, "w") as f:
@@ -432,8 +523,21 @@ def main(argv=None):
         print(f"{args.out}/results.json exists; pass --force to replace it", file=sys.stderr)
         return 1
     rows = sweep(quick=args.quick)
+    validation = validate_against_probe()
+    min_buffer = min_buffer_table(quick=args.quick)
+    print("probe replay (B/cycle, one port):")
+    for v in validation:
+        print(f"  depth {v['depth']:>2}: measured {v['measured']:6.2f}  model {v['model']:6.2f}"
+              f"  ratio {v['ratio']:.2f}")
+    print("smallest shared reorder buffer, measured latency (KiB for 90% / 95% of ideal):")
+    for m in min_buffer:
+        print(f"  matrix {m['matrix_rate_vs_peak']:>4}x peak, tile {m['tile_kib']:>4} KiB: "
+              f"{m['min_rob_kib_90']} / {m['min_rob_kib_95']}")
+    extra = {"probe_validation": validation, "min_buffer": min_buffer,
+             "calibration": {"first_beat_histogram": MEASURED_FIRST_BEAT,
+                             "port_efficiency": MEASURED_PORT_EFFICIENCY}}
     try:
-        path = write_outputs(args.out, rows, args.force)
+        path = write_outputs(args.out, rows, args.force, extra)
     except FileExistsError as e:
         print(e, file=sys.stderr)
         return 1
