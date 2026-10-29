@@ -123,16 +123,45 @@ class SourceValidationTests(unittest.TestCase):
         self.assertEqual(source_dependencies(graph, raw), [[], [0]])
 
     def test_alias_operation_requires_explicit_backing_even_if_unused(self):
-        for op in ("VIEW", "RESHAPE", "PERMUTE", "TRANSPOSE", "CPY"):
+        for op in ("VIEW", "RESHAPE", "PERMUTE", "TRANSPOSE"):
             with self.subTest(op=op):
                 capture = deepcopy(self.capture)
                 view = deepcopy(self.tensor(capture, 20))
-                inputs = [20, 23] if op == "CPY" else [23]
                 view.update(id=23, op=op, op_desc=op,
-                            sources=[{"slot": slot, "tensor": tid} for slot, tid in enumerate(inputs)])
+                            sources=[{"slot": 0, "tensor": 23}])
                 capture["tensors"].append(view)
                 with self.assertRaisesRegex(ValueError, "backing storage"):
                     validate_source(self.graph(capture))
+
+    def test_owning_cast_source_storage_is_validated(self):
+        for elements in (0, 1):
+            with self.subTest(elements=elements):
+                capture = deepcopy(self.capture)
+                source = deepcopy(self.tensor(capture, 20))
+                source.update(id=22, shape=[elements, 1, 1, 1], elements=elements,
+                              strides_bytes=[4] + [4 * elements] * 3,
+                              span_bytes=4 * elements, logical_bytes=4 * elements)
+                cast = deepcopy(source)
+                cast.update(id=21, op="CPY", op_desc="CPY", dtype="f16",
+                            strides_bytes=[2] + [2 * elements] * 3,
+                            span_bytes=2 * elements, logical_bytes=2 * elements,
+                            sources=[{"slot": 0, "tensor": 22}, {"slot": 1, "tensor": 21}])
+                capture["tensors"].extend([source, cast])
+                capture["scheduled_nodes"] = [21, 30]
+                graph = self.graph(capture)
+                raw = validate_source(graph)
+                self.assertEqual(storage_chain(raw, 21), (21,))
+                if elements == 0:
+                    self.assertEqual(source_dependencies(graph, raw), [[]])
+                backing = deepcopy(cast)
+                backing.update(id=23, op="NONE", op_desc="NONE", sources=[])
+                capture["tensors"].append(backing)
+                for corruption in ("external backing", "self source"):
+                    with self.subTest(corruption=corruption):
+                        cast["view_source"] = 23 if corruption == "external backing" else -1
+                        cast["sources"][0]["tensor"] = 21 if corruption == "self source" else 22
+                        with self.assertRaisesRegex(ValueError, "owning CPY|backing storage"):
+                            validate_source(self.graph(capture))
 
     def test_copy_classification_cannot_bypass_alias_checks(self):
         for op, desc in (("CPY", "ADD"), ("ADD", "CPY")):

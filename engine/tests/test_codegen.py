@@ -440,6 +440,32 @@ class SymbolicMatmul(unittest.TestCase):
         selected = json.loads(compile_graph(graph, tensor_id=30).to_json())
         self.assertEqual(selected["source"]["external_dependency_tensor_ids"], [21])
 
+    def test_zero_element_owning_cast_is_skipped_by_api_and_cli(self):
+        raw = copy.deepcopy(self.capture)
+        source = copy.deepcopy(raw["tensors"][1])
+        source.update(id=40, name="fixture.empty_input", shape=[0, 1, 1, 1],
+                      strides_bytes=[4, 0, 0, 0], elements=0, span_bytes=0, logical_bytes=0)
+        cast = copy.deepcopy(source)
+        # ggml_cast owns its result and uses itself as the CPY destination.
+        cast.update(id=41, name="fixture.empty_cast", op="CPY", op_desc="CPY",
+                    dtype="f16", strides_bytes=[2, 0, 0, 0],
+                    sources=[{"slot": 0, "tensor": 40}, {"slot": 1, "tensor": 41}])
+        raw["tensors"].extend([source, cast])
+        raw["scheduled_nodes"] = [41, 30]
+        graph = self.graph(raw)
+        for selected in (None, 30):
+            with self.subTest(api_tensor_id=selected):
+                report = compile_graph(graph, tensor_id=selected)
+                self.assertEqual(report.source_order, (30,))
+                self.assertEqual([plan.tensor_id for plan in report.plans], [30])
+                self.assertEqual(report.diagnostics, ())
+        for flags in ((), ("--tensor-id", "30"), ("--allow-partial",)):
+            with self.subTest(cli_flags=flags):
+                result = self.cli(graph, *flags)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(json.loads(result.stdout)["counts"],
+                                 {"total": 1, "planned": 1, "unsupported": 0})
+
     def test_cli_reports_partial_work_and_requires_explicit_allow_partial(self):
         graph = self.graph(self.with_unsupported())
         strict = self.cli(graph)

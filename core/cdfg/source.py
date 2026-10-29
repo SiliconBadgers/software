@@ -103,6 +103,11 @@ def validate_source(graph):
             slots = {s["slot"]: s["tensor"] for s in tensor["sources"]}
             if set(slots) != expected_slots:
                 raise ValueError(f"tensor {tid}: {tensor['op_desc']} requires operand slots {sorted(expected_slots)}")
+            if tensor["op_desc"] == "CPY" and slots[1] == tid:
+                # ggml_cast owns its result; slot 1 names that destination.
+                if tensor["view_source"] != -1 or slots[0] == tid:
+                    raise ValueError(f"tensor {tid}: invalid owning CPY backing storage or input")
+                continue
             if tensor["view_source"] < 0 or roots[tid] != roots[slots[slot]]:
                 raise ValueError(f"tensor {tid}: {tensor['op_desc']} backing storage differs from operand {slot}")
             if tensor["op_desc"] != "VIEW" and offsets[tid] != offsets[slots[slot]]:

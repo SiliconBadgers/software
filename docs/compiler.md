@@ -43,6 +43,8 @@ Output/input aliasing, incompatible shapes and unsupported layouts are rejected.
 selected active operations. `lower_matmul(graph, tensor_id)` returns one plan or
 raises `LoweringError`. Metadata and zero-size entries remain in the source but
 are excluded from active-operation coverage.
+Nonempty owning casts (`CPY` with a self destination) still lack dependency
+analysis support and are rejected before planning.
 
 Reports use `scope` (`full_graph` or `selected_operation`), operation tensor IDs,
 counts and `coverage_by_op` to account for every selected operation exactly once.
