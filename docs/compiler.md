@@ -58,6 +58,19 @@ target support or numerical equivalence, allocate hardware buffers, schedule
 queues, encode commands or submit device work. The fixture contains descriptors
 only. Issue 28 owns the subsequent target, execution and optimization tasks.
 
+## Matmul tiling
+
+`TiledMatmul(plan, tile_m, tile_n, tile_k)` splits one `MatmulPlan` into
+`MatmulTile`s (issue 28, item D). `tiles()` yields them in `MATRIX` run order:
+`m`, then `n`, then `k` innermost, so each C tile's K chunks run back to back.
+`clear_acc` marks the first K chunk and `write_output` the last, following the
+command format. Edge tiles are smaller when a dimension is not a multiple of its
+limit. Offsets and sizes are logical elements, not addresses or buffers.
+
+Tile limits are supplied by the caller. The SoC projection's `M,K <= 8`,
+`N <= 16` is a placeholder until the target interface (item B) is agreed; tile
+boundaries are not yet aligned to a target block format.
+
 ## Organization and checks
 
 | File | Responsibility |
@@ -65,12 +78,14 @@ only. Issue 28 owns the subsequent target, execution and optimization tasks.
 | `core/cdfg/source.py` | Capture/Graph coherence, aliases and conservative source dependencies; analytical `Graph.deps()` is unchanged. |
 | `engine/sbengine/codegen/plan.py` | Immutable tensor references, matmul plans, diagnostics and validated JSON. |
 | `engine/sbengine/codegen/lower.py` | Source-subset checks and symbolic lowering using the existing storage-format definitions. |
+| `engine/sbengine/codegen/tile.py` | Matmul tiles in run order with accumulator flags. |
 | `engine/sbengine/codegen/__main__.py` | Selection, coverage reporting and exit status. |
 
 Run the standard-library checks from the repository root:
 
 ```sh
 uv run --locked python -m unittest discover -s engine/tests -p test_codegen.py -v
+uv run --locked python -m unittest discover -s engine/tests -p test_tile.py -v
 uv run --locked python -m unittest discover -s core/tests -p test_cdfg_source.py -v
 uv run --locked python scripts/check_boundaries.py
 ```
