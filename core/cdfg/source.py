@@ -55,7 +55,7 @@ def validate_source(graph):
     raw = {t["id"]: t for t in tensors}
     if len(raw) != len(tensors):
         raise ValueError("duplicate tensor IDs in capture")
-    classified_ops = METADATA_OPS | {"CPY"}
+    classified_ops = METADATA_OPS | {"CPY", "SET_ROWS", "SCALE"}
     for t in tensors:
         if (not _integer(t["id"]) or len(t["shape"]) != 4
                 or any(not _integer(v) for v in t["shape"])
@@ -64,7 +64,7 @@ def validate_source(graph):
         if any(not isinstance(t[key], str) or not t[key] for key in ("op", "op_desc", "dtype")):
             raise ValueError(f"tensor {t['id']}: operation and format names are required")
         if (t["op"] in classified_ops or t["op_desc"] in classified_ops) and t["op"] != t["op_desc"]:
-            raise ValueError(f"tensor {t['id']}: inconsistent metadata/copy operation classification")
+            raise ValueError(f"tensor {t['id']}: inconsistent operation classification")
         if not _integer(t["span_bytes"]) or not _integer(t["logical_bytes"]):
             raise ValueError(f"tensor {t['id']}: invalid captured byte extents")
         slots = []
@@ -97,21 +97,29 @@ def validate_source(graph):
         roots[tid] = chain[-1]
         offsets[tid] = sum(raw[parent]["view_offset_bytes"] for parent in chain)
     for tid, tensor in raw.items():
-        if tensor["op_desc"] in {"VIEW", "RESHAPE", "PERMUTE", "TRANSPOSE", "CPY"}:
-            slot = 1 if tensor["op_desc"] == "CPY" else 0
-            expected_slots = {0, 1} if slot == 1 else {0}
+        op = tensor["op_desc"]
+        if op in {"VIEW", "RESHAPE", "PERMUTE", "TRANSPOSE", "CPY", "SET_ROWS", "SCALE"}:
+            slot = {"CPY": 1, "SET_ROWS": 2}.get(op, 0)
+            expected_slots = set(range(slot + 1))
             slots = {s["slot"]: s["tensor"] for s in tensor["sources"]}
             if set(slots) != expected_slots:
-                raise ValueError(f"tensor {tid}: {tensor['op_desc']} requires operand slots {sorted(expected_slots)}")
-            if tensor["op_desc"] == "CPY" and slots[1] == tid:
-                # ggml_cast owns its result; slot 1 names that destination.
-                if tensor["view_source"] != -1 or slots[0] == tid:
-                    raise ValueError(f"tensor {tid}: invalid owning CPY backing storage or input")
+                raise ValueError(f"tensor {tid}: {op} requires operand slots {sorted(expected_slots)}")
+            if op == "CPY":
+                if slots[0] == tid:
+                    raise ValueError(f"tensor {tid}: CPY input cannot be its own result")
+                if any(raw[sid]["elements"] != tensor["elements"] for sid in slots.values()):
+                    raise ValueError(f"tensor {tid}: CPY element counts differ between input, result and destination")
+                if slots[1] == tid:
+                    # ggml_cast owns its result; slot 1 names that destination.
+                    if tensor["view_source"] != -1:
+                        raise ValueError(f"tensor {tid}: invalid owning CPY backing storage")
+                    continue
+            if op == "SCALE" and tensor["view_source"] == -1:
                 continue
             if tensor["view_source"] < 0 or roots[tid] != roots[slots[slot]]:
-                raise ValueError(f"tensor {tid}: {tensor['op_desc']} backing storage differs from operand {slot}")
-            if tensor["op_desc"] != "VIEW" and offsets[tid] != offsets[slots[slot]]:
-                raise ValueError(f"tensor {tid}: {tensor['op_desc']} backing offset differs from operand {slot}")
+                raise ValueError(f"tensor {tid}: {op} backing storage differs from operand {slot}")
+            if op != "VIEW" and offsets[tid] != offsets[slots[slot]]:
+                raise ValueError(f"tensor {tid}: {op} backing offset differs from operand {slot}")
     for idx, (node, (pos, tid)) in enumerate(zip(graph.nodes, active)):
         slots = {slot: expected[sid] for slot, sid in expected[tid].sources}
         srcs = tuple(dict.fromkeys(slots.values()))

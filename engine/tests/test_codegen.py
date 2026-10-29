@@ -200,30 +200,90 @@ class SymbolicMatmul(unittest.TestCase):
                           span_bytes=size, logical_bytes=size)
         unrelated = copy.deepcopy(raw["tensors"][1])
         unrelated.update(id=22, name="fixture.unrelated")
+        indices = copy.deepcopy(unrelated)
+        indices.update(id=23, name="fixture.row_indices", dtype="i64",
+                       strides_bytes=[8] * 4, span_bytes=8, logical_bytes=8)
         view = copy.deepcopy(raw["tensors"][1])
         view.update(id=21, name="fixture.view", sources=[{"slot": 0, "tensor": 20}])
-        raw["tensors"].extend([unrelated, view])
+        raw["tensors"].extend([unrelated, indices, view])
         raw["tensors"][2]["sources"][1]["tensor"] = 21
         raw["scheduled_nodes"] = [21, 30]
-        for operation in ("VIEW", "RESHAPE", "PERMUTE", "TRANSPOSE", "CPY"):
-            sources = ([{"slot": 0, "tensor": 22}, {"slot": 1, "tensor": 20}]
-                       if operation == "CPY" else [{"slot": 0, "tensor": 20}])
+        for operation in ("VIEW", "RESHAPE", "PERMUTE", "TRANSPOSE", "CPY", "SET_ROWS", "SCALE"):
+            operands = {"CPY": (22, 20), "SET_ROWS": (22, 23, 20)}.get(operation, (20,))
+            sources = [{"slot": slot, "tensor": tid} for slot, tid in enumerate(operands)]
             view.update(op=operation, op_desc=operation, view_source=20,
                         sources=sources,
                         op_params_i32=([0, 1, 2, 3] + [0] * 12 if operation == "PERMUTE" else [0] * 16))
             self.assertEqual(lower_matmul(self.graph(raw), 30).b.storage_id, 20)
-            for backing in (-1, 22):
+            for backing in ((22,) if operation == "SCALE" else (-1, 22)):
                 with self.subTest(operation=operation, backing=backing):
                     view["view_source"] = backing
                     graph = self.graph(raw)
                     with self.assertRaisesRegex(ValueError, "backing storage"):
                         compile_graph(graph)
-                    for flags in ((), ("--allow-partial",)):
+                    with self.assertRaisesRegex(ValueError, "backing storage"):
+                        compile_graph(graph, tensor_id=30)
+                    for flags in ((), ("--allow-partial",), ("--tensor-id", "30", "--allow-partial")):
                         result = self.cli(graph, *flags)
                         self.assertEqual(result.returncode, 2, result.stderr)
                         self.assertEqual(result.stdout, "")
                         self.assertIn("backing storage", result.stderr)
                         self.assertNotIn("Traceback", result.stderr)
+
+    def test_malformed_copies_cannot_hide_behind_selection_or_partial_reports(self):
+        for corruption in ("empty self source", "element count"):
+            with self.subTest(corruption=corruption):
+                raw = copy.deepcopy(self.capture)
+                source = copy.deepcopy(raw["tensors"][1])
+                source.update(id=40, shape=[0, 3, 1, 1], strides_bytes=[4, 0, 0, 0],
+                              elements=0, span_bytes=0, logical_bytes=0)
+                copied = copy.deepcopy(source if corruption == "empty self source" else raw["tensors"][1])
+                copied.update(id=41, op="CPY", op_desc="CPY")
+                operands = (41, 40) if corruption == "empty self source" else (40, 41)
+                copied.update(view_source=40 if corruption == "empty self source" else -1,
+                              sources=[{"slot": slot, "tensor": tid} for slot, tid in enumerate(operands)])
+                raw["tensors"].extend([source, copied])
+                raw["scheduled_nodes"] = [41, 30]
+                graph = self.graph(raw)
+                for selected in (None, 30):
+                    with self.assertRaises(ValueError):
+                        compile_graph(graph, tensor_id=selected)
+                with self.assertRaises(LoweringError):
+                    lower_matmul(graph, 30)
+                for flags in ((), ("--allow-partial",), ("--tensor-id", "30", "--allow-partial")):
+                    result = self.cli(graph, *flags)
+                    self.assertEqual(result.returncode, 2, result.stderr)
+                    self.assertEqual(result.stdout, "")
+                    self.assertIn("error:", result.stderr)
+                    self.assertNotIn("Traceback", result.stderr)
+
+    def test_owning_scale_and_reshaped_copy_keep_unsupported_work_visible(self):
+        for operation in ("SCALE", "CPY"):
+            with self.subTest(operation=operation):
+                raw = copy.deepcopy(self.capture)
+                source = copy.deepcopy(raw["tensors"][1])
+                source.update(id=40)
+                output = copy.deepcopy(raw["tensors"][1])
+                output.update(id=41, op=operation, op_desc=operation,
+                              sources=[{"slot": 0, "tensor": 40}])
+                if operation == "CPY":
+                    source.update(shape=[21, 1, 1, 1], strides_bytes=[4, 84, 84, 84])
+                    output.update(view_source=20)
+                    output["sources"].append({"slot": 1, "tensor": 20})
+                raw["tensors"].extend([source, output])
+                raw["scheduled_nodes"] = [41, 30]
+                raw["tensors"][2]["sources"][1]["tensor"] = 41
+                graph = self.graph(raw)
+                report = compile_graph(graph)
+                self.assertEqual([(d.tensor_id, d.op) for d in report.diagnostics], [(41, operation)])
+                self.assertEqual([p.tensor_id for p in report.plans], [30])
+                self.assertEqual(report.plans[0].dependencies, (41,))
+                partial = self.cli(graph, "--allow-partial")
+                self.assertEqual(partial.returncode, 0, partial.stderr)
+                self.assertEqual(json.loads(partial.stdout), json.loads(report.to_json()))
+                selected = self.cli(graph, "--tensor-id", "30")
+                self.assertEqual(selected.returncode, 0, selected.stderr)
+                self.assertEqual(json.loads(selected.stdout)["source"]["external_dependency_tensor_ids"], [41])
 
     def test_selectors_require_integer_tensor_ids(self):
         raw = copy.deepcopy(self.capture)

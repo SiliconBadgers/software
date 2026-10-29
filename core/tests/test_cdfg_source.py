@@ -59,13 +59,22 @@ class SourceValidationTests(unittest.TestCase):
         return {node.tensor.id: [graph.nodes[i].tensor.id for i in deps[node.idx]]
                 for node in graph.nodes}
 
-    def copy_into_input(self):
+    def copy_into_input(self, op="CPY"):
         capture = deepcopy(self.capture)
         incoming = deepcopy(self.tensor(capture, 20))
         incoming.update(id=22, name="fixture.copy_source")
         copied = deepcopy(self.tensor(capture, 20))
-        copied.update(id=21, name="fixture.copy", op="CPY", op_desc="CPY", view_source=20,
+        copied.update(id=21, name="fixture.copy", op=op, op_desc=op, view_source=20,
                       sources=[{"slot": 0, "tensor": 22}, {"slot": 1, "tensor": 20}])
+        if op == "SCALE":
+            copied["sources"] = [{"slot": 0, "tensor": 20}]
+        elif op == "SET_ROWS":
+            indices = deepcopy(incoming)
+            indices.update(id=23, dtype="i64", shape=[3, 1, 1, 1], elements=3,
+                           strides_bytes=[8, 24, 24, 24], span_bytes=24, logical_bytes=24)
+            capture["tensors"].append(indices)
+            copied["sources"] = [{"slot": 0, "tensor": 22}, {"slot": 1, "tensor": 23},
+                                 {"slot": 2, "tensor": 20}]
         capture["tensors"].extend([incoming, copied])
         self.tensor(capture, 30)["sources"][1]["tensor"] = 21
         capture["scheduled_nodes"] = [21, 30]
@@ -95,11 +104,14 @@ class SourceValidationTests(unittest.TestCase):
                 self.assertEqual(source_dependencies(graph, raw), [[], [0]])
 
     def test_alias_operations_require_consistent_backing_and_exact_slots(self):
-        for op in ("VIEW", "RESHAPE", "PERMUTE", "TRANSPOSE", "CPY"):
+        for op in ("VIEW", "RESHAPE", "PERMUTE", "TRANSPOSE", "CPY", "SET_ROWS", "SCALE"):
             for corruption in ("own storage", "unrelated storage", "missing slot", "extra slot"):
+                if op == "SCALE" and corruption == "own storage":
+                    continue  # The owning SCALE form is valid; checked below.
                 with self.subTest(op=op, corruption=corruption):
-                    capture = self.copy_into_input() if op == "CPY" else self.metadata_views(op=op)
-                    tensor = self.tensor(capture, 21 if op == "CPY" else 101)
+                    compute = op in ("CPY", "SET_ROWS", "SCALE")
+                    capture = self.copy_into_input(op) if compute else self.metadata_views(op=op)
+                    tensor = self.tensor(capture, 21 if compute else 101)
                     if corruption == "own storage":
                         tensor["view_source"] = -1
                     elif corruption == "unrelated storage":
@@ -159,8 +171,54 @@ class SourceValidationTests(unittest.TestCase):
                     with self.subTest(corruption=corruption):
                         cast["view_source"] = 23 if corruption == "external backing" else -1
                         cast["sources"][0]["tensor"] = 21 if corruption == "self source" else 22
-                        with self.assertRaisesRegex(ValueError, "owning CPY|backing storage"):
+                        with self.assertRaisesRegex(ValueError, "owning CPY|backing storage|its own result"):
                             validate_source(self.graph(capture))
+
+    def test_copy_counts_match_across_reshapes_formats_and_shared_storage(self):
+        capture = self.copy_into_input()
+        incoming = self.tensor(capture, 22)
+        incoming.update(dtype="f16", shape=[21, 1, 1, 1], strides_bytes=[2, 42, 42, 42],
+                        span_bytes=42, logical_bytes=42)
+        # CPY may reshape and convert its input, preserving element count.
+        validate_source(self.graph(capture))
+        for tid, elements in ((22, 20), (21, 20), (20, 22)):
+            with self.subTest(mismatched_tensor=tid):
+                invalid = deepcopy(capture)
+                tensor = self.tensor(invalid, tid)
+                size = 2 if tensor["dtype"] == "f16" else 4
+                tensor.update(shape=[elements, 1, 1, 1], elements=elements,
+                              strides_bytes=[size] + [size * elements] * 3,
+                              span_bytes=size * elements, logical_bytes=size * elements)
+                with self.assertRaisesRegex(ValueError, "element count"):
+                    validate_source(self.graph(invalid))
+        copied = self.tensor(capture, 21)
+        copied["sources"][0]["tensor"] = 20  # Existing destination, not the CPY result.
+        validate_source(self.graph(capture))
+        copied["sources"][0]["tensor"] = 21
+        with self.assertRaisesRegex(ValueError, "its own result"):
+            validate_source(self.graph(capture))
+
+    def test_scale_supports_owning_nested_and_flattened_storage(self):
+        for elements in (0, 1):
+            for backing, offset in ((-1, 0), (24, 4), (22, 0)):
+                with self.subTest(elements=elements, backing=backing):
+                    capture = deepcopy(self.capture)
+                    owner = deepcopy(self.tensor(capture, 20))
+                    owner.update(id=24, shape=[3, 1, 1, 1], elements=3,
+                                 strides_bytes=[4, 12, 12, 12], span_bytes=12, logical_bytes=12)
+                    source = deepcopy(owner)
+                    source.update(id=22, op="VIEW", op_desc="VIEW", shape=[elements, 1, 1, 1],
+                                  elements=elements, strides_bytes=[4] + [4 * elements] * 3,
+                                  span_bytes=4 * elements, logical_bytes=4 * elements,
+                                  view_source=24, view_offset_bytes=4,
+                                  sources=[{"slot": 0, "tensor": 24}])
+                    scaled = deepcopy(source)
+                    scaled.update(id=21, op="SCALE", op_desc="SCALE", view_source=backing,
+                                  view_offset_bytes=offset, sources=[{"slot": 0, "tensor": 22}])
+                    capture["tensors"].extend([owner, source, scaled])
+                    capture["scheduled_nodes"] = [21, 30]
+                    raw = validate_source(self.graph(capture))
+                    self.assertEqual(storage_chain(raw, 21)[-1], 21 if backing == -1 else 24)
 
     def test_owning_cast_retains_its_source_producer_dependency(self):
         capture = deepcopy(self.capture)
@@ -193,16 +251,17 @@ class SourceValidationTests(unittest.TestCase):
         capture["scheduled_nodes"] = [41, 42, 30]
         self.assertEqual(self.dependencies(self.graph(capture)), {42: [], 30: [42]})
 
-    def test_copy_classification_cannot_bypass_alias_checks(self):
-        for op, desc in (("CPY", "ADD"), ("ADD", "CPY")):
-            with self.subTest(op=op, desc=desc):
-                capture = self.copy_into_input()
-                self.tensor(capture, 21).update(op=op, op_desc=desc)
-                with self.assertRaisesRegex(ValueError, "operation classification"):
-                    validate_source(self.graph(capture))
+    def test_write_operation_classification_cannot_bypass_alias_checks(self):
+        for operation in ("CPY", "SET_ROWS", "SCALE"):
+            for op, desc in ((operation, "ADD"), ("ADD", operation)):
+                with self.subTest(op=op, desc=desc):
+                    capture = self.copy_into_input(operation)
+                    self.tensor(capture, 21).update(op=op, op_desc=desc)
+                    with self.assertRaisesRegex(ValueError, "operation classification"):
+                        validate_source(self.graph(capture))
 
     def test_shape_metadata_and_copy_preserve_resolved_operand_offset(self):
-        for op in ("RESHAPE", "PERMUTE", "TRANSPOSE", "CPY", "VIEW"):
+        for op in ("RESHAPE", "PERMUTE", "TRANSPOSE", "CPY", "VIEW", "SET_ROWS", "SCALE"):
             with self.subTest(op=op):
                 capture = self.copy_into_input()
                 for tensor in capture["tensors"]:
@@ -213,7 +272,13 @@ class SourceValidationTests(unittest.TestCase):
                 source = deepcopy(self.tensor(capture, 21))
                 source.update(id=23, op="VIEW", op_desc="VIEW", sources=[{"slot": 0, "tensor": 20}])
                 capture["tensors"].append(source)
-                inputs = [22, 23] if op == "CPY" else [20 if op == "VIEW" else 23]
+                if op == "SET_ROWS":
+                    indices = deepcopy(source)
+                    indices.update(id=24, op="NONE", op_desc="NONE", dtype="i64", sources=[],
+                                   view_source=-1, strides_bytes=[8] * 4, span_bytes=8, logical_bytes=8)
+                    capture["tensors"].append(indices)
+                inputs = ([22, 23] if op == "CPY" else [22, 24, 23] if op == "SET_ROWS"
+                          else [20 if op == "VIEW" else 23])
                 target = self.tensor(capture, 21)
                 target.update(op=op, op_desc=op,
                               sources=[{"slot": slot, "tensor": tid} for slot, tid in enumerate(inputs)])
