@@ -466,6 +466,37 @@ class SymbolicMatmul(unittest.TestCase):
                 self.assertEqual(json.loads(result.stdout)["counts"],
                                  {"total": 1, "planned": 1, "unsupported": 0})
 
+    def test_nonempty_owning_cast_reports_unsupported_work_and_retains_dependencies(self):
+        for feeds_matmul in (False, True):
+            with self.subTest(feeds_matmul=feeds_matmul):
+                raw = copy.deepcopy(self.capture)
+                source = copy.deepcopy(raw["tensors"][0])
+                source.update(id=40, name="fixture.cast_input", dtype="f32", weight_buffer=False,
+                              strides_bytes=[4, 28, 140, 140], span_bytes=140, logical_bytes=140)
+                cast = copy.deepcopy(raw["tensors"][0])
+                cast.update(id=41, name="fixture.cast", op="CPY", op_desc="CPY", dtype="f16",
+                            weight_buffer=False,
+                            sources=[{"slot": 0, "tensor": 40}, {"slot": 1, "tensor": 41}])
+                raw["tensors"].extend([source, cast])
+                raw["scheduled_nodes"] = [41, 30]
+                if feeds_matmul:
+                    raw["tensors"][2]["sources"][0]["tensor"] = 41
+                graph = self.graph(raw)
+                full = compile_graph(graph)
+                self.assertEqual([(d.tensor_id, d.op) for d in full.diagnostics], [(41, "CPY")])
+                self.assertEqual([plan.tensor_id for plan in full.plans], [30])
+                dependencies = [41] if feeds_matmul else []
+                self.assertEqual(list(full.plans[0].dependencies), dependencies)
+                for flags, status in (((), 2), (("--allow-partial",), 0)):
+                    result = self.cli(graph, *flags)
+                    self.assertEqual(result.returncode, status, result.stderr)
+                    self.assertEqual(json.loads(result.stdout), json.loads(full.to_json()))
+                selected = json.loads(compile_graph(graph, tensor_id=30).to_json())
+                self.assertEqual(selected["source"]["external_dependency_tensor_ids"], dependencies)
+                result = self.cli(graph, "--tensor-id", "30")
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(json.loads(result.stdout), selected)
+
     def test_cli_reports_partial_work_and_requires_explicit_allow_partial(self):
         graph = self.graph(self.with_unsupported())
         strict = self.cli(graph)

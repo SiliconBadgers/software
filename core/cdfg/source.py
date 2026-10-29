@@ -131,6 +131,12 @@ def source_dependencies(graph, tensors):
     indexes = {node.tensor.id: node.idx for node in graph.nodes}
     memo, visiting = {}, set()
 
+    def read_sources(tensor):
+        # An owning CPY names its output in slot 1 rather than reading it.
+        return {source["tensor"] for source in tensor["sources"]
+                if not (tensor["op_desc"] == "CPY" and source["slot"] == 1
+                        and source["tensor"] == tensor["id"])}
+
     def producers(tid):
         stack = [(tid, None)]
         while stack:
@@ -150,7 +156,7 @@ def source_dependencies(graph, tensors):
                 memo[current] = frozenset((indexes[current],))
             else:
                 visiting.add(current)
-                parents = {s["tensor"] for s in tensor["sources"]}
+                parents = read_sources(tensor)
                 if tensor["view_source"] >= 0:
                     parents.add(tensor["view_source"])
                 # Revisit after every parent has a memoized producer set.
@@ -161,7 +167,10 @@ def source_dependencies(graph, tensors):
     dependencies, last_write, readers = [], {}, {}
     for node in graph.nodes:
         deps, read_roots = set(), set()
+        source_ids = read_sources(tensors[node.tensor.id])
         for source, root in zip(node.srcs, node.src_roots):
+            if source.id not in source_ids:
+                continue
             deps.update(producers(source.id))
             read_roots.add(root)
             if root in last_write:

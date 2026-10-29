@@ -151,8 +151,7 @@ class SourceValidationTests(unittest.TestCase):
                 graph = self.graph(capture)
                 raw = validate_source(graph)
                 self.assertEqual(storage_chain(raw, 21), (21,))
-                if elements == 0:
-                    self.assertEqual(source_dependencies(graph, raw), [[]])
+                self.assertEqual(source_dependencies(graph, raw), [[], []] if elements else [[]])
                 backing = deepcopy(cast)
                 backing.update(id=23, op="NONE", op_desc="NONE", sources=[])
                 capture["tensors"].append(backing)
@@ -162,6 +161,37 @@ class SourceValidationTests(unittest.TestCase):
                         cast["sources"][0]["tensor"] = 21 if corruption == "self source" else 22
                         with self.assertRaisesRegex(ValueError, "owning CPY|backing storage"):
                             validate_source(self.graph(capture))
+
+    def test_owning_cast_retains_its_source_producer_dependency(self):
+        capture = deepcopy(self.capture)
+        cast = deepcopy(self.tensor(capture, 30))
+        cast.update(id=40, name="fixture.cast", op="CPY", op_desc="CPY", dtype="f16",
+                    strides_bytes=[2, 10, 30, 30], span_bytes=30, logical_bytes=30,
+                    sources=[{"slot": 0, "tensor": 30}, {"slot": 1, "tensor": 40}])
+        capture["tensors"].append(cast)
+        capture["scheduled_nodes"] = [30, 40]
+        self.assertEqual(self.dependencies(self.graph(capture)), {30: [], 40: [30]})
+        for order, error in (([40, 30], "not topological"), ([40], "missing")):
+            with self.subTest(order=order):
+                capture["scheduled_nodes"] = order
+                with self.assertRaisesRegex(ValueError, error):
+                    self.dependencies(self.graph(capture))
+
+    def test_empty_owning_cast_can_feed_a_nonempty_concat(self):
+        capture = deepcopy(self.capture)
+        source = deepcopy(self.tensor(capture, 20))
+        source.update(id=40, dtype="f16", shape=[0, 3, 1, 1], elements=0,
+                      strides_bytes=[2, 0, 0, 0], span_bytes=0, logical_bytes=0)
+        cast = deepcopy(source)
+        cast.update(id=41, op="CPY", op_desc="CPY", dtype="f32", strides_bytes=[4, 0, 0, 0],
+                    sources=[{"slot": 0, "tensor": 40}, {"slot": 1, "tensor": 41}])
+        concat = deepcopy(self.tensor(capture, 20))
+        concat.update(id=42, op="CONCAT", op_desc="CONCAT",
+                      sources=[{"slot": 0, "tensor": 41}, {"slot": 1, "tensor": 20}])
+        capture["tensors"].extend([source, cast, concat])
+        self.tensor(capture, 30)["sources"][1]["tensor"] = 42
+        capture["scheduled_nodes"] = [41, 42, 30]
+        self.assertEqual(self.dependencies(self.graph(capture)), {42: [], 30: [42]})
 
     def test_copy_classification_cannot_bypass_alias_checks(self):
         for op, desc in (("CPY", "ADD"), ("ADD", "CPY")):
