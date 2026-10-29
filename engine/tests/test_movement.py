@@ -60,6 +60,15 @@ class MovementPlans(unittest.TestCase):
         self.assertEqual(conservative.transfers[3].wait_matrix, 3 * 7 + 3)
         self.assertEqual(movement.transfers[4].wait_matrix, 3 * (movement.matrix_count - 1) + 3)
 
+    def test_default_output_is_four_bytes_and_gaps_are_reported(self):
+        movement = self.movement()
+        self.assertEqual(movement.target.c_bytes, 4)
+        self.assertEqual(movement.tensor_bytes["c"], 5 * 3 * 4)
+        summary = movement.summary(check(movement))
+        self.assertFalse(summary["matrix_interface"]["matches_proposed_unit"])
+        self.assertEqual(len(summary["matrix_interface"]["gaps"]), 4)
+        self.assertTrue(check(self.movement(c_bytes=1))["passed"])
+
     def test_same_input_gives_same_commands(self):
         self.assertEqual(self.movement().digest(), self.movement().digest())
         self.assertNotEqual(self.movement().digest(), self.movement((2, 2, 4)).digest())

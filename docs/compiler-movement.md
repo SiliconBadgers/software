@@ -7,6 +7,10 @@ matmul it assigns SRAM buffers, emits the command format's `TRANSFER` and
 an independent ordering checker. The output is a symbolic plan: nothing is
 encoded, addressed in HBM or executed.
 
+The records are not yet the proposed output-stationary Matrix interface; see
+[Matrix interface gaps](#matrix-interface-gaps). Every report and every
+`--commands-out` file states this.
+
 ## Use
 
 From `engine/`:
@@ -79,9 +83,9 @@ uv run --locked python -m unittest discover -s engine/tests -p test_movement.py 
 | --- | --- |
 | `MATRIX` commands | 1,572,864 |
 | `TRANSFER` commands | 770 (1 B load, 768 A panel loads, 1 C store) |
-| SRAM used | 1,081,344 B (B 256 KiB, C 768 KiB, two 16 KiB A slots) |
+| SRAM used | 3,440,640 B (B 256 KiB, C 3 MiB, two 16 KiB A slots) |
 | HBM to SRAM | 12,845,056 B (each weight byte once, B once) |
-| SRAM to HBM | 786,432 B |
+| SRAM to HBM | 3,145,728 B (4-byte C) |
 | Checker | passed, 0 violations |
 | Run time | about 23 s for planning plus checking |
 
@@ -91,10 +95,29 @@ Wait targets reach about 4.7 million on the Matrix counter; `CounterWidth` must
 keep live dependencies within half its range, which holds here because each
 wait is at most one A panel ahead.
 
+## Matrix interface gaps
+
+Abhi's review (2026-10-29) compared these records with the proposed
+output-stationary Matrix unit. The symbolic planner stays a first pass until a
+target-specific packing and addressing step closes these gaps:
+
+| Item | Proposed Matrix unit | This planner |
+| --- | --- | --- |
+| Operand roles | A = activations, B = weights | A = weights, B = activations (the plan's MUL_MAT roles) |
+| Layout | A k-major, B row-major | Every operand row-major in its logical shape |
+| Base alignment | A, B and C bases 512-byte aligned | Buffers and transfers row-aligned; MATRIX bases point inside rows |
+| Output tile | 8 x 8 by default | D's 8/16/8 placeholder through the stub tiler |
+
+Command and byte counts therefore describe this symbolic schedule, not the
+command stream the proposed unit would receive.
+
 ## Assumptions and limits
 
-* Target formats are INT8 for A and B and INT8 requantized output; the
-  captured `q5_K` weights and `f32` activations are provenance only. The host
+* Target formats are INT8 for A and B. C is 4 bytes per element because the
+  proposed Matrix unit writes INT32 without block scaling or FP32 with it
+  (Zeb, via Abhi); `c_bytes=1` is kept only as a future option that would need
+  a requantization step the unit does not provide. The captured `q5_K`
+  weights and `f32` activations are provenance only. The host
   is assumed to prepare HBM target buffers in these formats, row-major in the
   logical matmul shape, padded to whole SRAM rows.
 * 512 B rows and full-row transfers follow the B update (2026-10-28). The

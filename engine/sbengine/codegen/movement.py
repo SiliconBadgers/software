@@ -52,13 +52,16 @@ class TargetMemory:
     Defaults: 512 B SRAM rows on the proposed banked path and full-row transfers
     (B update, 2026-10-28). The 8 MiB SRAM size is not a confirmed usable
     budget. Element sizes are target storage formats, not the captured source
-    formats: INT8 weights and activations, INT8 requantized output.
+    formats: INT8 weights and activations, and 4-byte C because the proposed
+    Matrix unit writes INT32 (no block scaling) or FP32 (block scaling)
+    (Zeb, via Abhi, 2026-10-29). c_bytes=1 is a future option that needs a
+    requantization step the Matrix unit does not provide.
     """
     sram_bytes: int = 8 * MIB
     row_bytes: int = 512
     a_bytes: int = 1
     b_bytes: int = 1
-    c_bytes: int = 1
+    c_bytes: int = 4
     a_slots: int = 2
     layout: str = "row_major"
     reuse_after: str = "inputs_released"
@@ -82,12 +85,28 @@ class TargetMemory:
             "row-major logical layout in HBM target buffers and SRAM: A M x K, B K x N, C M x N",
             f"target element bytes A={self.a_bytes} B={self.b_bytes} C={self.c_bytes}; "
             "the host prepares operands in these formats, captured formats are provenance only",
+            "C is 4 bytes per element by default: INT32 without block scaling or FP32 with it",
             "HBM target buffers are padded to whole SRAM rows",
             f"an input buffer is overwritten only after its readers reach milestone "
             f"3j+{REUSE_EVENTS[self.reuse_after]} ({self.reuse_after})",
             "C is stored after the last writer's 3j+3, which waits until the output writes "
             "are committed to SRAM (confirmed by Zeb, 2026-10-29)",
         ]
+
+
+# These records are a symbolic first pass, not the proposed output-stationary
+# Matrix interface (Abhi's review on #31, 2026-10-29). A target-specific packing
+# and addressing step still has to close each gap below.
+MATRIX_INTERFACE_GAPS = [
+    "operand roles: the proposed unit takes A = activations and B = weights; "
+    "this planner uses the plan's A = weights and B = activations",
+    "layout: the proposed unit expects A (activations) k-major and B (weights) row-major; "
+    "this planner keeps every operand row-major in its logical shape",
+    "alignment: the proposed unit expects 512-byte-aligned A, B and C bases; this planner "
+    "aligns buffers and transfers but points MATRIX bases at offsets inside rows",
+    "tile shape: the proposed unit has an 8 x 8 output tile by default; the stub tiler "
+    "uses D's 8/16/8 placeholder",
+]
 
 
 # --------------------------------------------------------------------------
@@ -268,6 +287,8 @@ class MovementPlan:
                       "tile_k": self.tiled.tile_k, "tiler": type(self.tiled).__name__},
             "target": {name: getattr(t, name) for name in TargetMemory.__dataclass_fields__},
             "assumptions": t.assumptions(),
+            "matrix_interface": {"matches_proposed_unit": False,
+                                 "gaps": MATRIX_INTERFACE_GAPS},
             "buffers": [b._asdict() for b in self.buffers],
             "sram_used_bytes": self.sram_used,
             "hbm_buffer_bytes": self.hbm_bytes,
@@ -306,6 +327,9 @@ def main(argv=None):
         parser.error(str(error))
     if args.commands_out:
         with open(args.commands_out, "w", encoding="utf-8") as handle:
+            handle.write(json.dumps({"queue": "meta", "schema": SCHEMA,
+                                     "matches_proposed_matrix_interface": False,
+                                     "gaps": MATRIX_INTERFACE_GAPS}) + "\n")
             for command in movement.transfers:
                 handle.write(json.dumps({"queue": "memory", **command._asdict()}) + "\n")
             for command in movement.matrix_commands():
