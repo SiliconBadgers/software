@@ -38,13 +38,12 @@ reach its release milestone. The release milestone is configurable:
 
 | `reuse_after` | Waits for | Status |
 | --- | --- | --- |
-| `complete` (default) | 3j+3 | Conservative. B (Abhi) asked to wait for SRAM reads and writes to finish |
-| `inputs_released` | 3j+1 | As drafted in the command format; pending Control confirmation |
+| `inputs_released` (default) | 3j+1 | All of the command's Matrix SRAM reads have finished (Zeb, 2026-10-29) |
+| `complete` | 3j+3 | Conservative option; also waits for accumulation and output writes |
 
-The output store waits for the last writer's 3j+3. Abhi noted that the Matrix
-unit's raw done signal can fire before its output reaches SRAM; 3j+3 is safe
-only if Control implements it after the writes, as drafted. Until that is
-confirmed, the plan records this as an assumption.
+The output store waits for the last writer's 3j+3, which waits until the
+output writes are committed to SRAM (Zeb, 2026-10-29). The Matrix unit's raw
+done signal can fire earlier (Abhi), so the plan never waits on it.
 
 Tiles follow the `TiledMatmul` / `MatmulTile` shape agreed with D (Anu): the
 plan, maximum tile sizes and an iterator in run order with k innermost.

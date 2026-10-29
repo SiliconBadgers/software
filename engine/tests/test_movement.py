@@ -53,8 +53,11 @@ class MovementPlans(unittest.TestCase):
         for x in movement.transfers:
             self.assertEqual(x.sram_address % 512, 0)
             self.assertEqual(x.length_bytes % 512, 0)
-        # The third A panel reuses slot 0 after panel 0's last reader (matrix 7) completes.
-        self.assertEqual(movement.transfers[3].wait_matrix, 3 * 7 + 3)
+        # The third A panel reuses slot 0 once panel 0's last reader (matrix 7) has
+        # finished its SRAM reads (3j+1).
+        self.assertEqual(movement.transfers[3].wait_matrix, 3 * 7 + 1)
+        conservative = self.movement(reuse_after="complete")
+        self.assertEqual(conservative.transfers[3].wait_matrix, 3 * 7 + 3)
         self.assertEqual(movement.transfers[4].wait_matrix, 3 * (movement.matrix_count - 1) + 3)
 
     def test_same_input_gives_same_commands(self):

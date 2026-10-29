@@ -34,8 +34,10 @@ MIB = 1024 * 1024
 
 # Release events a new load may wait on before overwriting an input buffer.
 REUSE_EVENTS = {
-    "complete": 3,          # 3j+3; conservative default (Abhi, 2026-10-28)
-    "inputs_released": 1,   # 3j+1; as drafted, pending Control confirmation
+    # 3j+1 means every Matrix SRAM read has finished (confirmed by Zeb, 2026-10-29).
+    "inputs_released": 1,
+    # 3j+3 waits for the output writes too; kept as a conservative option.
+    "complete": 3,
 }
 
 
@@ -59,7 +61,7 @@ class TargetMemory:
     c_bytes: int = 1
     a_slots: int = 2
     layout: str = "row_major"
-    reuse_after: str = "complete"
+    reuse_after: str = "inputs_released"
 
     def validate(self):
         for name in ("sram_bytes", "row_bytes", "a_bytes", "b_bytes", "c_bytes", "a_slots"):
@@ -83,8 +85,8 @@ class TargetMemory:
             "HBM target buffers are padded to whole SRAM rows",
             f"an input buffer is overwritten only after its readers reach milestone "
             f"3j+{REUSE_EVENTS[self.reuse_after]} ({self.reuse_after})",
-            "C is stored after the last writer's 3j+3; Control has not yet confirmed that "
-            "3j+3 follows the SRAM writes as drafted",
+            "C is stored after the last writer's 3j+3, which waits until the output writes "
+            "are committed to SRAM (confirmed by Zeb, 2026-10-29)",
         ]
 
 
@@ -291,7 +293,7 @@ def main(argv=None):
     parser.add_argument("--tensor-id", type=int, required=True)
     parser.add_argument("--tile", default="8,16,8", help="tile_m,tile_n,tile_k (stub tiler)")
     parser.add_argument("--sram-bytes", type=int, default=TargetMemory.sram_bytes)
-    parser.add_argument("--reuse-after", choices=sorted(REUSE_EVENTS), default="complete")
+    parser.add_argument("--reuse-after", choices=sorted(REUSE_EVENTS), default="inputs_released")
     parser.add_argument("--commands-out", help="write every command as JSON lines here")
     args = parser.parse_args(argv)
     try:
