@@ -74,3 +74,6 @@ uv run --locked python scripts/check_boundaries.py
 ```
 
 Additional component checks are listed in [tests/README.md](../tests/README.md).
+
+Buffer assignment, transfers and wait targets for one tiled matmul (issue 28,
+item E) are described in [compiler-movement.md](compiler-movement.md).
