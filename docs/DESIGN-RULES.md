@@ -17,8 +17,9 @@ pinned execution -> capture -> CDFG -> mapping -> simulation -> evaluation/sweep
 | Owner | Responsibility |
 |---|---|
 | `core/runner/`, `core/harness/` | Builds, instrumented execution, graph/trace capture and provenance. |
-| `core/cdfg/` | Tensors, operations, operand slots, aliases, storage classification, conservative dependencies and shared dense-work counting. Hardware-independent; standard-library only. |
+| `core/cdfg/` | Tensors, operations, operand slots, aliases, storage classification, conservative dependencies and shared dense-work counting. Includes source-coherence and alias audits. Hardware-independent; standard-library only. |
 | `engine/sbengine/mapping.py` | Capability, implementation, tile, lowering and fusion selection using CDFG identities. Memory-dependent selection remains explicit. |
+| `engine/sbengine/codegen/` | Source-subset checks, symbolic compiler plans and coverage reports. Consumes shared source facts and existing source-format definitions. |
 | `costs.py`, `memory.py`, `schedule.py` | Arithmetic/service equations, residency/traffic accounting and resource scheduling. |
 | `model.py`, `sweep.py`, CLI | Compose evaluation and run enumeration, sensitivity, Monte Carlo and Pareto analyses. |
 | `web/`, reports | Present canonical calculations and results; update native imports and browser packaging together when shared sources move. |
