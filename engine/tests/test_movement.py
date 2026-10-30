@@ -64,6 +64,8 @@ class MovementPlans(unittest.TestCase):
         movement = self.movement()
         self.assertEqual(movement.target.c_bytes, 4)
         self.assertEqual(movement.tensor_bytes["c"], 5 * 3 * 4)
+        self.assertFalse(movement.target.block_scaling)
+        self.assertTrue(any("scale tables" in a for a in movement.target.assumptions()))
         summary = movement.summary(check(movement))
         self.assertFalse(summary["matrix_interface"]["matches_proposed_unit"])
         self.assertEqual(len(summary["matrix_interface"]["gaps"]), 4)
@@ -122,6 +124,8 @@ class MovementPlans(unittest.TestCase):
             self.movement(layout="tiled")
         with self.assertRaises(MovementError):
             self.movement(reuse_after="matrix_done")
+        with self.assertRaises(MovementError):
+            self.movement(block_scaling=True)  # scale tables are not modeled yet
 
     def test_tiles_must_visit_panels_in_order(self):
         tiles = list(StubTiledMatmul(self.plan, 2, 2, 2).tiles())

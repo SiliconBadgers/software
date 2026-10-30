@@ -117,9 +117,14 @@ command stream the proposed unit would receive.
   proposed Matrix unit writes INT32 without block scaling or FP32 with it
   (Zeb, via Abhi); `c_bytes=1` is kept only as a future option that would need
   a requantization step the unit does not provide. The captured `q5_K`
-  weights and `f32` activations are provenance only. The host
-  is assumed to prepare HBM target buffers in these formats, row-major in the
-  logical matmul shape, padded to whole SRAM rows.
+  weights and `f32` activations are provenance only. The host is assumed to
+  prepare HBM target buffers in these formats, row-major in the logical matmul
+  shape, padded to whole SRAM rows.
+* Only the unscaled mode is modeled. The block-scaled FP32 path also reads
+  sA/sB scale tables; their SRAM buffers and HBM transfers are not included,
+  so that path's traffic would be understated. `block_scaling=True` is
+  rejected until the scale-table format (block size, scale bytes, layout) is
+  specified.
 * 512 B rows and full-row transfers follow the B update (2026-10-28). The
   8 MiB SRAM budget is not confirmed; `--sram-bytes` changes it.
 * Only the row-major layout is implemented. Block-quantized target formats

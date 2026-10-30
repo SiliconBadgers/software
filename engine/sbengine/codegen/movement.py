@@ -64,6 +64,7 @@ class TargetMemory:
     c_bytes: int = 4
     a_slots: int = 2
     layout: str = "row_major"
+    block_scaling: bool = False
     reuse_after: str = "inputs_released"
 
     def validate(self):
@@ -75,6 +76,11 @@ class TargetMemory:
             raise MovementError("SRAM size must be a whole number of rows")
         if self.layout != "row_major":
             raise MovementError(f"layout {self.layout!r} is not supported yet")
+        if self.block_scaling is not False:
+            raise MovementError(
+                "block-scaled mode needs the sA/sB scale-table format (block size, scale bytes, "
+                "layout), which is not specified yet; scale-table buffers and transfers are not "
+                "modeled")
         if self.reuse_after not in REUSE_EVENTS:
             raise MovementError(f"reuse_after must be one of {sorted(REUSE_EVENTS)}")
 
@@ -86,6 +92,8 @@ class TargetMemory:
             f"target element bytes A={self.a_bytes} B={self.b_bytes} C={self.c_bytes}; "
             "the host prepares operands in these formats, captured formats are provenance only",
             "C is 4 bytes per element by default: INT32 without block scaling or FP32 with it",
+            "unscaled mode only: the block-scaled FP32 path also reads sA/sB scale tables, whose "
+            "SRAM buffers and HBM transfers are not modeled, so its traffic would be understated",
             "HBM target buffers are padded to whole SRAM rows",
             f"an input buffer is overwritten only after its readers reach milestone "
             f"3j+{REUSE_EVENTS[self.reuse_after]} ({self.reuse_after})",
