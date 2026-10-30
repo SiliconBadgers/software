@@ -66,9 +66,9 @@ and maps each tile to its HBM bytes; that no write lands in a load
 destination; and that the two queues cannot block each other.
 
 `engine/tests/test_movement.py` runs valid plans for whole and edge tiles under
-both release policies, and seven deliberately broken plans: a stale input, a
+both release policies, and eight deliberately broken plans: a stale input, a
 read before its load, an early reuse, a partial-row transfer, an early store, a
-wait cycle and an SRAM overflow. Each must fail with the matching violation.
+wait cycle, an SRAM overflow and an output written into a load destination. Each must fail with the matching violation.
 A plan built for `inputs_released` must fail when checked under `complete`.
 
 ```sh

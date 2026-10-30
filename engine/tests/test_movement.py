@@ -106,6 +106,14 @@ class MovementPlans(unittest.TestCase):
             x._replace(wait_matrix=10**6) if x.index == 3 else x for x in t])
         self.assertIn("deadlock", self.kinds(movement))
 
+    def test_output_into_load_destination_is_caught(self):
+        # The planner never points C at a load destination; a broken plan that
+        # writes the output into A slot 0 must be flagged.
+        a0 = self.movement().buffers[2].sram_address
+        movement = mutate(self.movement(), matrix=lambda c: c._replace(c_base=a0)
+                          if c.index == 0 else c)
+        self.assertIn("waw", self.kinds(movement))
+
     def test_sram_overflow_is_caught(self):
         movement = mutate(self.movement(), transfers=lambda t: [
             x._replace(sram_address=8 * 1024 * 1024) if x.index == 1 else x for x in t])
