@@ -68,6 +68,8 @@ class SourceValidationTests(unittest.TestCase):
                       sources=[{"slot": 0, "tensor": 22}, {"slot": 1, "tensor": 20}])
         if op == "SCALE":
             copied["sources"] = [{"slot": 0, "tensor": 20}]
+        elif op in {"ADD", "MUL"}:
+            copied["sources"] = [{"slot": 0, "tensor": 20}, {"slot": 1, "tensor": 22}]
         elif op == "SET_ROWS":
             indices = deepcopy(incoming)
             indices.update(id=23, dtype="i64", shape=[3, 1, 1, 1], elements=3,
@@ -85,9 +87,15 @@ class SourceValidationTests(unittest.TestCase):
         previous = 21
         ids = range(100, 100 + count)
         for tid in ids:
-            view = deepcopy(self.tensor(capture, 20))
+            view = deepcopy(self.tensor(capture, previous))
             view.update(id=tid, name=f"fixture.view_{tid}", op=op, op_desc=op,
                         view_source=20, sources=[{"slot": 0, "tensor": previous}])
+            if op == "TRANSPOSE":
+                for field in ("shape", "strides_bytes"):
+                    view[field][0], view[field][1] = view[field][1], view[field][0]
+                view["contiguous"] = not view["contiguous"]
+            elif op == "PERMUTE":
+                view["op_params_i32"] = [0, 1, 2, 3] + [0] * 12
             capture["tensors"].append(view)
             previous = tid
         self.tensor(capture, 30)["sources"][1]["tensor"] = previous
@@ -103,13 +111,72 @@ class SourceValidationTests(unittest.TestCase):
                 self.assertEqual(storage_chain(raw, 101), (101, 20))
                 self.assertEqual(source_dependencies(graph, raw), [[], [0]])
 
+    def test_reshape_preserves_element_count_and_requires_contiguous_input(self):
+        capture = self.metadata_views(count=1, op="RESHAPE")
+        reshaped = self.tensor(capture, 100)
+        reshaped.update(shape=[3, 7, 1, 1], strides_bytes=[4, 12, 84, 84])
+        validate_source(self.graph(capture))
+        reshaped.update(shape=[7, 2, 1, 1], elements=14, strides_bytes=[4, 28, 56, 56],
+                        span_bytes=56, logical_bytes=56)
+        with self.assertRaisesRegex(ValueError, "element count"):
+            validate_source(self.graph(capture))
+        capture = self.metadata_views(count=1, op="TRANSPOSE")
+        reshaped = deepcopy(self.tensor(capture, 20))
+        reshaped.update(id=101, op="RESHAPE", op_desc="RESHAPE", view_source=20,
+                        sources=[{"slot": 0, "tensor": 100}])
+        capture["tensors"].append(reshaped)
+        with self.assertRaisesRegex(ValueError, "contiguous"):
+            validate_source(self.graph(capture))
+
+    def test_transpose_and_permute_describe_the_actual_source_layout(self):
+        for op in ("TRANSPOSE", "PERMUTE"):
+            capture = self.metadata_views(count=1, op=op)
+            target = self.tensor(capture, 100)
+            if op == "PERMUTE":
+                # A three-cycle distinguishes GGML's source-to-result axes
+                # from the inverse mapping; a swap alone cannot do that.
+                target.update(shape=[1, 7, 3, 1], strides_bytes=[84, 4, 28, 84],
+                              contiguous=False, op_params_i32=[1, 2, 0, 3] + [0] * 12)
+            validate_source(self.graph(capture))
+            for field, value in (("shape", [7, 3, 1, 1]),
+                                 ("strides_bytes", [4, 28, 84, 84])):
+                with self.subTest(op=op, field=field):
+                    invalid = deepcopy(capture)
+                    self.tensor(invalid, 100)[field] = value
+                    with self.assertRaisesRegex(ValueError, "shape|stride|layout"):
+                        validate_source(self.graph(invalid))
+            if op == "PERMUTE":
+                for axes in ([0, 0, 2, 3], [0, 1, 2, 4], [True, 2, 0, 3], [1, 2, 0]):
+                    with self.subTest(axes=axes):
+                        invalid = deepcopy(capture)
+                        self.tensor(invalid, 100)["op_params_i32"] = axes
+                        with self.assertRaisesRegex(ValueError, "PERMUTE|permutation"):
+                            validate_source(self.graph(invalid))
+
+    def test_zero_element_metadata_remains_valid(self):
+        for op in ("RESHAPE", "TRANSPOSE", "PERMUTE"):
+            with self.subTest(op=op):
+                capture = self.copy_into_input()
+                for tensor in capture["tensors"]:
+                    if tensor["id"] in (20, 21, 22):
+                        tensor.update(shape=[0, 3, 1, 1], elements=0,
+                                      strides_bytes=[4, 0, 0, 0], span_bytes=0, logical_bytes=0)
+                metadata = deepcopy(self.tensor(capture, 21))
+                metadata.update(id=100, op=op, op_desc=op, sources=[{"slot": 0, "tensor": 21}])
+                if op == "TRANSPOSE":
+                    metadata.update(shape=[3, 0, 1, 1], strides_bytes=[0, 4, 0, 0], contiguous=False)
+                elif op == "PERMUTE":
+                    metadata["op_params_i32"] = [0, 1, 2, 3] + [0] * 12
+                capture["tensors"].append(metadata)
+                validate_source(self.graph(capture))
+
     def test_alias_operations_require_consistent_backing_and_exact_slots(self):
-        for op in ("VIEW", "RESHAPE", "PERMUTE", "TRANSPOSE", "CPY", "SET_ROWS", "SCALE"):
+        for op in ("VIEW", "RESHAPE", "PERMUTE", "TRANSPOSE", "CPY", "SET_ROWS", "SCALE", "ADD", "MUL"):
             for corruption in ("own storage", "unrelated storage", "missing slot", "extra slot"):
-                if op == "SCALE" and corruption == "own storage":
-                    continue  # The owning SCALE form is valid; checked below.
+                if op in {"SCALE", "ADD", "MUL"} and corruption == "own storage":
+                    continue  # Owning and in-place forms are both valid.
                 with self.subTest(op=op, corruption=corruption):
-                    compute = op in ("CPY", "SET_ROWS", "SCALE")
+                    compute = op in ("CPY", "SET_ROWS", "SCALE", "ADD", "MUL")
                     capture = self.copy_into_input(op) if compute else self.metadata_views(op=op)
                     tensor = self.tensor(capture, 21 if compute else 101)
                     if corruption == "own storage":
@@ -198,27 +265,30 @@ class SourceValidationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "its own result"):
             validate_source(self.graph(capture))
 
-    def test_scale_supports_owning_nested_and_flattened_storage(self):
-        for elements in (0, 1):
-            for backing, offset in ((-1, 0), (24, 4), (22, 0)):
-                with self.subTest(elements=elements, backing=backing):
-                    capture = deepcopy(self.capture)
-                    owner = deepcopy(self.tensor(capture, 20))
-                    owner.update(id=24, shape=[3, 1, 1, 1], elements=3,
-                                 strides_bytes=[4, 12, 12, 12], span_bytes=12, logical_bytes=12)
-                    source = deepcopy(owner)
-                    source.update(id=22, op="VIEW", op_desc="VIEW", shape=[elements, 1, 1, 1],
-                                  elements=elements, strides_bytes=[4] + [4 * elements] * 3,
-                                  span_bytes=4 * elements, logical_bytes=4 * elements,
-                                  view_source=24, view_offset_bytes=4,
-                                  sources=[{"slot": 0, "tensor": 24}])
-                    scaled = deepcopy(source)
-                    scaled.update(id=21, op="SCALE", op_desc="SCALE", view_source=backing,
-                                  view_offset_bytes=offset, sources=[{"slot": 0, "tensor": 22}])
-                    capture["tensors"].extend([owner, source, scaled])
-                    capture["scheduled_nodes"] = [21, 30]
-                    raw = validate_source(self.graph(capture))
-                    self.assertEqual(storage_chain(raw, 21)[-1], 21 if backing == -1 else 24)
+    def test_in_place_operations_support_owning_nested_and_flattened_storage(self):
+        for op in ("SCALE", "ADD", "MUL"):
+            for elements in (0, 1):
+                for backing, offset in ((-1, 0), (24, 4), (22, 0)):
+                    with self.subTest(op=op, elements=elements, backing=backing):
+                        capture = deepcopy(self.capture)
+                        owner = deepcopy(self.tensor(capture, 20))
+                        owner.update(id=24, shape=[3, 1, 1, 1], elements=3,
+                                     strides_bytes=[4, 12, 12, 12], span_bytes=12, logical_bytes=12)
+                        source = deepcopy(owner)
+                        source.update(id=22, op="VIEW", op_desc="VIEW", shape=[elements, 1, 1, 1],
+                                      elements=elements, strides_bytes=[4] + [4 * elements] * 3,
+                                      span_bytes=4 * elements, logical_bytes=4 * elements,
+                                      view_source=24, view_offset_bytes=4,
+                                      sources=[{"slot": 0, "tensor": 24}])
+                        scaled = deepcopy(source)
+                        scaled.update(id=21, op=op, op_desc=op, view_source=backing,
+                                      view_offset_bytes=offset,
+                                      sources=[{"slot": slot, "tensor": 22}
+                                               for slot in range(1 if op == "SCALE" else 2)])
+                        capture["tensors"].extend([owner, source, scaled])
+                        capture["scheduled_nodes"] = [21, 30]
+                        raw = validate_source(self.graph(capture))
+                        self.assertEqual(storage_chain(raw, 21)[-1], 21 if backing == -1 else 24)
 
     def test_owning_cast_retains_its_source_producer_dependency(self):
         capture = deepcopy(self.capture)
@@ -252,8 +322,8 @@ class SourceValidationTests(unittest.TestCase):
         self.assertEqual(self.dependencies(self.graph(capture)), {42: [], 30: [42]})
 
     def test_write_operation_classification_cannot_bypass_alias_checks(self):
-        for operation in ("CPY", "SET_ROWS", "SCALE"):
-            for op, desc in ((operation, "ADD"), ("ADD", operation)):
+        for operation in ("CPY", "SET_ROWS", "SCALE", "ADD", "MUL"):
+            for op, desc in ((operation, "SUB"), ("SUB", operation)):
                 with self.subTest(op=op, desc=desc):
                     capture = self.copy_into_input(operation)
                     self.tensor(capture, 21).update(op=op, op_desc=desc)
@@ -261,7 +331,7 @@ class SourceValidationTests(unittest.TestCase):
                         validate_source(self.graph(capture))
 
     def test_shape_metadata_and_copy_preserve_resolved_operand_offset(self):
-        for op in ("RESHAPE", "PERMUTE", "TRANSPOSE", "CPY", "VIEW", "SET_ROWS", "SCALE"):
+        for op in ("RESHAPE", "PERMUTE", "TRANSPOSE", "CPY", "VIEW", "SET_ROWS", "SCALE", "ADD", "MUL"):
             with self.subTest(op=op):
                 capture = self.copy_into_input()
                 for tensor in capture["tensors"]:
@@ -277,11 +347,14 @@ class SourceValidationTests(unittest.TestCase):
                     indices.update(id=24, op="NONE", op_desc="NONE", dtype="i64", sources=[],
                                    view_source=-1, strides_bytes=[8] * 4, span_bytes=8, logical_bytes=8)
                     capture["tensors"].append(indices)
-                inputs = ([22, 23] if op == "CPY" else [22, 24, 23] if op == "SET_ROWS"
+                inputs = ([22, 23] if op == "CPY" else [23, 22] if op in {"ADD", "MUL"}
+                          else [22, 24, 23] if op == "SET_ROWS"
                           else [20 if op == "VIEW" else 23])
                 target = self.tensor(capture, 21)
                 target.update(op=op, op_desc=op,
                               sources=[{"slot": slot, "tensor": tid} for slot, tid in enumerate(inputs)])
+                if op == "PERMUTE":
+                    target["op_params_i32"] = [0, 1, 2, 3] + [0] * 12
                 capture["scheduled_nodes"] = [23, 21, 30]
                 # Both zero-offset descriptors are valid; the root has space for
                 # a four-byte shift, so bounds alone cannot detect the contradiction.
@@ -390,6 +463,28 @@ class SourceValidationTests(unittest.TestCase):
                 self.tensor(capture, 30)["sources"][1]["slot"] = slot
                 with self.assertRaises(ValueError):
                     validate_source(self.graph(capture))
+
+    def test_weight_buffer_requires_a_captured_boolean(self):
+        for flag in (True, False, "false", 0, 1, None, [], {}):
+            with self.subTest(flag=flag):
+                capture = deepcopy(self.capture)
+                self.tensor(capture, 10)["weight_buffer"] = flag
+                if type(flag) is bool:
+                    validate_source(self.graph(capture))
+                else:
+                    with self.assertRaisesRegex(ValueError, "weight_buffer|boolean"):
+                        validate_source(self.graph(capture))
+
+    def test_matmul_requires_own_storage_even_when_not_scheduled(self):
+        capture = deepcopy(self.capture)
+        owner = deepcopy(self.tensor(capture, 20))
+        owner.update(id=40, name="fixture.unrelated")
+        capture["tensors"].append(owner)
+        capture["scheduled_nodes"] = []
+        validate_source(self.graph(capture))
+        self.tensor(capture, 30)["view_source"] = 40
+        with self.assertRaisesRegex(ValueError, "MUL_MAT|own"):
+            validate_source(self.graph(capture))
 
     def test_shape_and_element_count_are_validated_globally(self):
         changes = ({"shape": [7.0, 5, 1, 1]}, {"shape": [7, 5, True, 1]},

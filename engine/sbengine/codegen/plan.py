@@ -108,8 +108,13 @@ class MatmulPlan:
             raise ValueError("result identity differs from the captured output")
         if self.c.storage_id in (self.a.storage_id, self.b.storage_id):
             raise ValueError("matmul output aliases an input storage owner")
-        if any(type(v) is not int or not -(2**31) <= v < 2**31 for v in self.op_params_i32):
-            raise ValueError("operation parameters must be captured signed int32 values")
+        if self.c.dtype != "f32":
+            raise ValueError("GGML MUL_MAT output must be f32")
+        if self.c.storage_id != self.c.tensor_id or self.c.offset_bytes:
+            raise ValueError("GGML MUL_MAT output must own its storage at offset zero")
+        if (len(self.op_params_i32) != 16
+                or any(type(v) is not int or not -(2**31) <= v < 2**31 for v in self.op_params_i32)):
+            raise ValueError("operation parameters must be exactly 16 captured signed int32 values")
         if (len(set(self.dependencies)) != len(self.dependencies)
                 or any(not _integer(v) or v == self.tensor_id for v in self.dependencies)):
             raise ValueError("invalid captured dependency tensor ID")

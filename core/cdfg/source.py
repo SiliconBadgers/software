@@ -55,7 +55,7 @@ def validate_source(graph):
     raw = {t["id"]: t for t in tensors}
     if len(raw) != len(tensors):
         raise ValueError("duplicate tensor IDs in capture")
-    classified_ops = METADATA_OPS | {"CPY", "SET_ROWS", "SCALE"}
+    classified_ops = METADATA_OPS | {"CPY", "SET_ROWS", "SCALE", "ADD", "MUL", "MUL_MAT"}
     for t in tensors:
         if (not _integer(t["id"]) or len(t["shape"]) != 4
                 or any(not _integer(v) for v in t["shape"])
@@ -63,6 +63,8 @@ def validate_source(graph):
             raise ValueError(f"tensor {t['id']}: invalid shape or captured element count")
         if any(not isinstance(t[key], str) or not t[key] for key in ("op", "op_desc", "dtype")):
             raise ValueError(f"tensor {t['id']}: operation and format names are required")
+        if type(t["weight_buffer"]) is not bool:
+            raise ValueError(f"tensor {t['id']}: weight_buffer must be a boolean")
         if (t["op"] in classified_ops or t["op_desc"] in classified_ops) and t["op"] != t["op_desc"]:
             raise ValueError(f"tensor {t['id']}: inconsistent operation classification")
         if not _integer(t["span_bytes"]) or not _integer(t["logical_bytes"]):
@@ -98,9 +100,11 @@ def validate_source(graph):
         offsets[tid] = sum(raw[parent]["view_offset_bytes"] for parent in chain)
     for tid, tensor in raw.items():
         op = tensor["op_desc"]
-        if op in {"VIEW", "RESHAPE", "PERMUTE", "TRANSPOSE", "CPY", "SET_ROWS", "SCALE"}:
+        if op == "MUL_MAT" and tensor["view_source"] != -1:
+            raise ValueError(f"tensor {tid}: MUL_MAT output must own its storage")
+        if op in {"VIEW", "RESHAPE", "PERMUTE", "TRANSPOSE", "CPY", "SET_ROWS", "SCALE", "ADD", "MUL"}:
             slot = {"CPY": 1, "SET_ROWS": 2}.get(op, 0)
-            expected_slots = set(range(slot + 1))
+            expected_slots = {0, 1} if op in {"ADD", "MUL"} else set(range(slot + 1))
             slots = {s["slot"]: s["tensor"] for s in tensor["sources"]}
             if set(slots) != expected_slots:
                 raise ValueError(f"tensor {tid}: {op} requires operand slots {sorted(expected_slots)}")
@@ -114,12 +118,36 @@ def validate_source(graph):
                     if tensor["view_source"] != -1:
                         raise ValueError(f"tensor {tid}: invalid owning CPY backing storage")
                     continue
-            if op == "SCALE" and tensor["view_source"] == -1:
+            if op in {"SCALE", "ADD", "MUL"} and tensor["view_source"] == -1:
                 continue
             if tensor["view_source"] < 0 or roots[tid] != roots[slots[slot]]:
                 raise ValueError(f"tensor {tid}: {op} backing storage differs from operand {slot}")
             if op != "VIEW" and offsets[tid] != offsets[slots[slot]]:
                 raise ValueError(f"tensor {tid}: {op} backing offset differs from operand {slot}")
+            source = raw[slots[0]]
+            if op == "RESHAPE" and (source.get("contiguous") is not True
+                                    or source["elements"] != tensor["elements"]):
+                raise ValueError(f"tensor {tid}: RESHAPE requires a contiguous source with equal element count")
+            if op in {"TRANSPOSE", "PERMUTE"}:
+                axes = (1, 0, 2, 3)
+                if op == "PERMUTE":
+                    params = tensor["op_params_i32"]
+                    if (not isinstance(params, (list, tuple)) or len(params) != 16
+                            or any(type(v) is not int or not -(2**31) <= v < 2**31 for v in params)
+                            or sorted(params[:4]) != [0, 1, 2, 3]):
+                        raise ValueError(f"tensor {tid}: invalid PERMUTE axes or parameters")
+                    axes = params[:4]
+                for key in ("shape", "strides_bytes"):
+                    original, result = source[key], tensor[key]
+                    if (not isinstance(original, (list, tuple)) or not isinstance(result, (list, tuple))
+                            or len(original) != 4 or len(result) != 4
+                            or any(not _integer(v) for v in (*original, *result))):
+                        raise ValueError(f"tensor {tid}: invalid {op} {key}")
+                    transformed = [None] * 4
+                    for old, new in enumerate(axes):
+                        transformed[new] = original[old]
+                    if tuple(result) != tuple(transformed):
+                        raise ValueError(f"tensor {tid}: {op} {key} differs from its source transformation")
     for idx, (node, (pos, tid)) in enumerate(zip(graph.nodes, active)):
         slots = {slot: expected[sid] for slot, sid in expected[tid].sources}
         srcs = tuple(dict.fromkeys(slots.values()))

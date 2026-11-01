@@ -176,6 +176,49 @@ class SymbolicMatmul(unittest.TestCase):
                 # The declared BF16 tensor contains 35 two-byte elements.
                 self.rejected(raw)
 
+    def test_invalid_matmul_outputs_and_parameters_are_diagnosed(self):
+        for corruption in ("f16", "i8", "short parameters", "long parameters"):
+            with self.subTest(corruption=corruption):
+                raw = copy.deepcopy(self.capture)
+                output = raw["tensors"][2]
+                if corruption in ("f16", "i8"):
+                    size = 2 if corruption == "f16" else 1
+                    output.update(dtype=corruption, strides_bytes=[size, 5 * size, 15 * size, 15 * size],
+                                  span_bytes=15 * size, logical_bytes=15 * size)
+                else:
+                    output["op_params_i32"] = [0] * (15 if corruption == "short parameters" else 17)
+                graph = self.graph(raw)
+                with self.assertRaises(LoweringError):
+                    lower_matmul(graph, 30)
+                for selected in (None, 30):
+                    report = compile_graph(graph, tensor_id=selected)
+                    self.assertEqual(report.plans, ())
+                    self.assertEqual([(d.tensor_id, d.op) for d in report.diagnostics], [(30, "MUL_MAT")])
+                    flags = () if selected is None else ("--tensor-id", "30")
+                    for partial in (False, True):
+                        result = self.cli(graph, *flags, *(("--allow-partial",) if partial else ()))
+                        self.assertEqual(result.returncode, 0 if partial else 2, result.stderr)
+                        self.assertNotIn("Traceback", result.stderr)
+                        self.assertEqual(json.loads(result.stdout), report.to_dict())
+
+    def test_matmul_record_validation_cannot_bypass_source_contract(self):
+        report = compile_graph(self.graph())
+        plan = report.plans[0]
+        outputs = [replace(plan.c, storage_id=40),
+                   replace(plan.c, offset_bytes=4, storage_span_bytes=64)]
+        for dtype, size in (("f16", 2), ("i8", 1)):
+            outputs.append(replace(plan.c, dtype=dtype, strides_bytes=(size, 5 * size, 15 * size, 15 * size),
+                                   storage_span_bytes=15 * size, span_bytes=15 * size, logical_bytes=15 * size))
+        invalid = [replace(plan, c=output) for output in outputs]
+        invalid.extend(replace(plan, op_params_i32=values) for values in
+                       ((), (0,) * 15, (0,) * 17, (True,) + (0,) * 15, (2**31,) + (0,) * 15))
+        for candidate in invalid:
+            with self.subTest(output=candidate.c, parameters=candidate.op_params_i32):
+                with self.assertRaises(ValueError):
+                    candidate.validate()
+                with self.assertRaises(ValueError):
+                    replace(report, plans=(candidate,)).to_json()
+
     def test_operation_description_cannot_override_a_different_operation(self):
         raw = copy.deepcopy(self.capture)
         raw["tensors"][2]["op"] = "ADD"
@@ -208,14 +251,15 @@ class SymbolicMatmul(unittest.TestCase):
         raw["tensors"].extend([unrelated, indices, view])
         raw["tensors"][2]["sources"][1]["tensor"] = 21
         raw["scheduled_nodes"] = [21, 30]
-        for operation in ("VIEW", "RESHAPE", "PERMUTE", "TRANSPOSE", "CPY", "SET_ROWS", "SCALE"):
-            operands = {"CPY": (22, 20), "SET_ROWS": (22, 23, 20)}.get(operation, (20,))
+        for operation in ("VIEW", "RESHAPE", "PERMUTE", "TRANSPOSE", "CPY", "SET_ROWS", "SCALE", "ADD", "MUL"):
+            operands = {"CPY": (22, 20), "SET_ROWS": (22, 23, 20),
+                        "ADD": (20, 22), "MUL": (20, 22)}.get(operation, (20,))
             sources = [{"slot": slot, "tensor": tid} for slot, tid in enumerate(operands)]
             view.update(op=operation, op_desc=operation, view_source=20,
                         sources=sources,
                         op_params_i32=([0, 1, 2, 3] + [0] * 12 if operation == "PERMUTE" else [0] * 16))
             self.assertEqual(lower_matmul(self.graph(raw), 30).b.storage_id, 20)
-            for backing in ((22,) if operation == "SCALE" else (-1, 22)):
+            for backing in ((22,) if operation in ("SCALE", "ADD", "MUL") else (-1, 22)):
                 with self.subTest(operation=operation, backing=backing):
                     view["view_source"] = backing
                     graph = self.graph(raw)
@@ -229,6 +273,47 @@ class SymbolicMatmul(unittest.TestCase):
                         self.assertEqual(result.stdout, "")
                         self.assertIn("backing storage", result.stderr)
                         self.assertNotIn("Traceback", result.stderr)
+
+    def test_invalid_source_contracts_cannot_hide_behind_selection(self):
+        for corruption in ("weight flag", "matmul backing", "RESHAPE count", "RESHAPE layout", "TRANSPOSE", "PERMUTE"):
+            with self.subTest(corruption=corruption):
+                raw = self.with_matmul_chain() if corruption == "matmul backing" else copy.deepcopy(self.capture)
+                selected_id = 70 if corruption == "matmul backing" else 30
+                source = raw["tensors"][1]
+                if corruption == "weight flag":
+                    source["weight_buffer"] = "false"
+                elif corruption == "matmul backing":
+                    output = raw["tensors"][2]
+                    owner = copy.deepcopy(output)
+                    owner.update(id=40, op="NONE", op_desc="NONE", sources=[])
+                    raw["tensors"].append(owner)
+                    output["view_source"] = 40
+                else:
+                    operation = corruption.split()[0]
+                    view = copy.deepcopy(source)
+                    view.update(id=40, op=operation, op_desc=operation, view_source=20,
+                                sources=[{"slot": 0, "tensor": 20}])
+                    if corruption == "RESHAPE count":
+                        view.update(shape=[7, 2, 1, 1], elements=14, strides_bytes=[4, 28, 56, 56],
+                                    span_bytes=56, logical_bytes=56)
+                    elif corruption == "RESHAPE layout":
+                        source["contiguous"] = False
+                    elif corruption == "PERMUTE":
+                        view["op_params_i32"] = [1, 0, 2, 3] + [0] * 12
+                    raw["tensors"].append(view)
+                    raw["scheduled_nodes"].insert(0, 40)
+                graph = self.graph(raw)
+                for selected in (None, selected_id):
+                    with self.assertRaises(ValueError):
+                        compile_graph(graph, tensor_id=selected)
+                with self.assertRaises(LoweringError):
+                    lower_matmul(graph, selected_id)
+                for flags in ((), ("--allow-partial",), ("--tensor-id", str(selected_id), "--allow-partial")):
+                    result = self.cli(graph, *flags)
+                    self.assertEqual(result.returncode, 2, result.stderr)
+                    self.assertEqual(result.stdout, "")
+                    self.assertIn("error:", result.stderr)
+                    self.assertNotIn("Traceback", result.stderr)
 
     def test_malformed_copies_cannot_hide_behind_selection_or_partial_reports(self):
         for corruption in ("empty self source", "element count"):
@@ -257,8 +342,8 @@ class SymbolicMatmul(unittest.TestCase):
                     self.assertIn("error:", result.stderr)
                     self.assertNotIn("Traceback", result.stderr)
 
-    def test_owning_scale_and_reshaped_copy_keep_unsupported_work_visible(self):
-        for operation in ("SCALE", "CPY"):
+    def test_owning_arithmetic_and_reshaped_copy_keep_unsupported_work_visible(self):
+        for operation in ("SCALE", "ADD", "MUL", "CPY"):
             with self.subTest(operation=operation):
                 raw = copy.deepcopy(self.capture)
                 source = copy.deepcopy(raw["tensors"][1])
@@ -266,6 +351,8 @@ class SymbolicMatmul(unittest.TestCase):
                 output = copy.deepcopy(raw["tensors"][1])
                 output.update(id=41, op=operation, op_desc=operation,
                               sources=[{"slot": 0, "tensor": 40}])
+                if operation in ("ADD", "MUL"):
+                    output["sources"].append({"slot": 1, "tensor": 20})
                 if operation == "CPY":
                     source.update(shape=[21, 1, 1, 1], strides_bytes=[4, 84, 84, 84])
                     output.update(view_source=20)
@@ -307,7 +394,7 @@ class SymbolicMatmul(unittest.TestCase):
     def test_output_alias_of_an_input_is_rejected(self):
         raw = copy.deepcopy(self.capture)
         raw["tensors"][2].update(view_source=20, view_offset_bytes=0)
-        with self.assertRaisesRegex(LoweringError, "output aliases"):
+        with self.assertRaisesRegex(LoweringError, "output.*storage"):
             lower_matmul(self.graph(raw), 30)
 
     def test_nested_input_views_preserve_owner_and_cumulative_offset(self):

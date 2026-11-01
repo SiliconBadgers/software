@@ -21,7 +21,8 @@ uv run --locked python -m sbengine.codegen \
 This projection has `M=6144`, `N=128`, `K=2048`. Omitting `--tensor-id` inventories
 all active operations. Unsupported operations produce diagnostics and exit status
 2. `--allow-partial` returns 0 for an inventory; it does not implement fallback.
-Malformed source input also exits 2. JSON is written to stdout; save generated
+Source-validation errors exit 2 without JSON. Lowering diagnostics appear in the
+JSON report and follow `--allow-partial`. JSON is written to stdout; save generated
 plans under ignored `build/compiler/`.
 
 The synthetic fixture requires no model download or NumPy:
@@ -37,7 +38,9 @@ innermost first: operands `[K,M,1,1]` and `[K,N,1,1]` produce `[M,N,1,1]`, recor
 as logical `C=A*B` with dimensions `M,N,K`. Source formats, block strides, byte
 extents and storage aliases are checked. Raw operation parameters are retained
 without interpreting them as target arithmetic.
-Output/input aliasing, incompatible shapes and unsupported layouts are rejected.
+Matmul outputs must be F32 and own their storage. Operation parameters contain
+16 signed-int32 entries; nonzero values are preserved. Incompatible shapes and
+unsupported layouts are rejected.
 
 `compile_graph(graph, tensor_id=None)` returns plans and diagnostics for the
 selected active operations. `lower_matmul(graph, tensor_id)` returns one plan or
