@@ -50,6 +50,7 @@ class TiledMatmul:
         The first K chunk clears the accumulator and the last writes the output.
         Edge tiles are smaller when a dimension is not a multiple of its limit.
         """
+        self.validate()
         p = self.plan
         for m0 in range(0, p.m, self.tile_m):
             for n0 in range(0, p.n, self.tile_n):

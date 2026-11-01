@@ -91,13 +91,15 @@ class MatmulTiling(unittest.TestCase):
             self.assertTrue(run[-1].write_output)
 
     def test_validate(self):
-        """Bad tile sizes, a non-plan input and malformed tiles are rejected."""
+        """Bad tile sizes, a non-plan input and malformed tiles are rejected, including by tiles()."""
         good = plan(4, 4, 4)
         for limits in ((0, 2, 2), (2, -1, 2), (2, 2, 2.0), (True, 2, 2)):
             with self.subTest(limits=limits), self.assertRaises(ValueError):
                 TiledMatmul(good, *limits).validate()
         with self.assertRaises(ValueError):
             TiledMatmul("not a plan", 2, 2, 2).validate()
+        with self.assertRaises(ValueError):
+            list(TiledMatmul(good, -1, 2, 2).tiles())
         for bad in (MatmulTile(3, 0, 0, 0, 0, 2, 2, True, True),
                     MatmulTile(3, -1, 0, 0, 2, 2, 2, True, True),
                     MatmulTile(3, 0, 0, 0, 2, 2, 2, 1, True)):
