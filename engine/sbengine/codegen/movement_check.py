@@ -9,8 +9,9 @@ bug shows up as a violation instead of being repeated. Checked:
   command may start (its Memory wait covers 2j+2), and that transfer brought
   the right HBM bytes to the addresses the command reads
 * no later load overwrites an input before the reader's release milestone
-* the output store waits for every overlapping MATRIX write (3j+3), and the
-  store maps each written tile to the right HBM bytes
+* the output store waits for every overlapping MATRIX write (3j+3), only C is
+  stored back, every row of every written C tile reaches its own HBM bytes,
+  and the stored rows cover the whole C tensor exactly once
 * MATRIX writes never land in a range that a transfer loads
 * the two queues can always make progress (no wait cycle)
 """
@@ -123,6 +124,34 @@ def check(movement):
                        f"matrix {i} reaches 3j+{release} (waits {transfers[later].wait_matrix}, "
                        f"needs {3 * i + release})")
 
+    for s in stores:
+        if transfers[s].operand != "c":
+            result.add("store", f"transfer {s} stores SRAM to operand {transfers[s].operand}'s "
+                       "HBM buffer; only C is written back")
+    c_stores = [s for s in stores if transfers[s].operand == "c"]
+    stored_c = []                       # HBM C byte ranges that reach the right offsets
+
+    def check_output(i, cmd, tile):
+        """Every row of a written C tile is stored, whole, to its own HBM bytes."""
+        row_bytes = tile.n * elem["c"]
+        missing = []
+        for r in range(tile.m):
+            lo = cmd.c_base + r * pitch["c"]
+            hbm = ((tile.m0 + r) * plan.n + tile.n0) * elem["c"]
+            for s in c_stores:
+                x = transfers[s]
+                if x.sram_address <= lo and lo + row_bytes <= x.sram_address + x.length_bytes \
+                        and x.hbm_offset + lo - x.sram_address == hbm:
+                    stored_c.append((hbm, hbm + row_bytes))
+                    break
+            else:
+                missing.append((r, lo, hbm))
+        if missing:
+            r, lo, hbm = missing[0]
+            result.add("data", f"matrix {i}: {len(missing)} of {tile.m} output rows are not "
+                       f"stored to their C HBM bytes (first: row {r}, SRAM [{lo}, "
+                       f"{lo + row_bytes}) should reach [{hbm}, {hbm + row_bytes}))")
+
     # Walk the Matrix queue once, advancing the Memory queue as its waits allow.
     memory_next, memory_counter = 0, 0
     writers = defaultdict(int)          # store index -> latest overlapping writer milestone
@@ -160,16 +189,11 @@ def check(movement):
                 result.add("waw", f"matrix {i} writes C into [{lo}, {hi}), a load destination")
                 break
         if cmd.write_output:
-            hbm = (tile.m0 * plan.n + tile.n0) * elem["c"]
-            covered = False
             for s in stores:
                 x = transfers[s]
                 if _overlap(lo, hi, x.sram_address, x.sram_address + x.length_bytes):
                     writers[s] = max(writers[s], 3 * i + 3)
-                    if x.sram_address + hbm - x.hbm_offset == cmd.c_base:
-                        covered = True
-            if not covered:
-                result.add("data", f"matrix {i} output at {cmd.c_base} is not stored to its HBM bytes")
+            check_output(i, cmd, tile)
         observed["matrix"] = i + 1
     else:
         if next(tiles, None) is not None:
@@ -180,6 +204,17 @@ def check(movement):
                            f"{transfers[memory_next].wait_matrix}, beyond the last command")
                 break
             memory_next += 1
+    if observed["matrix"] == movement.matrix_count:
+        # Together the stored rows must cover every byte of C exactly once.
+        end = 0
+        for lo, hi in sorted(stored_c):
+            if lo != end:
+                kind = "overlapping" if lo < end else "missing"
+                result.add("store", f"C bytes {kind} in HBM at [{min(lo, end)}, {max(lo, end)})")
+            end = max(end, hi)
+        if end != tensor["c"]:
+            result.add("store", f"stored C covers [0, {end}) of HBM, not the "
+                       f"{tensor['c']} B tensor")
     for s in stores:
         if transfers[s].wait_matrix < writers[s]:
             result.add("store", f"transfer {s} stores C before its last writer's 3j+3 "

@@ -1,7 +1,12 @@
 """Data-movement plans pass the independent checker, and broken plans do not."""
+import contextlib
 import dataclasses
+import io
+import json
 from pathlib import Path
+import shutil
 import sys
+import tempfile
 import unittest
 
 ENGINE = Path(__file__).resolve().parents[1]
@@ -9,7 +14,7 @@ sys.path.insert(0, str(ENGINE))
 
 from sbengine.codegen import lower_matmul
 from sbengine.codegen.movement import (MovementError, MovementPlan, StubTiledMatmul,
-                                       TargetMemory, memory_done)
+                                       TargetMemory, main, memory_done)
 from sbengine.codegen.movement_check import check
 from sbengine.graph import Graph
 
@@ -114,6 +119,27 @@ class MovementPlans(unittest.TestCase):
                           if c.index == 0 else c)
         self.assertIn("waw", self.kinds(movement))
 
+    def wide(self):
+        """8 x 128 x 8: one A panel, a 4,096 B C written by eight 8 x 16 tiles."""
+        plan = dataclasses.replace(self.plan, m=8, n=128, k=8)
+        return MovementPlan(StubTiledMatmul(plan, 8, 16, 8))
+
+    def test_short_store_is_caught(self):
+        self.assertTrue(check(self.wide())["passed"])
+        movement = mutate(self.wide(), transfers=lambda t: [
+            x._replace(length_bytes=512) if x.direction == "sram_to_hbm" else x for x in t])
+        self.assertIn("data", self.kinds(movement))   # rows past the first 512 B
+        self.assertIn("store", self.kinds(movement))  # C not fully covered
+
+    def test_store_to_wrong_buffer_or_offset_is_caught(self):
+        movement = mutate(self.wide(), transfers=lambda t: [
+            x._replace(operand="a") if x.direction == "sram_to_hbm" else x for x in t])
+        self.assertIn("store", self.kinds(movement))
+        movement = mutate(self.movement(), transfers=lambda t: [
+            x._replace(hbm_offset=x.hbm_offset + 512) if x.direction == "sram_to_hbm" else x
+            for x in t])
+        self.assertIn("data", self.kinds(movement))
+
     def test_sram_overflow_is_caught(self):
         movement = mutate(self.movement(), transfers=lambda t: [
             x._replace(sram_address=8 * 1024 * 1024) if x.index == 1 else x for x in t])
@@ -143,6 +169,48 @@ class MovementPlans(unittest.TestCase):
                 return iter(tiles[::-1])
         with self.assertRaises(MovementError):
             MovementPlan(Reversed(self.plan, 2, 2, 2))
+
+
+class CommandsOut(unittest.TestCase):
+    """--commands-out never replaces an existing file or the input capture."""
+
+    def setUp(self):
+        self.dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self.dir.cleanup)
+        self.capture = Path(self.dir.name) / "capture.json"
+        shutil.copyfile(FIXTURE, self.capture)
+        self.original = self.capture.read_bytes()
+
+    def run_main(self, out):
+        args = [str(self.capture), "--phase", "prefill", "--tensor-id", "30",
+                "--tile", "2,2,2", "--commands-out", str(out)]
+        with contextlib.redirect_stdout(io.StringIO()), \
+                contextlib.redirect_stderr(io.StringIO()) as err:
+            try:
+                return main(args), err.getvalue()
+            except SystemExit as exit_:
+                return exit_.code, err.getvalue()
+
+    def test_new_path_is_written(self):
+        out = Path(self.dir.name) / "commands.jsonl"
+        code, _ = self.run_main(out)
+        self.assertEqual(code, 0)
+        self.assertEqual(json.loads(out.read_text().splitlines()[0])["queue"], "meta")
+
+    def test_input_capture_is_rejected(self):
+        for path in (self.capture, Path(self.dir.name) / "." / "capture.json"):
+            code, err = self.run_main(path)
+            self.assertEqual(code, 2)
+            self.assertIn("input capture", err)
+            self.assertEqual(self.capture.read_bytes(), self.original)
+
+    def test_existing_file_is_rejected(self):
+        out = Path(self.dir.name) / "commands.jsonl"
+        out.write_text("keep me\n")
+        code, err = self.run_main(out)
+        self.assertEqual(code, 2)
+        self.assertIn("already exists", err)
+        self.assertEqual(out.read_text(), "keep me\n")
 
 
 if __name__ == "__main__":

@@ -23,7 +23,10 @@ uv run --locked python -m sbengine.codegen.movement \
 
 Options: `--tile M,N,K` (stub tiler, default `8,16,8`), `--sram-bytes`,
 `--reuse-after {complete,inputs_released}` and `--commands-out PATH` for every
-command as JSON lines. The report holds the buffers, counts, bytes moved, a
+command as JSON lines. `--commands-out` only creates a new file: it refuses a
+path that already exists or that resolves to the input capture.
+
+The report holds the buffers, counts, bytes moved, a
 SHA-256 digest of the command stream, the first commands, the assumptions used
 and the checker result. The command exits 1 if the checker finds a violation.
 
@@ -61,14 +64,20 @@ and the target facts. It does not reuse the planner's bookkeeping. It checks
 whole-row transfers inside SRAM and the declared HBM buffers; that every
 `MATRIX` input comes from a completed load that brought the right HBM bytes
 to the addresses read; that no later load overwrites an input before the
-reader's release milestone; that the store waits for every overlapping write
-and maps each tile to its HBM bytes; that no write lands in a load
-destination; and that the two queues cannot block each other.
+reader's release milestone; that the store waits for every overlapping write;
+that only C is stored back, every row of every written C tile reaches its own
+bytes in C's HBM buffer, and the stored rows cover the whole C tensor exactly
+once; that no write lands in a load destination; and that the two queues
+cannot block each other.
 
 `engine/tests/test_movement.py` runs valid plans for whole and edge tiles under
-both release policies, and eight deliberately broken plans: a stale input, a
+both release policies, and eleven deliberately broken plans: a stale input, a
 read before its load, an early reuse, a partial-row transfer, an early store, a
-wait cycle, an SRAM overflow and an output written into a load destination. Each must fail with the matching violation.
+wait cycle, an SRAM overflow, an output written into a load destination, a C
+store cut short (8 x 128 x 8: 512 of 4,096 B), a C store sent to A's HBM
+buffer and a C store at the wrong HBM offset. Each must fail with the matching
+violation. Three CLI tests check that `--commands-out` writes a new file and
+leaves an existing file and the input capture unchanged.
 A plan built for `inputs_released` must fail when checked under `complete`.
 
 ```sh

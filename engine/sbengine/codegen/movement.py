@@ -24,6 +24,7 @@ from dataclasses import dataclass
 import argparse
 import hashlib
 import json
+import os
 import sys
 import zlib
 
@@ -323,8 +324,16 @@ def main(argv=None):
     parser.add_argument("--tile", default="8,16,8", help="tile_m,tile_n,tile_k (stub tiler)")
     parser.add_argument("--sram-bytes", type=int, default=TargetMemory.sram_bytes)
     parser.add_argument("--reuse-after", choices=sorted(REUSE_EVENTS), default="inputs_released")
-    parser.add_argument("--commands-out", help="write every command as JSON lines here")
+    parser.add_argument("--commands-out",
+                        help="write every command as JSON lines to this new file")
     args = parser.parse_args(argv)
+    if args.commands_out:
+        out = os.path.realpath(args.commands_out)
+        if out == os.path.realpath(args.capture):
+            parser.error("--commands-out points to the input capture")
+        if os.path.lexists(args.commands_out):
+            parser.error(f"--commands-out {args.commands_out} already exists; "
+                         "choose a new path")
     try:
         tm, tn, tk = (int(v) for v in args.tile.split(","))
         plan = lower_matmul(Graph(args.capture, args.phase), args.tensor_id)
@@ -334,7 +343,7 @@ def main(argv=None):
     except (EOFError, OSError, KeyError, TypeError, ValueError, zlib.error) as error:
         parser.error(str(error))
     if args.commands_out:
-        with open(args.commands_out, "w", encoding="utf-8") as handle:
+        with open(args.commands_out, "x", encoding="utf-8") as handle:
             handle.write(json.dumps({"queue": "meta", "schema": SCHEMA,
                                      "matches_proposed_matrix_interface": False,
                                      "gaps": MATRIX_INTERFACE_GAPS}) + "\n")
