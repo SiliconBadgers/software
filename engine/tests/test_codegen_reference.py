@@ -70,7 +70,11 @@ class Arithmetic(unittest.TestCase):
         self.assertEqual(f32(-1e39), -math.inf)
 
     def test_rejects_invalid_inputs(self):
-        for values in ([], [0.1], [math.nan], [math.inf]):
+        smallest = 2.0 ** -149  # float32's smallest subnormal
+        # A peak under 64 subnormal steps underflows the scale to zero; the probe
+        # then divides by zero, which has no defined result to reproduce.
+        self.assertEqual(quantize_vector([64 * smallest])[1], smallest)
+        for values in ([], [0.1], [math.nan], [math.inf], [True], ["1"], [63 * smallest]):
             with self.assertRaises(ValueError):
                 quantize_vector(values)
         with self.assertRaises(ValueError):

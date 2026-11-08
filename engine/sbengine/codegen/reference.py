@@ -55,6 +55,8 @@ def _round_half_away(value):
 
 def quantize_vector(values):
     """Quantize one weight row or activation vector; returns (q values, scale)."""
+    if any(type(v) not in (int, float) for v in values):
+        raise ValueError("inputs must be numbers")
     values = [float(v) for v in values]
     if not values:
         raise ValueError("cannot quantize an empty vector")
@@ -64,6 +66,11 @@ def quantize_vector(values):
     # float32 / float32 computed in float64 then rounded is the correctly
     # rounded float32 quotient, matching `peak / 127.0f` and `value / scale`.
     scale = f32(peak / 127.0) if peak > 0 else 1.0
+    if scale == 0:
+        # Peaks below about 8.9e-44 (64 float32 subnormal steps) underflow the
+        # scale. The probe then divides by zero and calls lround on inf/NaN,
+        # which C leaves undefined, so there is no result to reproduce.
+        raise ValueError(f"peak {peak!r} is so small that the float32 scale underflows to zero")
     q = tuple(max(-INT8_LIMIT, min(INT8_LIMIT, _round_half_away(f32(v / scale)))) for v in values)
     return q, scale
 

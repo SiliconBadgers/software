@@ -40,10 +40,17 @@ requantization, which is not specified yet.
 
 **Cross-check (2026-11-07):** the probe's `quantize` and sum/scale lines were
 compiled with g++ 15.2.0 (`-O2`, x86-64) and fed the same float32 bits. They
-matched all 304 fixture outputs and 1,804 random outputs (exact halves, tiny
-and near-overflow magnitudes) on both the integer sum and the float32 bit
-pattern. That harness is a local copy of probe code and is not committed; it
-does not run the RTL.
+matched all 304 fixture outputs and 3,409 random outputs (exact halves,
+subnormals, tiny and near-overflow magnitudes) on both the integer sum and the
+float32 bit pattern. That harness is a local copy of probe code and is not
+committed; it does not run the RTL, and a build with flush-to-zero or
+fast-math flags could differ on subnormals.
+
+**Underflow:** a vector whose largest magnitude is below about 8.9e-44 (64
+float32 subnormal steps) gives a scale of zero. The probe then divides by zero
+and calls `lround` on infinity or NaN, which C leaves undefined. The compiled
+copy returned -127 for both a tiny value and a zero. The reference raises
+`ValueError` for such vectors instead of reproducing that result.
 
 ## Cases
 
