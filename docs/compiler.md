@@ -78,4 +78,6 @@ uv run --locked python -m unittest discover -s core/tests -p test_cdfg_source.py
 uv run --locked python scripts/check_boundaries.py
 ```
 
-Additional component checks are listed in [tests/README.md](../tests/README.md).
+Value-level reference checks for tiled plans (item C) are in
+[compiler-reference.md](compiler-reference.md). Additional component checks are
+listed in [tests/README.md](../tests/README.md).
