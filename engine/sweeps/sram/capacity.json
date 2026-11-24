@@ -1,0 +1,10 @@
+{
+  "id": "sram-capacity-v1",
+  "baseline": "engine/designs/baselines/characterized-v1/record.json",
+  "workload": "pp512-fa-on",
+  "axes": {"l1.mib": [2, 4, 8, 16, 32, 64]},
+  "objectives": [["cost", "min"], ["prefill_s", "min"], ["decode_s", "min"]],
+  "decision": "local-memory",
+  "prerequisites": [],
+  "reference": "engine/docs/ASSUMPTIONS.md"
+}

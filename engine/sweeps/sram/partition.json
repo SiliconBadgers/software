@@ -1,0 +1,10 @@
+{
+  "id": "sram-partition-v1",
+  "baseline": "engine/designs/baselines/characterized-v1/record.json",
+  "workload": "pp512-fa-on",
+  "axes": {"l1.tile_fraction": [0.25, 0.375, 0.5, 0.625], "l1.state_reserve": [0.125, 0.25, 0.375]},
+  "objectives": [["prefill_s", "min"], ["decode_s", "min"]],
+  "decision": "local-memory",
+  "prerequisites": [],
+  "reference": "engine/docs/ASSUMPTIONS.md"
+}
