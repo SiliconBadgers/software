@@ -1,0 +1,35 @@
+{
+  "metadata": {
+    "phase": "prefill",
+    "input_tokens": 3,
+    "sequence_batch": 1,
+    "tensor_dimension_order": "ggml ne[0] is innermost",
+    "source": "Hand-authored symbolic compiler fixture: logical (5 x 7) times (7 x 3).",
+    "scope": "Shape and descriptor checks only; no tensor values, hardware format support or numerical execution."
+  },
+  "scheduled_nodes": [30],
+  "tensors": [
+    {
+      "id": 10, "name": "fixture.weight", "op": "NONE", "op_desc": "NONE",
+      "dtype": "bf16", "shape": [7, 5, 1, 1], "strides_bytes": [2, 14, 70, 70],
+      "elements": 35, "span_bytes": 70, "logical_bytes": 70, "contiguous": true,
+      "weight_buffer": true, "sources": [], "view_source": -1, "view_offset_bytes": 0,
+      "op_params_i32": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "id": 20, "name": "fixture.input", "op": "NONE", "op_desc": "NONE",
+      "dtype": "f32", "shape": [7, 3, 1, 1], "strides_bytes": [4, 28, 84, 84],
+      "elements": 21, "span_bytes": 84, "logical_bytes": 84, "contiguous": true,
+      "weight_buffer": false, "sources": [], "view_source": -1, "view_offset_bytes": 0,
+      "op_params_i32": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "id": 30, "name": "fixture.output", "op": "MUL_MAT", "op_desc": "MUL_MAT",
+      "dtype": "f32", "shape": [5, 3, 1, 1], "strides_bytes": [4, 20, 60, 60],
+      "elements": 15, "span_bytes": 60, "logical_bytes": 60, "contiguous": true,
+      "weight_buffer": false, "sources": [{"slot": 0, "tensor": 10}, {"slot": 1, "tensor": 20}],
+      "view_source": -1, "view_offset_bytes": 0,
+      "op_params_i32": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    }
+  ]
+}

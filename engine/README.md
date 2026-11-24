@@ -1,5 +1,8 @@
 # engine: analytical accelerator model driven by captured graphs
 
+The [compiler foundation](../docs/compiler.md) provides a symbolic plan and
+coverage CLI under `sbengine.codegen`. Executable target lowering is follow-up work.
+
 `sbengine` estimates prefill and decode time, memory traffic, footprint and a unitless resource cost for
 Qwen3.5-2B on a parameterised accelerator (matrix, vector and recurrence units, shared L1, HBM). It reads the
 scheduled graphs captured by `core/` directly, so shapes, dtypes, operand slots, view chains, cache and state

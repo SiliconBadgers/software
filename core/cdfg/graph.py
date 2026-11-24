@@ -39,6 +39,14 @@ class Tensor:
     weight: bool
     sources: tuple     # ((slot, tensor id), ...)
 
+    @classmethod
+    def from_capture(cls, t):
+        """One canonical interpretation of the captured tensor fields."""
+        return cls(
+            id=t["id"], name=t["name"], op=t["op"], desc=t["op_desc"], dtype=t["dtype"], shape=tuple(t["shape"]),
+            elements=t["elements"], span=t["span_bytes"], nbytes=t["logical_bytes"], view_source=t["view_source"],
+            weight=bool(t["weight_buffer"]), sources=tuple((s["slot"], s["tensor"]) for s in t["sources"]))
+
     @property
     def is_metadata(self):
         return self.desc in METADATA_OPS
@@ -95,10 +103,7 @@ class Graph:
         self.path, self.phase, self.meta = path, phase, raw["metadata"]
         self.tensors = {}
         for t in raw["tensors"]:
-            self.tensors[t["id"]] = Tensor(
-                id=t["id"], name=t["name"], op=t["op"], desc=t["op_desc"], dtype=t["dtype"], shape=tuple(t["shape"]),
-                elements=t["elements"], span=t["span_bytes"], nbytes=t["logical_bytes"], view_source=t["view_source"],
-                weight=bool(t["weight_buffer"]), sources=tuple((s["slot"], s["tensor"]) for s in t["sources"]))
+            self.tensors[t["id"]] = Tensor.from_capture(t)
         self.order = list(raw["scheduled_nodes"])
         self._root = {}
         self.nodes = []
