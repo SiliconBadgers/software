@@ -67,15 +67,18 @@ to the addresses read; that no later load overwrites an input before the
 reader's release milestone; that the store waits for every overlapping write;
 that only C is stored back, every row of every written C tile reaches its own
 bytes in C's HBM buffer, and the stored rows cover the whole C tensor exactly
-once; that no write lands in a load destination; and that the two queues
-cannot block each other.
+once; that every store, including any extra one, copies only SRAM bytes that
+hold the C bytes it writes, and no two stores write the same C bytes; that no
+write lands in a load destination; and that the two queues cannot block each
+other.
 
 `engine/tests/test_movement.py` runs valid plans for whole and edge tiles under
-both release policies, and eleven deliberately broken plans: a stale input, a
+both release policies, and thirteen deliberately broken plans: a stale input, a
 read before its load, an early reuse, a partial-row transfer, an early store, a
 wait cycle, an SRAM overflow, an output written into a load destination, a C
 store cut short (8 x 128 x 8: 512 of 4,096 B), a C store sent to A's HBM
-buffer and a C store at the wrong HBM offset. Each must fail with the matching
+buffer, a C store at the wrong HBM offset, an extra store that copies B over
+C's HBM bytes after the correct one, and a duplicate C store. Each must fail with the matching
 violation. Three CLI tests check that `--commands-out` writes a new file and
 leaves an existing file and the input capture unchanged.
 A plan built for `inputs_released` must fail when checked under `complete`.

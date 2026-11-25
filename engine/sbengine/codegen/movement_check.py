@@ -12,6 +12,8 @@ bug shows up as a violation instead of being repeated. Checked:
 * the output store waits for every overlapping MATRIX write (3j+3), only C is
   stored back, every row of every written C tile reaches its own HBM bytes,
   and the stored rows cover the whole C tensor exactly once
+* every store, including extra ones, copies only SRAM bytes that hold the C
+  bytes it writes to HBM, and no two stores write the same C bytes
 * MATRIX writes never land in a range that a transfer loads
 * the two queues can always make progress (no wait cycle)
 """
@@ -130,6 +132,7 @@ def check(movement):
                        "HBM buffer; only C is written back")
     c_stores = [s for s in stores if transfers[s].operand == "c"]
     stored_c = []                       # HBM C byte ranges that reach the right offsets
+    written_c = []                      # (SRAM lo, SRAM hi, HBM - SRAM) per output row
 
     def check_output(i, cmd, tile):
         """Every row of a written C tile is stored, whole, to its own HBM bytes."""
@@ -138,6 +141,7 @@ def check(movement):
         for r in range(tile.m):
             lo = cmd.c_base + r * pitch["c"]
             hbm = ((tile.m0 + r) * plan.n + tile.n0) * elem["c"]
+            written_c.append((lo, lo + row_bytes, hbm - lo))
             for s in c_stores:
                 x = transfers[s]
                 if x.sram_address <= lo and lo + row_bytes <= x.sram_address + x.length_bytes \
@@ -151,6 +155,41 @@ def check(movement):
             result.add("data", f"matrix {i}: {len(missing)} of {tile.m} output rows are not "
                        f"stored to their C HBM bytes (first: row {r}, SRAM [{lo}, "
                        f"{lo + row_bytes}) should reach [{hbm}, {hbm + row_bytes}))")
+
+    def check_store_sources(c_stores, written_c):
+        """Replay every C store: each byte it writes inside C must come from an SRAM
+        byte that a MATRIX output put there for that same C position, and no two
+        stores may write the same C bytes."""
+        by_shift = defaultdict(list)    # HBM - SRAM shift -> merged SRAM ranges
+        for lo, hi, shift in sorted(written_c, key=lambda w: (w[2], w[0])):
+            spans = by_shift[shift]
+            if spans and lo <= spans[-1][1]:
+                spans[-1][1] = max(spans[-1][1], hi)
+            else:
+                spans.append([lo, hi])
+        starts = {shift: [lo for lo, _ in spans] for shift, spans in by_shift.items()}
+        claimed = []
+        for s in c_stores:
+            x = transfers[s]
+            # Only the bytes that land inside the C tensor matter; the rest is row padding.
+            count = min(x.length_bytes, tensor["c"] - x.hbm_offset)
+            if count <= 0:
+                continue
+            lo, hi, shift = x.sram_address, x.sram_address + count, x.hbm_offset - x.sram_address
+            spans = by_shift.get(shift, [])
+            pos = bisect_right(starts.get(shift, []), lo) - 1
+            if pos < 0 or spans[pos][1] < hi:
+                result.add("store", f"transfer {s} copies SRAM [{lo}, {hi}) to C bytes "
+                           f"[{x.hbm_offset}, {x.hbm_offset + count}), but those SRAM bytes "
+                           "do not hold that part of C")
+            claimed.append((x.hbm_offset, x.hbm_offset + count, s))
+        end, owner = 0, None
+        for lo, hi, s in sorted(claimed):
+            if lo < end:
+                result.add("store", f"transfers {owner} and {s} both write C bytes "
+                           f"[{lo}, {min(end, hi)})")
+            if hi > end:
+                end, owner = hi, s
 
     # Walk the Matrix queue once, advancing the Memory queue as its waits allow.
     memory_next, memory_counter = 0, 0
@@ -215,6 +254,7 @@ def check(movement):
         if end != tensor["c"]:
             result.add("store", f"stored C covers [0, {end}) of HBM, not the "
                        f"{tensor['c']} B tensor")
+        check_store_sources(c_stores, written_c)
     for s in stores:
         if transfers[s].wait_matrix < writers[s]:
             result.add("store", f"transfer {s} stores C before its last writer's 3j+3 "

@@ -140,6 +140,36 @@ class MovementPlans(unittest.TestCase):
             for x in t])
         self.assertIn("data", self.kinds(movement))
 
+    def extra_store(self, movement, source):
+        """Append a store from `source`'s SRAM bytes onto C's HBM bytes after the real one."""
+        def add(t):
+            store = t[-1]
+            return t + [store._replace(index=len(t), sram_address=source.sram_address,
+                                       length_bytes=source.size_bytes)]
+        return mutate(movement, transfers=add)
+
+    def test_extra_store_over_c_is_caught(self):
+        # Every C row already has a correct store, so only replaying the extra
+        # store shows that B's bytes overwrite C in HBM.
+        movement = self.wide()
+        b = movement.buffers[0]
+        self.assertEqual(b.operand, "b")
+        kinds = self.kinds(self.extra_store(movement, b))
+        self.assertEqual(kinds, {"store"})
+        result = check(self.extra_store(self.wide(), self.wide().buffers[0]))
+        details = " ".join(v["detail"] for v in result["violations"])
+        self.assertIn("do not hold that part of C", details)
+        self.assertIn("both write C bytes", details)
+
+    def test_duplicate_correct_store_is_caught(self):
+        movement = self.wide()
+        c = movement.buffers[1]
+        self.assertEqual(c.operand, "c")
+        result = check(self.extra_store(movement, c))
+        self.assertFalse(result["passed"])
+        self.assertEqual({v["kind"] for v in result["violations"]}, {"store"})
+        self.assertIn("both write C bytes", result["violations"][0]["detail"])
+
     def test_sram_overflow_is_caught(self):
         movement = mutate(self.movement(), transfers=lambda t: [
             x._replace(sram_address=8 * 1024 * 1024) if x.index == 1 else x for x in t])
